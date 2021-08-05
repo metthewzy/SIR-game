@@ -40,8 +40,9 @@ def tests():
 	print(f'S_end={S_end} I_end={I_end}')
 	S_step = (S_0 - S_end) / 100000
 	S_range = np.arange(S_0, S_end - S_step, - S_step)
+	# print(S_range)
 	dts = del_t(S_range)
-	print(np.mean(dts) * (S_end - S_0))
+	print('t_end=', np.mean(dts) * (S_end - S_0))
 	return
 
 
