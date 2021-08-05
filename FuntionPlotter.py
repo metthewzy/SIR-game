@@ -20,10 +20,25 @@ def tests():
 	Is = I_t(S_range)
 	# print(Is)
 	for i in range(1, len(S_range)):
-		if Is[i] <= I_0:
-			print('S=', S_range[i], 'I=', Is[i])
+		S_left = S_range[i]
+		S_right = S_range[i - 1]
+		if Is[i] < I_0:
 			break
-	print(i, len(S_range))
+	print(S_left, S_right)
+
+	while True:
+		S_middle = (S_left + S_right) / 2
+		I_middle = I_t(S_middle)
+		if abs(I_middle - I_0) / I_0 < 0.001:
+			break
+		if I_middle < I_0:
+			S_left = S_middle
+		else:
+			S_right = S_middle
+	S_end = S_middle
+	I_end = I_t(S_end)
+	print(f'S_end={S_end} I_end={I_end}')
+
 	return
 
 
