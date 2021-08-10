@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 S_0 = 1
 I_0 = 0.0001
 gamma = 1 / 7
-beta = 0.5
+beta = 0.125
 
 
 def I_t(S_t):
@@ -43,11 +43,19 @@ def tests():
 	# print(S_range)
 	dts = del_t(S_range)
 	print('t_end=', np.mean(dts) * (S_end - S_0))
+	# plot_dt(S_end)
+	# plot_ds(S_end)
 	return
 
 
 def del_t(S):
-	value = - 1 / (beta * S * I_0 + gamma * S * np.log(S) - beta * S ** 2 + 1)
+	value = - 1 / (beta * S * (I_0 + gamma / beta * np.log(S / S_0) - (S - S_0)))
+	value = - 1 / (beta * S * I_0 + gamma * S * np.log(S / S_0) - beta * S ** 2 + beta * S)
+	return value
+
+
+def del_s_by_del_t(S):
+	value = - (beta * S * (I_0 + gamma / beta * np.log(S / S_0) - (S - S_0)))
 	return value
 
 
@@ -55,8 +63,8 @@ def simulate():
 	S = [S_0]
 	I = [I_0]
 	dt = 0.01
-	t = np.arange(0, 10000.5 * dt, dt)
-	for i in range(10000):
+	t = np.arange(0, 15000.5 * dt, dt)
+	for i in range(15000):
 		dS = (- beta * S[-1] * I[-1]) * dt
 		dI = (beta * S[-1] - gamma) * I[-1] * dt
 		S.append(S[-1] + dS)
@@ -67,6 +75,30 @@ def simulate():
 	ax.plot(t, S, label='S')
 	ax.plot(t, I, label='I')
 	ax.legend()
+	plt.show()
+	return
+
+
+def plot_dt(S_end):
+	S_range = np.arange(S_0, S_end, (S_end - S_0) / 1000)
+	dt = []
+	for s in S_range:
+		dt.append(del_t(s))
+	fig = plt.figure()
+	ax = fig.add_subplot()
+	ax.plot(S_range, dt, label='dt')
+	plt.show()
+	return
+
+
+def plot_ds(S_end):
+	S_range = np.arange(S_0, S_end, (S_end - S_0) / 1000)
+	dS = []
+	for s in S_range:
+		dS.append(del_s_by_del_t(s))
+	fig = plt.figure()
+	ax = fig.add_subplot()
+	ax.plot(S_range, dS, label='dt')
 	plt.show()
 	return
 
