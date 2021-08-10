@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 S_0 = 1
 I_0 = 0.0001
 gamma = 1 / 7
-beta = 0.125
+beta_0 = 2
 
 
 def I_t(S_t):
@@ -59,23 +59,54 @@ def del_s_by_del_t(S):
 	return value
 
 
-def simulate():
-	S = [S_0]
-	I = [I_0]
+def simulate(beta, S0, I0, t_vac, showPlot):
+	S = [S0]
+	I = [I0 * S0]
 	dt = 0.01
-	t = np.arange(0, 15000.5 * dt, dt)
-	for i in range(15000):
+	t_range = np.arange(0, t_vac + dt, dt)
+	for t in t_range[1:]:
 		dS = (- beta * S[-1] * I[-1]) * dt
 		dI = (beta * S[-1] - gamma) * I[-1] * dt
 		S.append(S[-1] + dS)
 		I.append(I[-1] + dI)
 
+	if showPlot:
+		fig = plt.figure()
+		ax = fig.add_subplot()
+		ax.plot(t_range, S, label='S')
+		ax.plot(t_range, I, label='I')
+		ax.legend()
+		plt.show()
+		plt.close(fig)
+	return S, I, t_range
+
+
+def dU_by_dt(income, beta, S_t, I_t, S0, t, t_vac):
+	value = income - beta * S_t * I_t / S0 * (t_vac - t) * income
+	return value
+
+
+def utilityPlotter():
+	t_vac = 60
+	U_S = []
+	U_M = []
+	S0_S_range = np.arange(0 + 0.01, 1, 0.01)
+	for S0_S in S0_S_range:
+		SS, IS, t_range = simulate(beta_0, S0_S, I_0, t_vac, False)
+		U_S.append(
+			np.mean([dU_by_dt(500, beta_0, SS[i], IS[i], S0_S, t_range[i], t_vac) for i in range(len(t_range))]) * 60)
+		SM, IM, t_range = simulate(beta_0 / 2, 1 - S0_S, I_0, t_vac, False)
+		U_M.append(np.mean(
+			[dU_by_dt(250, beta_0 / 2, SM[i], IM[i], 1 - S0_S, t_range[i], t_vac) for i in range(len(t_range))]) * 60)
 	fig = plt.figure()
 	ax = fig.add_subplot()
-	ax.plot(t, S, label='S')
-	ax.plot(t, I, label='I')
+	ax.plot(S0_S_range, U_S, label='susceptible')
+	ax.plot(S0_S_range, U_M, label='mask')
+	ax.set_xlabel('susceptible size')
+	ax.set_ylabel('utility')
 	ax.legend()
 	plt.show()
+	plt.close(fig)
 	return
 
 
@@ -104,8 +135,9 @@ def plot_ds(S_end):
 
 
 def main():
-	tests()
-	simulate()
+	# tests()
+	# simulate(beta_0 / 2, S_0, I_0, 60, True)
+	utilityPlotter()
 	return
 
 
