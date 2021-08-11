@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 S_0 = 1
 I_0 = 0.0001
 gamma = 1 / 7
-beta_0 = 2
+beta_0 = 5
 
 
 def I_t(S_t):
@@ -90,6 +90,7 @@ def utilityPlotter():
 	t_vac = 60
 	U_S = []
 	U_M = []
+	socialU = []
 	S0_S_range = np.arange(0 + 0.01, 1, 0.01)
 	for S0_S in S0_S_range:
 		SS, IS, t_range = simulate(beta_0, S0_S, I_0, t_vac, False)
@@ -98,10 +99,16 @@ def utilityPlotter():
 		SM, IM, t_range = simulate(beta_0 / 2, 1 - S0_S, I_0, t_vac, False)
 		U_M.append(np.mean(
 			[dU_by_dt(250, beta_0 / 2, SM[i], IM[i], 1 - S0_S, t_range[i], t_vac) for i in range(len(t_range))]) * 60)
+		socialU.append(U_S[-1] * S0_S + U_M[-1] * (1 - S0_S))
 	fig = plt.figure()
 	ax = fig.add_subplot()
 	ax.plot(S0_S_range, U_S, label='susceptible')
 	ax.plot(S0_S_range, U_M, label='mask')
+	ax.plot(S0_S_range, socialU, label='social')
+	maxSocial = max(socialU)
+	maxIndex = socialU.index(maxSocial)
+	ax.axhline(maxSocial, linestyle=':', label=f'social opt={round(maxSocial, 2)}', color='red')
+	ax.axvline(S0_S_range[maxIndex], linestyle=':', color='red', label=f'S0_S={round(S0_S_range[maxIndex], 3)}')
 	ax.set_xlabel('susceptible size')
 	ax.set_ylabel('utility')
 	ax.legend()
