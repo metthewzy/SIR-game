@@ -144,14 +144,19 @@ def plot_ds(S_end):
 def curvePlotter():
 	t_vac = 60
 	SSList = []
+	ISList = []
 	SMList = []
+	IMList = []
 	socialU = []
-	S0_S_range = np.arange(0 + 0.1, 1, 0.1)
+	S0_S_range = np.arange(0 + 0.1, 1 + 0.1, 0.1)
 	for S0_S in S0_S_range:
 		SS, IS, t_range = simulate(beta_0, S0_S, I_0, t_vac, False)
 		SSList.append(SS)
+		ISList.append(IS)
 		SM, IM, t_range = simulate(beta_0 / 2, 1 - S0_S, I_0, t_vac, False)
 		SMList.append(SM)
+		IMList.append(IM)
+
 	fig = plt.figure()
 	ax = fig.add_subplot()
 	for i in range(len(S0_S_range)):
@@ -159,6 +164,20 @@ def curvePlotter():
 	ax.legend()
 	plt.show()
 	plt.close(fig)
+
+	# fig = plt.figure()
+	# fig.suptitle('dS/dt/S0')
+	# ax = fig.add_subplot()
+	# for i in range(len(S0_S_range)):
+	# 	curve = []
+	# 	S0 = S0_S_range[i]
+	# 	for j in range(len(t_range)):
+	# 		curve.append(beta_0 * SSList[i][j] * ISList[i][j] / S0)
+	# 	ax.plot(t_range, curve, label=f'S0={round(S0, 2)}')
+	# ax.legend()
+	# plt.show()
+	# plt.close(fig)
+
 	return
 
 
