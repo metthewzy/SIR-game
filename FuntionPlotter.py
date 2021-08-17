@@ -161,7 +161,7 @@ def curvePlotter():
 	ax = fig.add_subplot()
 	for i in range(len(S0_S_range)):
 		# / S0_S_range[i]
-		ax.plot(t_range, SSList[i] / S0_S_range[i], label=f'S0={round(S0_S_range[i], 2)}')
+		ax.plot(t_range, SSList[i], label=f'S0={round(S0_S_range[i], 2)}')
 	ax.legend()
 	plt.show()
 	plt.close(fig)
@@ -203,8 +203,7 @@ def scalingBeta():
 	for i in range(len(S0_S_range)):
 		S0 = S0_S_range[i]
 		# / S0_S_range[i]
-		ax.plot(t_range, [beta_0 * S0 * SSList[i][j] * ISList[i][j] for j in
-						  range(len(t_range))], label=f'S0={round(S0_S_range[i], 2)}')
+		ax.plot(t_range, SSList[i], label=f'S0={round(S0_S_range[i], 2)}')
 	ax.legend()
 	plt.show()
 	plt.close(fig)
@@ -215,7 +214,7 @@ def main():
 	# tests()
 	# simulate(beta_0 / 2, S_0, I_0, 60, True)
 	# utilityPlotter()
-	# curvePlotter()
+	curvePlotter()
 	scalingBeta()
 	return
 
