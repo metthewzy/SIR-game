@@ -161,7 +161,7 @@ def curvePlotter():
 	ax = fig.add_subplot()
 	for i in range(len(S0_S_range)):
 		# / S0_S_range[i]
-		ax.plot(t_range, SSList[i], label=f'S0={round(S0_S_range[i], 2)}')
+		ax.plot(t_range, ISList[i] / S0_S_range[i], label=f'S0={round(S0_S_range[i], 2)}')
 	ax.legend()
 	plt.show()
 	plt.close(fig)
@@ -198,15 +198,56 @@ def scalingBeta():
 	# SMList.append(SM)
 	# IMList.append(IM)
 
+	# fig = plt.figure()
+	# ax = fig.add_subplot()
+	# for i in range(len(S0_S_range)):
+	# 	S0 = S0_S_range[i]
+	# 	# / S0_S_range[i]
+	# 	ax.plot(t_range, [beta_0 * S0 * SSList[i][j] * ISList[i][j] for j in
+	# 					  range(len(t_range))], label=f'S0={round(S0_S_range[i], 2)}')
+	# ax.legend()
+	# ax.set_title('beta S I')
+	# plt.show()
+	# plt.close(fig)
+
 	fig = plt.figure()
 	ax = fig.add_subplot()
 	for i in range(len(S0_S_range)):
 		S0 = S0_S_range[i]
 		# / S0_S_range[i]
-		ax.plot(t_range, SSList[i], label=f'S0={round(S0_S_range[i], 2)}')
+		ax.plot(t_range, ISList[i], label=f'S0={round(S0_S_range[i], 2)}')
 	ax.legend()
+	ax.set_ylabel('I')
+	ax.set_xlabel('t')
 	plt.show()
 	plt.close(fig)
+
+	return
+
+
+def plotI():
+	S_range = np.arange(0, 1.01, 0.01)
+	I = []
+	beta_range = np.arange(1, 5, 0.5)
+	for beta in beta_range:
+		I_list = []
+		for S in S_range:
+			I_list.append(0.0001 + gamma / beta * np.log(S) - (S - 1))
+		I.append(I_list)
+
+	fig = plt.figure()
+	ax = fig.add_subplot()
+	for j in range(len(beta_range)):
+		beta = beta_range[j]
+		ax.plot(S_range, I[j], label=f'beta={round(beta, 2)}')
+	ax.legend()
+	xl, xu = ax.get_xlim()
+	ax.set_xlim(xu, xl)
+	ax.set_xlabel('S')
+	ax.set_ylabel('I')
+	plt.show()
+	plt.close(fig)
+
 	return
 
 
@@ -214,8 +255,9 @@ def main():
 	# tests()
 	# simulate(beta_0 / 2, S_0, I_0, 60, True)
 	# utilityPlotter()
-	curvePlotter()
+	# curvePlotter()
 	scalingBeta()
+	# plotI()
 	return
 
 
