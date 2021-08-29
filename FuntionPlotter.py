@@ -276,32 +276,44 @@ def plotI():
 def compare_scaled():
 	t_vac = 60
 
-	dt = 1
-	S1, I1, t_range1 = simulate_scaled(beta_0, 1, I_0, t_vac, dt, False)
+	dts = [0.01, 0.1, 0.5, 1]
+	fig = plt.figure()
+	axes = fig.subplots(len(dts), 1)
+	# ax2 = fig.add_subplot(312)
+	# ax3 = fig.add_subplot(313)
+	for i in range(len(dts)):
+		dt = dts[i]
+		ax = axes[i]
+		ax.set_title(f'dt={round(dt, 4)}')
+		S, I, t_range = simulate_scaled(beta_0, 1, I_0, t_vac, dt, False)
+		ax.plot(t_range, S, label='S')
+		ax.plot(t_range, I, label='I')
+		ax.legend()
 
-	dt = 4
-	S4, I4, t_range4 = simulate_scaled(beta_0, 1, I_0, t_vac, dt, False)
-
-	dt = 0.01
-	S, I, t_range = simulate_scaled(beta_0, 1, I_0, t_vac, dt, False)
+	# dt = 1
+	# S1, I1, t_range1 = simulate_scaled(beta_0, 1, I_0, t_vac, dt, False)
+	#
+	# dt = 4
+	# S4, I4, t_range4 = simulate_scaled(beta_0, 1, I_0, t_vac, dt, False)
+	#
+	# dt = 0.01
+	# S, I, t_range = simulate_scaled(beta_0, 1, I_0, t_vac, dt, False)
 
 	# print(S1)
 	# print(S4)
 	# print(S)
 
-	fig = plt.figure()
-	ax1 = fig.add_subplot(311)
-	ax2 = fig.add_subplot(312)
-	ax3 = fig.add_subplot(313)
-	ax1.plot(t_range1, S1, label='S 1 day')
-	ax1.plot(t_range1, I1, label='I 1 day')
-	ax2.plot(t_range4, S4, label='S 4 day')
-	ax2.plot(t_range4, I4, label='I 4 day')
-	ax3.plot(t_range, S, label='S')
-	ax3.plot(t_range, I, label='I')
-	ax1.legend()
-	ax2.legend()
-	ax3.legend()
+
+	# ax1.plot(t_range1, S1, label='S 1 day')
+	# ax1.plot(t_range1, I1, label='I 1 day')
+	# ax2.plot(t_range4, S4, label='S 4 day')
+	# ax2.plot(t_range4, I4, label='I 4 day')
+	# ax3.plot(t_range, S, label='S')
+	# ax3.plot(t_range, I, label='I')
+	# ax1.legend()
+	# ax2.legend()
+	# ax3.legend()
+	fig.subplots_adjust(hspace=1)
 	plt.show()
 	plt.close(fig)
 	return
