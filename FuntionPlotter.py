@@ -81,6 +81,28 @@ def simulate(beta, S0, I0, t_vac, showPlot):
 	return S, I, t_range
 
 
+def simulate_scaled(beta, S0, I0, t_vac, dt, showPlot):
+	S = [S0]
+	I = [I0 * S0]
+	# dt = 0.01
+	t_range = np.arange(0, t_vac + dt, dt)
+	for t in t_range[1:]:
+		dS = - min((beta * S[-1] * I[-1]) * dt, S[-1])
+		dI = -dS - gamma * I[-1] * dt
+		S.append(S[-1] + dS)
+		I.append(I[-1] + dI)
+
+	if showPlot:
+		fig = plt.figure()
+		ax = fig.add_subplot()
+		ax.plot(t_range, S, label='S')
+		ax.plot(t_range, I, label='I')
+		ax.legend()
+		plt.show()
+		plt.close(fig)
+	return S, I, t_range
+
+
 def dU_by_dt(income, beta, S_t, I_t, S0, t, t_vac):
 	value = income - beta * S_t * I_t / S0 * (t_vac - t) * income
 	return value
@@ -251,13 +273,48 @@ def plotI():
 	return
 
 
+def compare_scaled():
+	t_vac = 60
+
+	dt = 1
+	S1, I1, t_range1 = simulate_scaled(beta_0, 1, I_0, t_vac, dt, False)
+
+	dt = 4
+	S4, I4, t_range4 = simulate_scaled(beta_0, 1, I_0, t_vac, dt, False)
+
+	dt = 0.01
+	S, I, t_range = simulate_scaled(beta_0, 1, I_0, t_vac, dt, False)
+
+	# print(S1)
+	# print(S4)
+	# print(S)
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot(311)
+	ax2 = fig.add_subplot(312)
+	ax3 = fig.add_subplot(313)
+	ax1.plot(t_range1, S1, label='S 1 day')
+	ax1.plot(t_range1, I1, label='I 1 day')
+	ax2.plot(t_range4, S4, label='S 4 day')
+	ax2.plot(t_range4, I4, label='I 4 day')
+	ax3.plot(t_range, S, label='S')
+	ax3.plot(t_range, I, label='I')
+	ax1.legend()
+	ax2.legend()
+	ax3.legend()
+	plt.show()
+	plt.close(fig)
+	return
+
+
 def main():
 	# tests()
 	# simulate(beta_0 / 2, S_0, I_0, 60, True)
 	# utilityPlotter()
 	# curvePlotter()
-	scalingBeta()
+	# scalingBeta()
 	# plotI()
+	compare_scaled()
 	return
 
 
