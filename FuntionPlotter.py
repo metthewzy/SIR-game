@@ -103,6 +103,35 @@ def simulate_scaled(beta, S0, I0, t_vac, dt, showPlot):
 	return S, I, t_range
 
 
+def simulate_release(beta, S0, I0, H0, t_release, t_vac, dt, showPlot):
+	S = [S0]
+	I = [I0 * S0]
+	H = [H0]
+	released = False
+	t_range = np.arange(0, t_vac + dt, dt)
+	for t in t_range[1:]:
+		dS = - min((beta * S[-1] * I[-1]) * dt, S[-1])
+		dI = -dS - gamma * I[-1] * dt
+		S.append(S[-1] + dS)
+		I.append(I[-1] + dI)
+		H.append(H[-1])
+		if not released and t >= t_release:
+			released = True
+			S[-1] += H[-1]
+			H[-1] = 0
+
+	if showPlot:
+		fig = plt.figure()
+		ax = fig.add_subplot()
+		ax.plot(t_range, S, label='S')
+		ax.plot(t_range, I, label='I')
+		ax.plot(t_range, H, label='H')
+		ax.legend()
+		plt.show()
+		plt.close(fig)
+	return S, I, H, t_range
+
+
 def dU_by_dt(income, beta, S_t, I_t, S0, t, t_vac):
 	value = income - beta * S_t * I_t / S0 * (t_vac - t) * income
 	return value
@@ -303,7 +332,6 @@ def compare_scaled():
 	# print(S4)
 	# print(S)
 
-
 	# ax1.plot(t_range1, S1, label='S 1 day')
 	# ax1.plot(t_range1, I1, label='I 1 day')
 	# ax2.plot(t_range4, S4, label='S 4 day')
@@ -319,6 +347,29 @@ def compare_scaled():
 	return
 
 
+def release_integral():
+	t_vac = 60
+	dt = 0.01
+	H0 = 0.5
+	S_int = []
+	H_int = []
+	for t_release in range(t_vac):
+		S, I, H, t_range = simulate_release(beta_0, 1, I_0, H0, t_release, t_vac, dt, False)
+		S_int.append(sum(S) * dt)
+		H_int.append(sum(H) * dt)
+
+	fig = plt.figure()
+	axes = fig.subplots(2, 1)
+	axes[0].plot(range(t_vac), S_int)
+	axes[1].plot(range(t_vac), H_int)
+	axes[0].set_title('S integral')
+	axes[1].set_title('H integral')
+	fig.subplots_adjust(hspace=1)
+	plt.show()
+	plt.close(fig)
+	return
+
+
 def main():
 	# tests()
 	# simulate(beta_0 / 2, S_0, I_0, 60, True)
@@ -326,7 +377,8 @@ def main():
 	# curvePlotter()
 	# scalingBeta()
 	# plotI()
-	compare_scaled()
+	# compare_scaled()
+	release_integral()
 	return
 
 
