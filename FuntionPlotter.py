@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 S_0 = 1
 I_0 = 0.0001
-gamma = 1 / 7
+gamma = 1 / 14
 beta_0 = 5
 
 
@@ -107,11 +107,13 @@ def simulate_release(beta, S0, I0, H0, t_release, t_vac, dt, showPlot):
 	S = [S0]
 	I = [I0 * S0]
 	H = [H0]
+	R = [0]
 	released = False
 	t_range = np.arange(0, t_vac + dt, dt)
 	for t in t_range[1:]:
 		dS = - min((beta * S[-1] * I[-1]) * dt, S[-1])
 		dI = -dS - gamma * I[-1] * dt
+		R.append(R[-1] + gamma * I[-1] * dt)
 		S.append(S[-1] + dS)
 		I.append(I[-1] + dI)
 		H.append(H[-1])
@@ -129,7 +131,7 @@ def simulate_release(beta, S0, I0, H0, t_release, t_vac, dt, showPlot):
 		ax.legend()
 		plt.show()
 		plt.close(fig)
-	return S, I, H, t_range
+	return S, I, H, R, t_range
 
 
 def dU_by_dt(income, beta, S_t, I_t, S0, t, t_vac):
@@ -348,37 +350,66 @@ def compare_scaled():
 
 
 def release_integral():
-	t_vac = 60
+	t_vac = 100
+	t_rcvr = 30
 	dt = 0.01
 	H0 = 0.5
 	S_int = []
 	H_int = []
+	I_int = []
+	R_int = []
 	S_curves = []
 	I_curves = []
 	H_curves = []
+	R_curves = []
+	cum_I = []
 
 	for t_release in range(t_vac):
-		S, I, H, t_range = simulate_release(beta_0, 1, I_0, H0, t_release, t_vac, dt, False)
+		S, I, H, R, t_range = simulate_release(1, 1, I_0, H0, t_release, t_vac, dt, False)
 		S_int.append(sum(S) * dt)
 		H_int.append(sum(H) * dt)
+		I_int.append(sum(I) * dt)
 		S_curves.append(S)
 		I_curves.append(I)
 		H_curves.append(H)
+		R = [R[i] for i in range(len(R)) if t_range[i] <= t_vac - t_rcvr]
+		# print(len(dR))
+		R_curves.append(R)
+		R_int.append(sum(R) * dt)
+		cum_I.append(1.5 - S[-1])
 
 	fig = plt.figure()
-	axes = fig.subplots(4, 1)
-	axes[0].plot(range(t_vac), S_int)
-	axes[1].plot(range(t_vac), H_int)
-	axes[0].set_title('S integral')
-	axes[1].set_title('H integral')
-	axes[2].set_title('Social')
-	axes[2].plot(range(t_vac), [S_int[i] + H_int[i] / 4 for i in range(t_vac)])
-	axes[3].set_title('S')
-	for i in range(t_vac - 10, t_vac):
-		axes[3].plot(t_range, S_curves[i])
+	axes = fig.subplots(4, 2)
+	axes[0][0].plot(range(t_vac), S_int, label='int S')
+	axes[0][0].plot(range(t_vac), R_int, label='int R')
+	axes[0][0].legend()
+	axes[0][1].plot(range(t_vac), H_int)
+	axes[1][0].plot(range(t_vac), I_int)
+	axes[0][0].set_title('S integral')
+	axes[1][0].set_title('I integral')
+	axes[0][1].set_title('H integral')
+	axes[1][1].set_title('Social')
+	axes[1][1].plot(range(t_vac),
+					[S_int[i] + 0.97 * R_int[i] - H_int[i] / 20 - cum_I[i] * 90 for i in range(t_vac)])
+	axes[2][0].set_title('S')
+	for i in range(t_vac - 20, t_vac):
+		axes[2][0].plot(t_range, S_curves[i])
+	axes[2][1].set_title('I')
+	for i in range(t_vac - 20, t_vac):
+		axes[2][1].plot(t_range, I_curves[i])
+	axes[3][0].set_title('R (releasing on day 0 to 30)')
+	for i in range(0, 30, 5):
+		axes[3][0].plot(t_range[:len(R_curves[i])], R_curves[i])
 	fig.subplots_adjust(hspace=0.6)
 	plt.show()
 	plt.close(fig)
+	return
+
+
+def tmp():
+	a = [1, 2, 3, 4, 5]
+	b = [i for i in a if i < 4]
+	print(b)
 	return
 
 
@@ -391,6 +422,7 @@ def main():
 	# plotI()
 	# compare_scaled()
 	release_integral()
+	# tmp()
 	return
 
 
