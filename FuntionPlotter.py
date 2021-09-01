@@ -353,18 +353,30 @@ def release_integral():
 	H0 = 0.5
 	S_int = []
 	H_int = []
+	S_curves = []
+	I_curves = []
+	H_curves = []
+
 	for t_release in range(t_vac):
 		S, I, H, t_range = simulate_release(beta_0, 1, I_0, H0, t_release, t_vac, dt, False)
 		S_int.append(sum(S) * dt)
 		H_int.append(sum(H) * dt)
+		S_curves.append(S)
+		I_curves.append(I)
+		H_curves.append(H)
 
 	fig = plt.figure()
-	axes = fig.subplots(2, 1)
+	axes = fig.subplots(4, 1)
 	axes[0].plot(range(t_vac), S_int)
 	axes[1].plot(range(t_vac), H_int)
 	axes[0].set_title('S integral')
 	axes[1].set_title('H integral')
-	fig.subplots_adjust(hspace=1)
+	axes[2].set_title('Social')
+	axes[2].plot(range(t_vac), [S_int[i] + H_int[i] / 4 for i in range(t_vac)])
+	axes[3].set_title('S')
+	for i in range(t_vac - 10, t_vac):
+		axes[3].plot(t_range, S_curves[i])
+	fig.subplots_adjust(hspace=0.6)
 	plt.show()
 	plt.close(fig)
 	return
