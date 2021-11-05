@@ -143,20 +143,27 @@ def utilityPlotter():
 	t_vac = 60
 	U_S = []
 	U_M = []
+	SS_list = []
+	SM_list = []
 	socialU = []
+	GDP1 = 10
 	S0_S_range = np.arange(0 + 0.01, 1, 0.01)
 	for S0_S in S0_S_range:
 		SS, IS, t_range = simulate(beta_0, S0_S, I_0, t_vac, False)
+		SS_list.append(GDP1 * np.mean(SS) * t_vac)
 		U_S.append(
-			np.mean([dU_by_dt(500, beta_0, SS[i], IS[i], S0_S, t_range[i], t_vac) for i in range(len(t_range))]) * 60)
+			np.mean([GDP1 * dU_by_dt(GDP1, beta_0, SS[i], IS[i], S0_S, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
 		SM, IM, t_range = simulate(beta_0 / 2, 1 - S0_S, I_0, t_vac, False)
+		SM_list.append(np.mean(SM) * t_vac)
 		U_M.append(np.mean(
-			[dU_by_dt(250, beta_0 / 2, SM[i], IM[i], 1 - S0_S, t_range[i], t_vac) for i in range(len(t_range))]) * 60)
-		socialU.append(U_S[-1] * S0_S + U_M[-1] * (1 - S0_S))
+			[dU_by_dt(1, beta_0 * 2, SM[i], IM[i], 1 - S0_S, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
+		socialU.append(SS_list[-1] + SM_list[-1])
 	fig = plt.figure()
 	ax = fig.add_subplot()
-	ax.plot(S0_S_range, U_S, label='susceptible')
-	ax.plot(S0_S_range, U_M, label='mask')
+	ax.plot(S0_S_range, U_S, label='UN_s')
+	ax.plot(S0_S_range, U_M, label='UN_m')
+	# ax.plot(S0_S_range, SS_list, label='U_s')
+	# ax.plot(S0_S_range, SM_list, label='U_m')
 	ax.plot(S0_S_range, socialU, label='social')
 	maxSocial = max(socialU)
 	maxIndex = socialU.index(maxSocial)
@@ -416,12 +423,12 @@ def tmp():
 def main():
 	# tests()
 	# simulate(beta_0 / 2, S_0, I_0, 60, True)
-	# utilityPlotter()
+	utilityPlotter()
 	# curvePlotter()
 	# scalingBeta()
 	# plotI()
 	# compare_scaled()
-	release_integral()
+	# release_integral()
 	# tmp()
 	return
 
