@@ -357,7 +357,7 @@ def compare_scaled():
 
 
 def release_integral():
-	t_vac = 100
+	t_vac = 200
 	t_rcvr = 30
 	dt = 0.01
 	H0 = 0.5
