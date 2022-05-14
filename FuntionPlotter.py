@@ -139,6 +139,8 @@ def dU_by_dt(income, beta, S_t, I_t, S0, t, t_vac):
 	return value
 
 
+# 2 group game. plotting the player's expected utility in each group,
+# and the social utility with varying size of group1
 def utilityPlotter():
 	t_vac = 60
 	U_S = []
@@ -146,24 +148,37 @@ def utilityPlotter():
 	SS_list = []
 	SM_list = []
 	socialU = []
-	GDP1 = 10
-	S0_S_range = np.arange(0 + 0.01, 1, 0.01)
+	# susceptible group daily payment. mask group daily payment assumed to be 1
+	GDP1 = 5
+	step_size = 0.01
+	S0_S_range = np.arange(0 + step_size, 1, step_size)
 	for S0_S in S0_S_range:
 		SS, IS, t_range = simulate(beta_0, S0_S, I_0, t_vac, False)
+		# susceptible group utility
 		SS_list.append(GDP1 * np.mean(SS) * t_vac)
-		U_S.append(
-			np.mean([GDP1 * dU_by_dt(GDP1, beta_0, SS[i], IS[i], S0_S, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
-		SM, IM, t_range = simulate(beta_0 / 2, 1 - S0_S, I_0, t_vac, False)
+		# player's expected utility in susceptible group
+		U_S.append(np.mean(
+			[dU_by_dt(GDP1, beta_0, SS[i], IS[i], S0_S, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
+
+		S0_M = 1 - S0_S
+		SM, IM, t_range = simulate(beta_0 / 2, S0_M, I_0, t_vac, False)
+		# mask group utility
 		SM_list.append(np.mean(SM) * t_vac)
+		# player's expected utility in mask group
 		U_M.append(np.mean(
-			[dU_by_dt(1, beta_0 * 2, SM[i], IM[i], 1 - S0_S, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
+			[dU_by_dt(1, beta_0 / 2, SM[i], IM[i], S0_M, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
+
 		socialU.append(SS_list[-1] + SM_list[-1])
 	fig = plt.figure()
-	ax = fig.add_subplot()
-	ax.plot(S0_S_range, U_S, label='UN_s')
-	ax.plot(S0_S_range, U_M, label='UN_m')
-	# ax.plot(S0_S_range, SS_list, label='U_s')
-	# ax.plot(S0_S_range, SM_list, label='U_m')
+	ax = fig.add_subplot(121)
+	ax2 = fig.add_subplot(122)
+	ax2.plot(S0_S_range, [SS_list[i] / S0_S_range[i] for i in range(len(S0_S_range))], label='from group utility')
+	ax2.plot(S0_S_range, U_S, label='dU/dt')
+	ax2.legend()
+	ax.plot(S0_S_range, U_S, label='U(Player)_S')
+	ax.plot(S0_S_range, U_M, label='U(Player)_M')
+	# ax.plot(S0_S_range, SS_list, label='Group Utility s')
+	# ax.plot(S0_S_range, SM_list, label='Group Utility m')
 	ax.plot(S0_S_range, socialU, label='social')
 	maxSocial = max(socialU)
 	maxIndex = socialU.index(maxSocial)
@@ -397,7 +412,7 @@ def release_integral():
 	axes[0][1].set_title('H integral')
 	axes[1][1].set_title('Social')
 	axes[1][1].plot(range(t_vac),
-					[S_int[i] + 0.97 * R_int[i] - H_int[i] / 20 - cum_I[i] * 90 for i in range(t_vac)])
+	                [S_int[i] + 0.97 * R_int[i] - H_int[i] / 20 - cum_I[i] * 90 for i in range(t_vac)])
 	axes[2][0].set_title('S')
 	for i in range(t_vac - 20, t_vac):
 		axes[2][0].plot(t_range, S_curves[i])
