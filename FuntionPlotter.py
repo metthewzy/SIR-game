@@ -135,12 +135,14 @@ def simulate_release(beta, S0, I0, H0, t_release, t_vac, dt, showPlot):
 
 
 def dU_by_dt(income, beta, S_t, I_t, S0, t, t_vac):
+	if S0 == 0:
+		return income
 	value = income - beta * S_t * I_t / S0 * (t_vac - t) * income
 	return value
 
 
-# 2 group game. plotting the player's expected utility in each group,
-# and the social utility with varying size of group1
+# 2 group game. S:susceptible, M:mask. plotting the player's expected utility in each group, and the social utility
+# with varying size of group S
 def utilityPlotter():
 	t_vac = 60
 	U_S = []
@@ -150,46 +152,122 @@ def utilityPlotter():
 	socialU = []
 	# susceptible group daily payment. mask group daily payment assumed to be 1
 	GDP1 = 5
-	step_size = 0.01
-	S0_S_range = np.arange(0 + step_size, 1, step_size)
+	GDP2 = 1
+	beta_S = beta_0
+	beta_M = beta_0 / 2
+	step_size = 0.005
+	S0_S_range = np.arange(0, 1 + step_size, step_size)
 	for S0_S in S0_S_range:
-		SS, IS, t_range = simulate(beta_0, S0_S, I_0, t_vac, False)
+		SS, IS, t_range = simulate(beta_S, S0_S, I_0, t_vac, False)
 		# susceptible group utility
 		SS_list.append(GDP1 * np.mean(SS) * t_vac)
 		# player's expected utility in susceptible group
 		U_S.append(np.mean(
-			[dU_by_dt(GDP1, beta_0, SS[i], IS[i], S0_S, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
+			[dU_by_dt(GDP1, beta_S, SS[i], IS[i], S0_S, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
 
 		S0_M = 1 - S0_S
-		SM, IM, t_range = simulate(beta_0 / 2, S0_M, I_0, t_vac, False)
+		SM, IM, t_range = simulate(beta_M, S0_M, I_0, t_vac, False)
 		# mask group utility
-		SM_list.append(np.mean(SM) * t_vac)
+		SM_list.append(GDP2 * np.mean(SM) * t_vac)
 		# player's expected utility in mask group
 		U_M.append(np.mean(
-			[dU_by_dt(1, beta_0 / 2, SM[i], IM[i], S0_M, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
+			[dU_by_dt(GDP2, beta_M, SM[i], IM[i], S0_M, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
 
 		socialU.append(SS_list[-1] + SM_list[-1])
+
 	fig = plt.figure()
-	ax = fig.add_subplot(121)
+	ax1 = fig.add_subplot(121)
+	# ax1.plot(S0_S_range, U_S, label='U(Player)_S')
+	# ax1.plot(S0_S_range, U_M, label='U(Player)_M')
+	ax1.plot(S0_S_range, SS_list, label='Group Utility s')
+	ax1.plot(S0_S_range, SM_list, label='Group Utility m')
+	ax1.plot(S0_S_range, socialU, label='social')
+	max_social = max(socialU)
+	maxIndex = socialU.index(max_social)
+	ax1.axhline(max_social, linestyle=':', label=f'OPT={round(max_social, 4)}', color='red')
+	ax1.axvline(S0_S_range[maxIndex], linestyle=':', color='red', label=f'OPT@{round(S0_S_range[maxIndex], 4)}')
+	ax1.set_xlabel('susceptible size')
+	ax1.set_ylabel('utility')
+	ax1.legend()
+
+	# search for the NE point
+	NE_S0_S_range, NE_U_S, NE_U_M, NE_utility = NE_searcher(t_vac, GDP1, GDP2, beta_S, beta_M)
+	NE_S0_S = NE_S0_S_range[-1]
+	# NE_S0_S_range, NE_U_S, NE_U_M = map(list, zip(*sorted(zip(NE_S0_S_range, NE_U_S, NE_U_M))))
 	ax2 = fig.add_subplot(122)
-	ax2.plot(S0_S_range, [SS_list[i] / S0_S_range[i] for i in range(len(S0_S_range))], label='from group utility')
-	ax2.plot(S0_S_range, U_S, label='dU/dt')
+	# ax2.plot(NE_S0_S_range, NE_U_S, label='U(Player)_S')
+	# ax2.plot(NE_S0_S_range, NE_U_M, label='U(Player)_M')
+	ax2.plot(S0_S_range, U_S, label='U(Player)_S')
+	ax2.plot(S0_S_range, U_M, label='U(Player)_M')
+	ax2.axhline(NE_utility, label=f'NE={round(NE_utility, 4)}', linestyle=':', color='red')
+	ax2.axvline(NE_S0_S, label=f'NE@{round(NE_S0_S, 4)}', linestyle=':', color='red')
+	ax2.set_xlabel('susceptible size')
+	ax2.set_ylabel('utility')
 	ax2.legend()
-	ax.plot(S0_S_range, U_S, label='U(Player)_S')
-	ax.plot(S0_S_range, U_M, label='U(Player)_M')
-	# ax.plot(S0_S_range, SS_list, label='Group Utility s')
-	# ax.plot(S0_S_range, SM_list, label='Group Utility m')
-	ax.plot(S0_S_range, socialU, label='social')
-	maxSocial = max(socialU)
-	maxIndex = socialU.index(maxSocial)
-	ax.axhline(maxSocial, linestyle=':', label=f'social opt={round(maxSocial, 2)}', color='red')
-	ax.axvline(S0_S_range[maxIndex], linestyle=':', color='red', label=f'S0_S={round(S0_S_range[maxIndex], 3)}')
-	ax.set_xlabel('susceptible size')
-	ax.set_ylabel('utility')
-	ax.legend()
+	fig.suptitle(f'POA={round(max_social / NE_utility, 4)}')
 	plt.show()
 	plt.close(fig)
 	return
+
+
+# return the Nash Equilibrium at the last location in the list
+def NE_searcher(t_vac, GDP1, GDP2, beta_S, beta_M):
+
+	# player utility for group S and M
+	U_S = []
+	U_M = []
+
+	# trying S0_S=0
+	S0_S_range = [0]
+	S0_S = S0_S_range[-1]
+	SS, IS, t_range = simulate(beta_S, S0_S, I_0, t_vac, False)
+	U_S.append(np.mean(
+		[dU_by_dt(GDP1, beta_S, SS[i], IS[i], S0_S, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
+
+	S0_M = 1 - S0_S
+	SM, IM, t_range = simulate(beta_M, S0_M, I_0, t_vac, False)
+	U_M.append(np.mean(
+		[dU_by_dt(GDP2, beta_M, SM[i], IM[i], S0_M, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
+
+	if U_M[-1] > U_S[-1]:
+		return S0_S_range, U_S, U_M, U_M[-1]
+
+	# trying S0_S=1
+	S0_S_range.append(1)
+	S0_S = S0_S_range[-1]
+	SS, IS, t_range = simulate(beta_S, S0_S, I_0, t_vac, False)
+	U_S.append(np.mean(
+		[dU_by_dt(GDP1, beta_S, SS[i], IS[i], S0_S, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
+
+	S0_M = 1 - S0_S
+	SM, IM, t_range = simulate(beta_M, S0_M, I_0, t_vac, False)
+	U_M.append(np.mean(
+		[dU_by_dt(GDP2, beta_M, SM[i], IM[i], S0_M, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
+
+	if U_S[-1] > U_M[-1]:
+		return S0_S_range, U_S, U_M, U_S[-1]
+
+	left, right, mid = 0, 1, 0.5
+	for _ in range(40):
+		S0_S_range.append(mid)
+		S0_S = S0_S_range[-1]
+		SS, IS, t_range = simulate(beta_S, S0_S, I_0, t_vac, False)
+		U_S.append(np.mean(
+			[dU_by_dt(GDP1, beta_S, SS[i], IS[i], S0_S, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
+
+		S0_M = 1 - S0_S
+		SM, IM, t_range = simulate(beta_M, S0_M, I_0, t_vac, False)
+		U_M.append(np.mean(
+			[dU_by_dt(GDP2, beta_M, SM[i], IM[i], S0_M, t_range[i], t_vac) for i in range(len(t_range))]) * t_vac)
+
+		if U_S[-1] > U_M[-1]:
+			# S0_S too small
+			left = mid
+		else:
+			# S0_S too large
+			right = mid
+		mid = (left + right) / 2
+	return S0_S_range, U_S, U_M, (U_S[-1] + U_M[-1]) / 2
 
 
 def plot_dt(S_end):
