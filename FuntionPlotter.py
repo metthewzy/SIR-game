@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 S_0 = 1
 I_0 = 0.0001
 gamma = 1 / 14
-beta_0 = 5
+beta_0 = 1
 
 
 def I_t(S_t):
