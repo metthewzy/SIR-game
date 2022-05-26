@@ -6,6 +6,8 @@ S_0 = 1
 I_0 = 0.0001
 gamma = 1 / 14
 beta_0 = 1
+separate_betas = False
+show_figure = True
 
 
 def I_t(S_t):
@@ -84,7 +86,7 @@ def simulate(beta, S0, I0, t_vac, showPlot):
 
 
 # 2 groups simulation with interactions in between
-def simulate_interaction(beta1, S1_0, beta2, S2_0, I_0, t_vac, showPlot):
+def simulate_interaction(beta1, beta2, S1_0, S2_0, t_vac, showPlot):
 	S1 = [S1_0]
 	I1 = [I_0 * S1_0]
 	S2 = [S2_0]
@@ -93,14 +95,47 @@ def simulate_interaction(beta1, S1_0, beta2, S2_0, I_0, t_vac, showPlot):
 	t_range = np.arange(0, t_vac + dt, dt)
 	for t in t_range[1:]:
 		# dS1 = (- S1[-1] * (beta1 * I1[-1] + beta2 * I2[-1])) * dt
-		# dI1 = (S1[-1] * (beta1 * I1[-1] + beta2 * I2[-1]) + gamma * I1[-1]) * dt
+		# dI1 = (S1[-1] * (beta1 * I1[-1] + beta2 * I2[-1]) - gamma * I1[-1]) * dt
 		dS1 = (- beta1 * S1[-1] * (I1[-1] + I2[-1])) * dt
-		dI1 = (beta1 * S1[-1] * (I1[-1] + I2[-1]) + gamma * I1[-1]) * dt
+		dI1 = (beta1 * S1[-1] * (I1[-1] + I2[-1]) - gamma * I1[-1]) * dt
 
 		# dS2 = (- S2[-1] * (beta1 * I1[-1] + beta2 * I2[-1])) * dt
-		# dI2 = (S2[-1] * (beta1 * I1[-1] + beta2 * I2[-1]) + gamma * I2[-1]) * dt
+		# dI2 = (S2[-1] * (beta1 * I1[-1] + beta2 * I2[-1]) - gamma * I2[-1]) * dt
 		dS2 = (- beta2 * S2[-1] * (I1[-1] + I2[-1])) * dt
-		dI2 = (beta2 * S2[-1] * (I1[-1] + I2[-1]) + gamma * I2[-1]) * dt
+		dI2 = (beta2 * S2[-1] * (I1[-1] + I2[-1]) - gamma * I2[-1]) * dt
+
+		S1.append(S1[-1] + dS1)
+		I1.append(I1[-1] + dI1)
+		S2.append(S2[-1] + dS2)
+		I2.append(I2[-1] + dI2)
+
+	if showPlot:
+		fig = plt.figure()
+		ax = fig.add_subplot()
+		ax.plot(t_range, S1, label='S1')
+		ax.plot(t_range, I1, label='I1')
+		ax.plot(t_range, S2, label='S2')
+		ax.plot(t_range, I2, label='I2')
+		ax.legend()
+		plt.show()
+		plt.close(fig)
+	return S1, I1, S2, I2, t_range
+
+
+# 2 groups simulation with interactions in between. 4 betas for each S and I combination
+def simulate_interaction_V2(beta11, beta12, beta21, beta22, S1_0, S2_0, t_vac, showPlot):
+	S1 = [S1_0]
+	I1 = [I_0 * S1_0]
+	S2 = [S2_0]
+	I2 = [I_0 * S2_0]
+	dt = 0.01
+	t_range = np.arange(0, t_vac + dt, dt)
+	for t in t_range[1:]:
+		dS1 = - (beta11 * S1[-1] * I1[-1] + beta12 * S1[-1] * I2[-1]) * dt
+		dI1 = (beta11 * S1[-1] * I1[-1] + beta12 * S1[-1] * I2[-1] - gamma * I1[-1]) * dt
+
+		dS2 = - (beta21 * S2[-1] * I1[-1] + beta22 * S2[-1] * I2[-1]) * dt
+		dI2 = (beta21 * S2[-1] * I1[-1] + beta22 * S2[-1] * I2[-1] - gamma * I2[-1]) * dt
 
 		S1.append(S1[-1] + dS1)
 		I1.append(I1[-1] + dI1)
@@ -643,12 +678,23 @@ def utility_plotter_interaction(income_ratio, beta_ratio, t_vac):
 	GDP2 = 1
 	beta_S = beta_0
 	beta_M = beta_0 * beta_ratio
+
+	beta_SS = beta_0
+	beta_SM = beta_0 * beta_ratio
+	beta_MS = beta_0 * beta_ratio ** 2
+	beta_MM = beta_0 * beta_ratio ** 3
+
 	step_size = 0.005
 	# S0_S_range = np.arange(0, 1 + step_size, step_size)
 	S0_S_range = np.arange(0 + step_size, 1, step_size)
 	for S0_S in S0_S_range:
 		S0_M = 1 - S0_S
-		SS, IS, SM, IM, t_range = simulate_interaction(beta_S, S0_S, beta_M, S0_M, I_0, t_vac, False)
+		if not separate_betas:
+			SS, IS, SM, IM, t_range = simulate_interaction(beta_S, beta_M, S0_S, S0_M, t_vac,
+														   True if S0_S == 0.5 and show_figure else False)
+		else:
+			SS, IS, SM, IM, t_range = simulate_interaction_V2(beta_SS, beta_SM, beta_MS, beta_MM, S0_S, S0_M, t_vac,
+															  True if S0_S == 0.5 and show_figure else False)
 
 		# susceptible group utility
 		SS_list.append(GDP1 * np.mean(SS) * t_vac)
@@ -691,23 +737,28 @@ def utility_plotter_interaction(income_ratio, beta_ratio, t_vac):
 	ax3.axvline(S0_S_range[maxIndex], linestyle=':', color='red', label=f'OPT@{round(S0_S_range[maxIndex], 4)}')
 	ax3.legend()
 
-	# search for the NE point
-	NE_S0_S_range, NE_U_S, NE_U_M, NE_utility = NE_searcher(t_vac, GDP1, GDP2, beta_S, beta_M)
-	NE_S0_S = NE_S0_S_range[-1]
-	POA = max_social / NE_utility
-	print('POA=', POA)
+	# # search for the NE point
+	# NE_S0_S_range, NE_U_S, NE_U_M, NE_utility = NE_searcher(t_vac, GDP1, GDP2, beta_S, beta_M)
+	# NE_S0_S = NE_S0_S_range[-1]
+	# POA = max_social / NE_utility
+	# print('POA=', POA)
 	# NE_S0_S_range, NE_U_S, NE_U_M = map(list, zip(*sorted(zip(NE_S0_S_range, NE_U_S, NE_U_M))))
+
 	ax2 = fig.add_subplot(222)
 	# ax2.plot(NE_S0_S_range, NE_U_S, label='U(Player)_S')
 	# ax2.plot(NE_S0_S_range, NE_U_M, label='U(Player)_M')
 	ax2.plot(S0_S_range, U_S, label='U(Player)_S')
 	ax2.plot(S0_S_range, U_M, label='U(Player)_M')
-	ax2.axhline(NE_utility, label=f'NE={round(NE_utility, 4)}', linestyle=':', color='red')
-	ax2.axvline(NE_S0_S, label=f'NE@{round(NE_S0_S, 4)}', linestyle=':', color='red')
+
+	# ax2.axhline(NE_utility, label=f'NE={round(NE_utility, 4)}', linestyle=':', color='red')
+	# ax2.axvline(NE_S0_S, label=f'NE@{round(NE_S0_S, 4)}', linestyle=':', color='red')
+
 	ax2.set_xlabel('susceptible size')
 	ax2.set_ylabel('utility')
 	ax2.legend()
-	fig.suptitle(f'POA={round(max_social / NE_utility, 4)}')
+
+	# fig.suptitle(f'POA={round(max_social / NE_utility, 4)}')
+
 	plt.show()
 	plt.close(fig)
 	return
