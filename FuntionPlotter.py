@@ -562,13 +562,6 @@ def release_integral():
 	return
 
 
-def tmp():
-	a = [1, 2, 3, 4, 5]
-	b = [i for i in a if i < 4]
-	print(b)
-	return
-
-
 # heatmap for POA over different daily income ratios and beta ratios
 def POA_grid():
 	# income_ratios = range(1, 11)
@@ -627,6 +620,13 @@ def POA_grid():
 	print('max POA=', max_POA)
 	plt.show()
 
+	return
+
+
+def tmp():
+	i = j = [3]
+	i += j
+	print(i, j)
 	return
 
 
@@ -714,6 +714,7 @@ def utility_plotter_interaction(income_ratio, beta_ratio, t_vac):
 
 
 def main():
+	# tmp()
 	# tests()
 
 	# utility_plotter(income_ratio=6, beta_ratio=0.5, t_vac=100)
@@ -725,7 +726,6 @@ def main():
 	# plotI()
 	# compare_scaled()
 	# release_integral()
-	# tmp()
 	return
 
 
