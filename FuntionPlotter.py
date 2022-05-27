@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from numpy.random import uniform as uni
+import time
 
 S_0 = 1
 I_0 = 0.0001
@@ -764,13 +766,82 @@ def utility_plotter_interaction(income_ratio, beta_ratio, t_vac):
 	return
 
 
+def POA_monte_carlo(runs):
+	np.random.seed()
+	beta_range = (0.05, 1)
+	gamma_range = (1/20, 1/5)
+	income_range = (1, 50)
+	beta_ratio_range = (0.01, 1)
+
+	t_vac = 100
+	max_POA = 0
+	max_paras = []
+	GDP2 = 1
+	global gamma
+	t1 = time.perf_counter()
+	for _ in range(runs):
+		beta_S = uni(beta_range[0], beta_range[1])
+		gamma = uni(gamma_range[0], gamma_range[1])
+		GDP1 = uni(income_range[0], income_range[1])
+		beta_M = beta_S * uni(beta_ratio_range[0], beta_ratio_range[1])
+
+		U_S = []
+		U_M = []
+		SS_list = []
+		SM_list = []
+		socialU = []
+		step_size = 0.01
+		S0_S_range = np.arange(0, 1 + step_size, step_size)
+		for S0_S in S0_S_range:
+			SS, IS, t_range = simulate(beta_S, S0_S, I_0, t_vac, False)
+			# susceptible group utility
+			SS_list.append(GDP1 * np.mean(SS) * t_vac)
+			# player's expected utility in susceptible group
+			U_S.append(np.mean(
+				[dU_by_dt(GDP1, beta_S, SS[i], IS[i], S0_S, t_range[i], t_vac) for i in
+				 range(len(t_range))]) * t_vac)
+
+			S0_M = 1 - S0_S
+			SM, IM, t_range = simulate(beta_M, S0_M, I_0, t_vac, False)
+			# mask group utility
+			SM_list.append(GDP2 * np.mean(SM) * t_vac)
+			# player's expected utility in mask group
+			U_M.append(np.mean(
+				[dU_by_dt(GDP2, beta_M, SM[i], IM[i], S0_M, t_range[i], t_vac) for i in
+				 range(len(t_range))]) * t_vac)
+
+			socialU.append(SS_list[-1] + SM_list[-1])
+
+		max_social = max(socialU)
+		maxIndex = socialU.index(max_social)
+
+		NE_S0_S_range, NE_U_S, NE_U_M, NE_utility = NE_searcher(t_vac, GDP1, GDP2, beta_S, beta_M)
+		NE_S0_S = NE_S0_S_range[-1]
+		POA = max_social / NE_utility
+
+		if POA > max_POA:
+			max_POA = POA
+			max_paras = [beta_S, beta_M, gamma, GDP1]
+			print('POA=', POA)
+			print('beta_S=', beta_S)
+			print('beta_M=', beta_M)
+			print('gamma=', gamma)
+			print('GDP1=', GDP1)
+			print()
+
+	t2 = time.perf_counter()
+	print(f'{round((t2 - t1) / 60, 3)} minutes for {runs} runs')
+	return
+
+
 def main():
 	# tmp()
 	# tests()
 
 	# utility_plotter(income_ratio=6, beta_ratio=0.5, t_vac=100)
 	# utility_plotter_interaction(income_ratio=2.5, beta_ratio=0.5, t_vac=100)
-	POA_grid()
+	# POA_grid()
+	POA_monte_carlo(runs=2000)
 
 	# curvePlotter()
 	# scalingBeta()
