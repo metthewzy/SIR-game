@@ -6,7 +6,7 @@ S_0 = 1
 I_0 = 0.0001
 gamma = 1 / 14
 beta_0 = 1
-separate_betas = False
+separate_betas = True
 show_figure = True
 
 
@@ -691,10 +691,10 @@ def utility_plotter_interaction(income_ratio, beta_ratio, t_vac):
 		S0_M = 1 - S0_S
 		if not separate_betas:
 			SS, IS, SM, IM, t_range = simulate_interaction(beta_S, beta_M, S0_S, S0_M, t_vac,
-														   True if S0_S == 0.5 and show_figure else False)
+														   True if S0_S == 0.8 and show_figure else False)
 		else:
 			SS, IS, SM, IM, t_range = simulate_interaction_V2(beta_SS, beta_SM, beta_MS, beta_MM, S0_S, S0_M, t_vac,
-															  True if S0_S == 0.5 and show_figure else False)
+															  True if S0_S == 0.8 and show_figure else False)
 
 		# susceptible group utility
 		SS_list.append(GDP1 * np.mean(SS) * t_vac)
@@ -769,8 +769,8 @@ def main():
 	# tests()
 
 	# utility_plotter(income_ratio=6, beta_ratio=0.5, t_vac=100)
-	utility_plotter_interaction(income_ratio=2, beta_ratio=0.5, t_vac=100)
-	# POA_grid()
+	# utility_plotter_interaction(income_ratio=2.5, beta_ratio=0.5, t_vac=100)
+	POA_grid()
 
 	# curvePlotter()
 	# scalingBeta()
