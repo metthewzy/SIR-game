@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from numpy.random import uniform as uni
 import time
+import concurrent.futures
+import traceback
+import sys
 
 S_0 = 1
 I_0 = 0.0001
@@ -11,8 +14,31 @@ beta_0 = 1
 separate_betas = True
 show_figure = True
 
+BETA_RANGE = (0.05, 1)
+GAMMA_RANGE = (1 / 20, 1 / 5)
+INCOME_RANGE = (1, 50)
+BETA_RATIO_RANGE = (0.01, 1)
+
+
+def dummy_worker(dummy_id):
+	for _ in range(1000000000):
+		_ += 0
+	return dummy_id
+
 
 def tests():
+	"""
+	trying multithreading
+	"""
+	with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
+		results = [executor.submit(dummy_worker, i) for i in range(10)]
+
+		try:
+			for f in concurrent.futures.as_completed(results):
+				dummy_id = f.result()
+				print(dummy_id, "completed")
+		except:
+			traceback.print_exception(*sys.exc_info())
 	return
 
 
@@ -82,7 +108,7 @@ def simulate_interaction(beta1, beta2, gamma, S1_0, S2_0, t_vac, showPlot):
 
 def simulate_interaction_V2(beta11, beta12, beta21, beta22, gamma, S1_0, S2_0, t_vac, showPlot):
 	"""
-	2 groups simulation with interactions in between. 4 betas for each S and I combination
+	2 groups simulation with interactions in between. 4 betas for each S-I combination
 	"""
 	S1 = [S1_0]
 	I1 = [I_0 * S1_0]
@@ -450,80 +476,88 @@ def POA_monte_carlo(runs):
 	Monte Carlo to generate max POA. 2 group game without interaction
 	"""
 	np.random.seed()
-	beta_range = (0.05, 1)
-	gamma_range = (1 / 20, 1 / 5)
-	income_range = (1, 50)
-	beta_ratio_range = (0.01, 1)
 
 	t_vac = 100
 	max_POA = 0
 	max_paras = []
-	GDP2 = 1
 
 	t1 = time.perf_counter()
-	for _ in range(runs):
-		beta_S = uni(beta_range[0], beta_range[1])
-		gamma = uni(gamma_range[0], gamma_range[1])
-		GDP1 = uni(income_range[0], income_range[1])
-		beta_M = beta_S * uni(beta_ratio_range[0], beta_ratio_range[1])
+	with concurrent.futures.ProcessPoolExecutor(max_workers=18) as executor:
+		num_threads = 0
+		results = [executor.submit(POA_calculator, t_vac) for _ in range(runs)]
 
-		U_S = []
-		U_M = []
-		SS_list = []
-		SM_list = []
-		socialU = []
-		step_size = 0.01
-		S0_S_range = np.arange(0, 1 + step_size, step_size)
-		for S0_S in S0_S_range:
-			SS, IS, t_range = simulate(beta_S, gamma, S0_S, I_0, t_vac, False)
-			# susceptible group utility
-			SS_list.append(GDP1 * np.mean(SS) * t_vac)
-			# player's expected utility in susceptible group
-			U_S.append(np.mean(
-				[dU_by_dt(GDP1, beta_S, SS[i], IS[i], S0_S, t_range[i], t_vac) for i in
-				 range(len(t_range))]) * t_vac)
-
-			S0_M = 1 - S0_S
-			SM, IM, t_range = simulate(beta_M, gamma, S0_M, I_0, t_vac, False)
-			# mask group utility
-			SM_list.append(GDP2 * np.mean(SM) * t_vac)
-			# player's expected utility in mask group
-			U_M.append(np.mean(
-				[dU_by_dt(GDP2, beta_M, SM[i], IM[i], S0_M, t_range[i], t_vac) for i in
-				 range(len(t_range))]) * t_vac)
-
-			socialU.append(SS_list[-1] + SM_list[-1])
-
-		max_social = max(socialU)
-		maxIndex = socialU.index(max_social)
-
-		NE_S0_S_range, NE_U_S, NE_U_M, NE_utility = NE_searcher(t_vac, GDP1, GDP2, beta_S, beta_M, gamma)
-		NE_S0_S = NE_S0_S_range[-1]
-		POA = max_social / NE_utility
-
-		if POA > max_POA:
-			max_POA = POA
-			max_paras = [beta_S, beta_M, gamma, GDP1]
-			print('POA=', POA)
-			print('beta_S=', beta_S)
-			print('beta_M=', beta_M)
-			print('gamma=', gamma)
-			print('GDP1=', GDP1)
-			print()
+		try:
+			for f in concurrent.futures.as_completed(results):
+				POA, [beta_S, beta_M, gamma, GDP1] = f.result()
+				num_threads += 1
+				if POA > max_POA:
+					max_POA = POA
+					max_paras = [beta_S, beta_M, gamma, GDP1]
+					print('MAX POA updated at run', num_threads)
+		except:
+			traceback.print_exception(*sys.exc_info())
 
 	t2 = time.perf_counter()
-	print(f'{round((t2 - t1) / 60, 3)} minutes for {runs} runs')
+	print(f'\n{round((t2 - t1) / 60, 3)} minutes for {runs} runs')
+	[beta_S, beta_M, gamma, GDP1] = max_paras
+	print('MAX POA=', max_POA)
+	print('beta_S=', beta_S)
+	print('beta_M=', beta_M)
+	print('gamma=', gamma)
+	print('GDP1=', GDP1)
 	return
+
+
+def POA_calculator(t_vac):
+	beta_S = uni(BETA_RANGE[0], BETA_RANGE[1])
+	gamma = uni(GAMMA_RANGE[0], GAMMA_RANGE[1])
+	GDP1 = uni(INCOME_RANGE[0], INCOME_RANGE[1])
+	GDP2 = 1
+	beta_M = beta_S * uni(BETA_RATIO_RANGE[0], BETA_RATIO_RANGE[1])
+	U_S = []
+	U_M = []
+	SS_list = []
+	SM_list = []
+	socialU = []
+	step_size = 0.01
+	S0_S_range = np.arange(0, 1 + step_size, step_size)
+	for S0_S in S0_S_range:
+		SS, IS, t_range = simulate(beta_S, gamma, S0_S, I_0, t_vac, False)
+		# susceptible group utility
+		SS_list.append(GDP1 * np.mean(SS) * t_vac)
+		# player's expected utility in susceptible group
+		U_S.append(np.mean(
+			[dU_by_dt(GDP1, beta_S, SS[i], IS[i], S0_S, t_range[i], t_vac) for i in
+			 range(len(t_range))]) * t_vac)
+
+		S0_M = 1 - S0_S
+		SM, IM, t_range = simulate(beta_M, gamma, S0_M, I_0, t_vac, False)
+		# mask group utility
+		SM_list.append(GDP2 * np.mean(SM) * t_vac)
+		# player's expected utility in mask group
+		U_M.append(np.mean(
+			[dU_by_dt(GDP2, beta_M, SM[i], IM[i], S0_M, t_range[i], t_vac) for i in
+			 range(len(t_range))]) * t_vac)
+
+		socialU.append(SS_list[-1] + SM_list[-1])
+
+	max_social = max(socialU)
+	maxIndex = socialU.index(max_social)
+
+	NE_S0_S_range, NE_U_S, NE_U_M, NE_utility = NE_searcher(t_vac, GDP1, GDP2, beta_S, beta_M, gamma)
+	NE_S0_S = NE_S0_S_range[-1]
+	POA = max_social / NE_utility
+	return POA, [beta_S, beta_M, gamma, GDP1]
 
 
 def main():
 	# tmp()
-	tests()
+	# tests()
 
 	# utility_plotter(income_ratio=6, beta_ratio=0.5, t_vac=100, gamma=GAMMA)
 	# utility_plotter_interaction(income_ratio=2.5, beta_ratio=0.5, t_vac=100)
 	# POA_grid()
-	# POA_monte_carlo(runs=20)
+	POA_monte_carlo(runs=100)
 
 	return
 
