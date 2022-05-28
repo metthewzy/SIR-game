@@ -19,6 +19,8 @@ GAMMA_RANGE = (1 / 20, 1 / 5)
 INCOME_RANGE = (1, 50)
 BETA_RATIO_RANGE = (0.01, 1)
 
+NUM_CORES = 18
+
 
 def dummy_worker(dummy_id):
 	for _ in range(1000000000):
@@ -482,7 +484,7 @@ def POA_monte_carlo(runs):
 	max_paras = []
 
 	t1 = time.perf_counter()
-	with concurrent.futures.ProcessPoolExecutor(max_workers=18) as executor:
+	with concurrent.futures.ProcessPoolExecutor(max_workers=NUM_CORES) as executor:
 		num_threads = 0
 		results = [executor.submit(POA_calculator, t_vac) for _ in range(runs)]
 
