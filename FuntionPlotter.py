@@ -10,7 +10,7 @@ import sys
 S_0 = 1
 I_0 = 0.0001
 GAMMA = 1 / 14
-beta_0 = 1
+BETA_0 = 1
 separate_betas = True
 show_figure = True
 
@@ -150,7 +150,7 @@ def dU_by_dt(income, beta, S_t, I_t, S0, t, t_vac):
 	return value
 
 
-def utility_plotter(income_ratio, beta_ratio, t_vac, gamma):
+def utility_plotter(beta, income_ratio, beta_ratio, t_vac, gamma):
 	"""
 	2 group game w/o interaction. S:susceptible, M:mask. plotting
 	the player's expected utility in each group, and the social
@@ -164,8 +164,8 @@ def utility_plotter(income_ratio, beta_ratio, t_vac, gamma):
 	# susceptible group daily payment. mask group daily payment assumed to be 1
 	GDP1 = income_ratio
 	GDP2 = 1
-	beta_S = beta_0
-	beta_M = beta_0 * beta_ratio
+	beta_S = beta
+	beta_M = beta * beta_ratio
 	step_size = 0.005
 	# S0_S_range = np.arange(0, 1 + step_size, step_size)
 	S0_S_range = np.arange(0 + step_size, 1, step_size)
@@ -314,7 +314,7 @@ def POA_grid():
 	for GDP1 in income_ratios:
 		POAs.append([])
 		GDP2 = 1
-		beta_S = beta_0
+		beta_S = BETA_0
 		for beta_ratio in beta_ratios:
 			print(GDP1, beta_ratio)
 			U_S = []
@@ -385,13 +385,13 @@ def utility_plotter_interaction(income_ratio, beta_ratio, t_vac, gamma):
 	# susceptible group daily payment. mask group daily payment assumed to be 1
 	GDP1 = income_ratio
 	GDP2 = 1
-	beta_S = beta_0
-	beta_M = beta_0 * beta_ratio
+	beta_S = BETA_0
+	beta_M = BETA_0 * beta_ratio
 
-	beta_SS = beta_0
-	beta_SM = beta_0 * beta_ratio
-	beta_MS = beta_0 * beta_ratio ** 2
-	beta_MM = beta_0 * beta_ratio ** 3
+	beta_SS = BETA_0
+	beta_SM = BETA_0 * beta_ratio
+	beta_MS = BETA_0 * beta_ratio ** 2
+	beta_MM = BETA_0 * beta_ratio ** 3
 
 	step_size = 0.005
 	# S0_S_range = np.arange(0, 1 + step_size, step_size)
@@ -492,6 +492,8 @@ def POA_monte_carlo(runs):
 			for f in concurrent.futures.as_completed(results):
 				POA, [beta_S, beta_M, gamma, GDP1] = f.result()
 				num_threads += 1
+				if num_threads % round(runs / 20) == 0:
+					print(f'{num_threads} / {runs} completed')
 				if POA > max_POA:
 					max_POA = POA
 					max_paras = [beta_S, beta_M, gamma, GDP1]
@@ -556,10 +558,15 @@ def main():
 	# tmp()
 	# tests()
 
-	# utility_plotter(income_ratio=6, beta_ratio=0.5, t_vac=100, gamma=GAMMA)
+	# utility_plotter(beta=BETA_0, income_ratio=6, beta_ratio=0.5, t_vac=100, gamma=GAMMA)
 	# utility_plotter_interaction(income_ratio=2.5, beta_ratio=0.5, t_vac=100)
 	# POA_grid()
-	POA_monte_carlo(runs=100)
+	# POA_monte_carlo(runs=20000)
+	utility_plotter(beta=0.9794676182860252,
+	                income_ratio=8.47300431687476,
+	                beta_ratio=0.148881166,
+	                t_vac=100,
+	                gamma=0.17000166641559938)
 
 	return
 
