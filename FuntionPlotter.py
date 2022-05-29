@@ -562,10 +562,18 @@ def main():
 	# utility_plotter_interaction(income_ratio=2.5, beta_ratio=0.5, t_vac=100)
 	# POA_grid()
 	# POA_monte_carlo(runs=20000)
+
+	# max POA found
+	# utility_plotter(beta=0.9794676182860252,
+	#                 income_ratio=8.47300431687476,
+	#                 beta_ratio=0.148881166,
+	#                 t_vac=100,
+	#                 gamma=0.17000166641559938)
+
 	utility_plotter(beta=0.9794676182860252,
-	                income_ratio=8.47300431687476,
-	                beta_ratio=0.148881166,
-	                t_vac=100,
+	                income_ratio=1,
+	                beta_ratio=1,
+	                t_vac=10,
 	                gamma=0.17000166641559938)
 
 	return
