@@ -301,7 +301,7 @@ def NE_searcher(t_vac, GDP1, GDP2, beta_S, beta_M, gamma):
 	return S0_S_range, U_S, U_M, (U_S[-1] + U_M[-1]) / 2
 
 
-def POA_grid():
+def POA_heatmap():
 	"""
 	heatmap for POA over different daily income ratios and beta ratios
 	"""
@@ -358,6 +358,7 @@ def POA_grid():
 	ax.set_yticklabels(income_ratios)
 	ax.set_xlabel('beta ratio')
 	ax.set_ylabel('income ratio')
+	ax.set_title('POA @NE')
 	print('max POA=', max_POA)
 	plt.show()
 
@@ -554,13 +555,74 @@ def POA_calculator(t_vac):
 	return POA, [beta_S, beta_M, gamma, GDP1]
 
 
+def OPT_heatmap(beta, t_vac, gamma):
+	"""
+	Heatmap of Nash Equilibrium susceptible size w.r.t. beta ratio and gamma
+	"""
+	income_ratios = [1, 2, 4, 6, 8, 10]
+	beta_ratios = [1, 1 / 2, 1 / 3, 1 / 4, 1 / 5, 1 / 10]
+	OPT_S_sizes = []
+	# max_POA = 0
+	for GDP1 in income_ratios:
+		OPT_S_sizes.append([])
+		GDP2 = 1
+		beta_S = beta
+		for beta_ratio in beta_ratios:
+			print(GDP1, beta_ratio)
+			U_S = []
+			U_M = []
+			SS_list = []
+			SM_list = []
+			socialU = []
+			beta_M = beta_S * beta_ratio
+			step_size = 0.01
+			S0_S_range = np.arange(0, 1 + step_size, step_size)
+			for S0_S in S0_S_range:
+				SS, IS, t_range = simulate(beta_S, gamma, S0_S, I_0, t_vac, False)
+				# susceptible group utility
+				SS_list.append(GDP1 * np.mean(SS) * t_vac)
+				# player's expected utility in susceptible group
+				U_S.append(np.mean(
+					[dU_by_dt(GDP1, beta_S, SS[i], IS[i], S0_S, t_range[i], t_vac) for i in
+					 range(len(t_range))]) * t_vac)
+
+				S0_M = 1 - S0_S
+				SM, IM, t_range = simulate(beta_M, gamma, S0_M, I_0, t_vac, False)
+				# mask group utility
+				SM_list.append(GDP2 * np.mean(SM) * t_vac)
+				# player's expected utility in mask group
+				U_M.append(np.mean(
+					[dU_by_dt(GDP2, beta_M, SM[i], IM[i], S0_M, t_range[i], t_vac) for i in
+					 range(len(t_range))]) * t_vac)
+
+				socialU.append(SS_list[-1] + SM_list[-1])
+
+			max_social = max(socialU)
+			maxIndex = socialU.index(max_social)
+
+			# NE_S0_S_range, NE_U_S, NE_U_M, NE_utility = NE_searcher(t_vac, GDP1, GDP2, beta_S, beta_M, gamma)
+			# NE_S0_S = NE_S0_S_range[-1]
+			# POA = max_social / NE_utility
+			OPT_S_sizes[-1].append(S0_S_range[maxIndex])
+			# max_POA = max(max_POA, POA)
+	ax = sns.heatmap(OPT_S_sizes, annot=True, fmt=".3f")
+	ax.set_xticklabels([round(i, 2) for i in beta_ratios])
+	ax.set_yticklabels(income_ratios)
+	ax.set_xlabel('beta ratio')
+	ax.set_ylabel('income ratio')
+	ax.set_title('Susceptible size @NE')
+	# print('max POA=', max_POA)
+	plt.show()
+	return
+
+
 def main():
 	# tmp()
 	# tests()
 
 	# utility_plotter(beta=BETA_0, income_ratio=6, beta_ratio=0.5, t_vac=100, gamma=GAMMA)
 	# utility_plotter_interaction(income_ratio=2.5, beta_ratio=0.5, t_vac=100)
-	# POA_grid()
+	# POA_heatmap()
 	# POA_monte_carlo(runs=20000)
 
 	# max POA found
@@ -570,11 +632,13 @@ def main():
 	#                 t_vac=100,
 	#                 gamma=0.17000166641559938)
 
-	utility_plotter(beta=0.9794676182860252,
-	                income_ratio=1,
-	                beta_ratio=1,
-	                t_vac=10,
-	                gamma=0.17000166641559938)
+	OPT_heatmap(beta=1, t_vac=100, gamma=1 / 14)
+
+	# utility_plotter(beta=0.9794676182860252,
+	#                 income_ratio=1,
+	#                 beta_ratio=1,
+	#                 t_vac=10,
+	#                 gamma=0.17000166641559938)
 
 	return
 
