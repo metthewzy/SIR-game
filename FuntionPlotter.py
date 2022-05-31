@@ -787,6 +787,13 @@ def POA_MT_optimizer(runs):
 					max_POA = POA
 					max_paras = paras
 					print('MAX POA updated at run', num_threads)
+					with open('POA.txt', 'w') as fl:
+						[beta_S, beta_ratio, income_ratio, gamma] = max_paras
+						fl.write(f'MAX POA=\n{max_POA}\n\n')
+						fl.write(f'beta_S=\n{beta_S}\n\n')
+						fl.write(f'beta_ratio=\n{beta_ratio}\n\n')
+						fl.write(f'income_ratio=\n{income_ratio}\n\n')
+						fl.write(f'gamma=\n{gamma}\n')
 		except:
 			traceback.print_exception(*sys.exc_info())
 
@@ -798,13 +805,6 @@ def POA_MT_optimizer(runs):
 	print('beta_ratio=', beta_ratio)
 	print('income_ratio=', income_ratio)
 	print('gamma=', gamma)
-
-	with open('POA.txt', 'w') as f:
-		f.write(f'MAX POA=\n{max_POA}\n\n')
-		f.write(f'beta_S=\n{beta_S}\n\n')
-		f.write(f'beta_ratio=\n{beta_ratio}\n\n')
-		f.write(f'income_ratio=\n{income_ratio}\n\n')
-		f.write(f'gamma=\n{gamma}\n')
 
 	return
 
