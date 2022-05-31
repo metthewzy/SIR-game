@@ -761,11 +761,11 @@ def POA_MT_optimizer(runs):
 	income_ratio = 8.47300431687476
 	gamma = 0.17000166641559938
 	t_vac = 100
-	initial_paras = [beta_S, beta_ratio, income_ratio, gamma, t_vac]
+	initial_paras = [beta_S, beta_ratio, income_ratio, gamma]
 	t1 = time.perf_counter()
 	with concurrent.futures.ProcessPoolExecutor(max_workers=NUM_THREADS) as executor:
 		num_threads = 0
-		results = [executor.submit(POA_optimizer, initial_paras) for _ in range(runs)]
+		results = [executor.submit(POA_optimizer, initial_paras, t_vac) for _ in range(runs)]
 
 		try:
 			for f in concurrent.futures.as_completed(results):
@@ -791,11 +791,11 @@ def POA_MT_optimizer(runs):
 	return
 
 
-def POA_optimizer(paras):
+def POA_optimizer(paras, t_vac):
 	"""
 	Maximize for a max POA around a given parameter point
 	"""
-	beta_S, beta_ratio, income_ratio, gamma, t_vac = paras
+	beta_S, beta_ratio, income_ratio, gamma = paras
 	beta_S_range = (beta_S * 0.8, beta_S * 1.2)
 	beta_ratio_range = (beta_ratio * 0.8, beta_ratio * 1.2)
 	income_ratio_range = (income_ratio * 0.8, income_ratio * 1.2)
