@@ -236,7 +236,7 @@ def utility_plotter(beta, income_ratio, beta_ratio, gamma, t_vac):
 	ax2.set_ylabel('utility')
 	ax2.legend()
 	# fig.suptitle(f'POA={round(max_social / NE_utility, 4)}')
-	fig.suptitle('POA={:.4f}'.format(POA))
+	fig.suptitle('POA={:.6f}'.format(POA))
 	plt.show()
 	plt.close(fig)
 	return
@@ -830,13 +830,14 @@ def POA_optimizer(paras, t_vac):
 	                           beta_ratio_range,
 	                           income_ratio_range,
 	                           gamma_range])
-	POA = POA_calculator(optimal.x, t_vac)
-	return -POA, optimal.x
+	POA = -POA_calculator(optimal.x, t_vac)
+	return POA, optimal.x
 
 
 def POA_calculator(paras, t_vac):
 	"""
 	Compute POA with given parameters
+	Note that return is -POA
 	"""
 	beta_S, beta_ratio, income_ratio, gamma = paras
 
