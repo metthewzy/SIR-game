@@ -45,13 +45,14 @@ def tests():
 	return
 
 
-def simulate(beta, gamma, S0, I0, t_vac, showPlot):
+def simulate(beta, gamma, S0, I0, t_vac, showPlot, num_steps=10000):
 	"""
 	1 group SIR simulation
 	"""
 	S = [S0]
 	I = [I0 * S0]
-	dt = 0.01
+	# dt = 0.01
+	dt = t_vac / num_steps
 	t_range = np.arange(0, t_vac + dt, dt)
 	for t in t_range[1:]:
 		dS = (- beta * S[-1] * I[-1]) * dt
@@ -191,11 +192,11 @@ def utility_plotter(beta, income_ratio, beta_ratio, gamma, t_vac):
 		socialU.append(SS_list[-1] + SM_list[-1])
 
 	fig = plt.figure()
-	ax1 = fig.add_subplot(221)
+	ax1 = fig.add_subplot(121)
 	# ax1.plot(S0_S_range, U_S, label='U(Player)_S')
 	# ax1.plot(S0_S_range, U_M, label='U(Player)_M')
-	ax1.plot(S0_S_range, SS_list, label='Group Utility s')
-	ax1.plot(S0_S_range, SM_list, label='Group Utility m')
+	ax1.plot(S0_S_range, SS_list, label='UG(S)')
+	ax1.plot(S0_S_range, SM_list, label='UG(M)')
 	ax1.plot(S0_S_range, socialU, label='social')
 	max_social = max(socialU)
 	maxIndex = socialU.index(max_social)
@@ -203,21 +204,20 @@ def utility_plotter(beta, income_ratio, beta_ratio, gamma, t_vac):
 	ax1.axvline(S0_S_range[maxIndex], linestyle=':', color='red', label=f'OPT@{round(S0_S_range[maxIndex], 4)}')
 	ax1.set_xlabel('susceptible size')
 	ax1.set_ylabel('utility')
-	ax1.legend()
 
-	# dGroup utility by d phi(S)
-	ax3 = fig.add_subplot(223)
-	dGroup_utility_S = [SS_list[i] - SS_list[i - 1] for i in range(1, len(SS_list))]
-	ax3.plot(S0_S_range[1:], dGroup_utility_S, label='dUG(S)')
-
-	dGroup_utility_M = [SM_list[i] - SM_list[i - 1] for i in range(1, len(SM_list))]
-	ax3.plot(S0_S_range[1:], dGroup_utility_M, label='dUG(M)')
-
-	sum_dUG = [dGroup_utility_S[i] + dGroup_utility_M[i] for i in range(len(dGroup_utility_S))]
-	ax3.plot(S0_S_range[1:], sum_dUG, label='sum dUG')
-	# ax3.axhline(sum_dUG[maxIndex], linestyle=':', label=f'OPT={round(sum_dUG[maxIndex], 4)}', color='red')
-	ax3.axvline(S0_S_range[maxIndex], linestyle=':', color='red', label=f'OPT@{round(S0_S_range[maxIndex], 4)}')
-	ax3.legend()
+	# # dGroup utility by d phi(S)
+	# ax3 = fig.add_subplot(223)
+	# dGroup_utility_S = [SS_list[i] - SS_list[i - 1] for i in range(1, len(SS_list))]
+	# ax3.plot(S0_S_range[1:], dGroup_utility_S, label='dUG(S)')
+	#
+	# dGroup_utility_M = [SM_list[i] - SM_list[i - 1] for i in range(1, len(SM_list))]
+	# ax3.plot(S0_S_range[1:], dGroup_utility_M, label='dUG(M)')
+	#
+	# sum_dUG = [dGroup_utility_S[i] + dGroup_utility_M[i] for i in range(len(dGroup_utility_S))]
+	# ax3.plot(S0_S_range[1:], sum_dUG, label='sum dUG')
+	# # ax3.axhline(sum_dUG[maxIndex], linestyle=':', label=f'OPT={round(sum_dUG[maxIndex], 4)}', color='red')
+	# ax3.axvline(S0_S_range[maxIndex], linestyle=':', color='red', label=f'OPT@{round(S0_S_range[maxIndex], 4)}')
+	# ax3.legend()
 
 	# search for the NE point
 	NE_S0_S_range, NE_U_S, NE_U_M, NE_utility = NE_searcher(t_vac, GDP1, GDP2, beta_S, beta_M, gamma)
@@ -225,18 +225,25 @@ def utility_plotter(beta, income_ratio, beta_ratio, gamma, t_vac):
 	POA = max_social / NE_utility
 	print('POA=', POA)
 	# NE_S0_S_range, NE_U_S, NE_U_M = map(list, zip(*sorted(zip(NE_S0_S_range, NE_U_S, NE_U_M))))
-	ax2 = fig.add_subplot(222)
+	ax2 = fig.add_subplot(122)
 	# ax2.plot(NE_S0_S_range, NE_U_S, label='U(Player)_S')
 	# ax2.plot(NE_S0_S_range, NE_U_M, label='U(Player)_M')
-	ax2.plot(S0_S_range, U_S, label='U(Player)_S')
-	ax2.plot(S0_S_range, U_M, label='U(Player)_M')
-	ax2.axhline(NE_utility, label=f'NE={round(NE_utility, 4)}', linestyle=':', color='red')
-	ax2.axvline(NE_S0_S, label=f'NE@{round(NE_S0_S, 4)}', linestyle=':', color='red')
+	ax2.plot(S0_S_range, U_S, label='U(S)')
+	ax2.plot(S0_S_range, U_M, label='U(M)')
+	ax2.axhline(NE_utility, label=f'NE={round(NE_utility, 4)}', linestyle=':', color='grey')
+	ax2.axvline(NE_S0_S, label=f'NE@{round(NE_S0_S, 4)}', linestyle=':', color='grey')
+
 	ax2.set_xlabel('susceptible size')
 	ax2.set_ylabel('utility')
-	ax2.legend()
+
+	ax1.axvline(NE_S0_S, label=f'NE@{round(NE_S0_S, 4)}', linestyle=':', color='grey')
+	ax2.axvline(S0_S_range[maxIndex], linestyle=':', color='red', label=f'OPT@{round(S0_S_range[maxIndex], 4)}')
+
+	ax1.legend(loc='upper left', bbox_to_anchor=(0, -0.15))
+	ax2.legend(loc='upper left', bbox_to_anchor=(0, -0.15))
 	# fig.suptitle(f'POA={round(max_social / NE_utility, 4)}')
 	fig.suptitle('POA={:.6f}'.format(POA))
+	plt.tight_layout()
 	plt.show()
 	plt.close(fig)
 	return
@@ -476,10 +483,10 @@ def utility_plotter_interaction(income_ratio, beta_ratio, gamma, t_vac):
 		S0_M = 1 - S0_S
 		if not separate_betas:
 			SS, IS, SM, IM, t_range = simulate_interaction(beta_S, beta_M, gamma, S0_S, S0_M, t_vac,
-			                                               True if S0_S == 0.8 and show_figure else False)
+														   True if S0_S == 0.8 and show_figure else False)
 		else:
 			SS, IS, SM, IM, t_range = simulate_interaction_V2(beta_SS, beta_SM, beta_MS, beta_MM, gamma, S0_S, S0_M,
-			                                                  t_vac, True if S0_S == 0.8 and show_figure else False)
+															  t_vac, True if S0_S == 0.8 and show_figure else False)
 
 		# susceptible group utility
 		SS_list.append(GDP1 * np.mean(SS) * t_vac)
@@ -820,16 +827,16 @@ def POA_optimizer(paras, t_vac):
 	income_ratio_range = (income_ratio * 0.8, income_ratio * 1.2)
 	gamma_range = (gamma * 0.8, gamma * 1.2)
 	optimal = minimize(POA_calculator,
-	                   [uni(beta_S_range[0], beta_S_range[1]),
-	                    uni(beta_ratio_range[0], beta_ratio_range[1]),
-	                    uni(income_ratio_range[0], income_ratio_range[1]),
-	                    uni(gamma_range[0], gamma_range[1])],
-	                   args=t_vac,
-	                   method='L-BFGS-B',
-	                   bounds=[beta_S_range,
-	                           beta_ratio_range,
-	                           income_ratio_range,
-	                           gamma_range])
+					   [uni(beta_S_range[0], beta_S_range[1]),
+						uni(beta_ratio_range[0], beta_ratio_range[1]),
+						uni(income_ratio_range[0], income_ratio_range[1]),
+						uni(gamma_range[0], gamma_range[1])],
+					   args=t_vac,
+					   method='L-BFGS-B',
+					   bounds=[beta_S_range,
+							   beta_ratio_range,
+							   income_ratio_range,
+							   gamma_range])
 	POA = -POA_calculator(optimal.x, t_vac)
 	return POA, optimal.x
 
@@ -889,23 +896,23 @@ def main():
 	# POA_heatmap()
 	# POA_Monte_Carlo(runs=20000)
 
-	# max POA found
-	utility_plotter(beta=1.1753611419432302,
-	                income_ratio=10.12476515963674,
-	                beta_ratio=0.11910493280000001,
-	                t_vac=100,
-	                gamma=0.20400199969871927)
+	# # max POA found
+	# utility_plotter(beta=1.1753611419432302,
+	# 				income_ratio=10.12476515963674,
+	# 				beta_ratio=0.11910493280000001,
+	# 				gamma=0.20400199969871927,
+	# 				t_vac=100)
 
 	# OPT_heatmap(beta=1, t_vac=100, gamma=1 / 14)
 
 	# OPT_heatmap_V2(beta=1, t_vac=100, income_ratio=8.47300431687476)
 	# POA_heatmap_V2(beta=1, t_vac=100, income_ratio=8.47300431687476)
 
-	# utility_plotter(beta=0.7870890437712303,
-	#                 income_ratio=7.729210571954948,
-	#                 beta_ratio=0.11910493280000001,
-	#                 gamma=0.20301395795482735,
-	#                 t_vac=100)
+	utility_plotter(beta=1.1753611419432302,
+					income_ratio=5,
+					beta_ratio=0.7,
+					gamma=0.20400199969871927,
+					t_vac=100)
 
 	# POA_MT_optimizer(beta_S=0.9794676182860252,
 	#                  beta_ratio=0.148881166,
