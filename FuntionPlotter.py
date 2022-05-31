@@ -6,6 +6,7 @@ import time
 import concurrent.futures
 import traceback
 import sys
+from scipy.optimize import minimize
 
 S_0 = 1
 I_0 = 0.0001
@@ -19,7 +20,7 @@ GAMMA_RANGE = (1 / 20, 1 / 5)
 INCOME_RANGE = (1, 50)
 BETA_RATIO_RANGE = (0.01, 1)
 
-NUM_CORES = 18
+NUM_THREADS = 18
 
 
 def dummy_worker(dummy_id):
@@ -150,7 +151,7 @@ def dU_by_dt(income, beta, S_t, I_t, S0, t, t_vac):
 	return value
 
 
-def utility_plotter(beta, income_ratio, beta_ratio, t_vac, gamma):
+def utility_plotter(beta, income_ratio, beta_ratio, gamma, t_vac):
 	"""
 	2 group game w/o interaction. S:susceptible, M:mask. plotting
 	the player's expected utility in each group, and the social
@@ -166,7 +167,7 @@ def utility_plotter(beta, income_ratio, beta_ratio, t_vac, gamma):
 	GDP2 = 1
 	beta_S = beta
 	beta_M = beta * beta_ratio
-	step_size = 0.005
+	step_size = 0.01
 	# S0_S_range = np.arange(0, 1 + step_size, step_size)
 	S0_S_range = np.arange(0 + step_size, 1, step_size)
 	for S0_S in S0_S_range:
@@ -370,8 +371,10 @@ def POA_heatmap_V2(beta, t_vac, income_ratio):
 	Heatmap of POA w.r.t. beta ratio and gamma
 	"""
 	# income_ratios = [1, 2, 4, 6, 8, 10]
-	beta_ratios = [1, 1 / 2, 1 / 3, 1 / 4, 1 / 5, 1 / 10]
-	gammas = [1 / 3, 1 / 7, 1 / 10, 1 / 14, 1 / 21]
+	beta_ratios = [1 / 4, 1 / 5, 1 / 7, 1 / 9, 1 / 10, 1 / 11, 1 / 12]
+	# gammas = [1 / 3, 1 / 4, 1 / 5, 1 / 7, 1 / 9, 1 / 10]
+	gamma_step = (1 / 4 - 1 / 6) / 5
+	gammas = np.arange(1 / 6, 1 / 4 + gamma_step, gamma_step)
 	POAs = []
 	# max_POA = 0
 	for gamma in gammas:
@@ -416,10 +419,10 @@ def POA_heatmap_V2(beta, t_vac, income_ratio):
 			NE_S0_S = NE_S0_S_range[-1]
 			POA = max_social / NE_utility
 			POAs[-1].append(POA)
-		# max_POA = max(max_POA, POA)
-	ax = sns.heatmap(POAs, annot=True, fmt=".3f")
-	ax.set_xticklabels([round(i, 2) for i in beta_ratios])
-	ax.set_yticklabels([round(i, 2) for i in gammas])
+	# max_POA = max(max_POA, POA)
+	ax = sns.heatmap(POAs, annot=True, fmt=".4f")
+	ax.set_xticklabels([round(i, 4) for i in beta_ratios])
+	ax.set_yticklabels([round(i, 4) for i in gammas])
 	ax.set_xlabel('beta ratio')
 	ax.set_ylabel('gamma')
 	ax.set_title('POA')
@@ -435,7 +438,7 @@ def tmp():
 	return
 
 
-def utility_plotter_interaction(income_ratio, beta_ratio, t_vac, gamma):
+def utility_plotter_interaction(income_ratio, beta_ratio, gamma, t_vac):
 	"""
 	2 group game with interaction. S:susceptible, M:mask. plotting the player's
 	expected utility in each group,	and the social utility with varying size of
@@ -537,7 +540,7 @@ def utility_plotter_interaction(income_ratio, beta_ratio, t_vac, gamma):
 	return
 
 
-def POA_monte_carlo(runs):
+def POA_Monte_Carlo(runs):
 	"""
 	Monte Carlo to generate max POA. 2 group game without interaction
 	"""
@@ -548,9 +551,9 @@ def POA_monte_carlo(runs):
 	max_paras = []
 
 	t1 = time.perf_counter()
-	with concurrent.futures.ProcessPoolExecutor(max_workers=NUM_CORES) as executor:
+	with concurrent.futures.ProcessPoolExecutor(max_workers=NUM_THREADS) as executor:
 		num_threads = 0
-		results = [executor.submit(POA_calculator, t_vac) for _ in range(runs)]
+		results = [executor.submit(POA_Monte_Carlo_calculator, t_vac) for _ in range(runs)]
 
 		try:
 			for f in concurrent.futures.as_completed(results):
@@ -576,7 +579,10 @@ def POA_monte_carlo(runs):
 	return
 
 
-def POA_calculator(t_vac):
+def POA_Monte_Carlo_calculator(t_vac):
+	"""
+	Calculate POA with Monte Carlo
+	"""
 	beta_S = uni(BETA_RANGE[0], BETA_RANGE[1])
 	gamma = uni(GAMMA_RANGE[0], GAMMA_RANGE[1])
 	GDP1 = uni(INCOME_RANGE[0], INCOME_RANGE[1])
@@ -667,7 +673,7 @@ def OPT_heatmap(beta, t_vac, gamma):
 			# NE_S0_S = NE_S0_S_range[-1]
 			# POA = max_social / NE_utility
 			OPT_S_sizes[-1].append(S0_S_range[maxIndex])
-		# max_POA = max(max_POA, POA)
+	# max_POA = max(max_POA, POA)
 	ax = sns.heatmap(OPT_S_sizes, annot=True, fmt=".3f")
 	ax.set_xticklabels([round(i, 2) for i in beta_ratios])
 	ax.set_yticklabels(income_ratios)
@@ -730,7 +736,7 @@ def OPT_heatmap_V2(beta, t_vac, income_ratio):
 			# NE_S0_S = NE_S0_S_range[-1]
 			# POA = max_social / NE_utility
 			OPT_S_sizes[-1].append(S0_S_range[maxIndex])
-		# max_POA = max(max_POA, POA)
+	# max_POA = max(max_POA, POA)
 	ax = sns.heatmap(OPT_S_sizes, annot=True, fmt=".3f")
 	ax.set_xticklabels([round(i, 2) for i in beta_ratios])
 	ax.set_yticklabels([round(i, 2) for i in gammas])
@@ -742,6 +748,118 @@ def OPT_heatmap_V2(beta, t_vac, income_ratio):
 	return
 
 
+def POA_MT_optimizer(runs):
+	"""
+	Search for a max POA with multiprocessing
+	"""
+	np.random.seed()
+
+	max_POA = 0
+	max_paras = []
+	beta_S = 0.9794676182860252
+	beta_ratio = 0.148881166
+	income_ratio = 8.47300431687476
+	gamma = 0.17000166641559938
+	t_vac = 100
+	initial_paras = [beta_S, beta_ratio, income_ratio, gamma, t_vac]
+	t1 = time.perf_counter()
+	with concurrent.futures.ProcessPoolExecutor(max_workers=NUM_THREADS) as executor:
+		num_threads = 0
+		results = [executor.submit(POA_optimizer, initial_paras) for _ in range(runs)]
+
+		try:
+			for f in concurrent.futures.as_completed(results):
+				POA, paras = f.result()
+				num_threads += 1
+				# if num_threads % max(round(runs / 20), 1) == 0:
+				# 	print(f'{num_threads} / {runs} completed')
+			if POA > max_POA:
+				max_POA = POA
+				max_paras = paras
+				print('MAX POA updated at run', num_threads)
+		except:
+			traceback.print_exception(*sys.exc_info())
+
+	t2 = time.perf_counter()
+	print(f'\n{round((t2 - t1) / 60, 3)} minutes for {runs} runs')
+	[beta_S, beta_ratio, income_ratio, gamma] = max_paras
+	print('MAX POA=', max_POA)
+	print('beta_S=', beta_S)
+	print('beta_ratio=', beta_ratio)
+	print('income_ratio=', income_ratio)
+	print('gamma=', gamma)
+	return
+
+
+def POA_optimizer(paras):
+	"""
+	Maximize for a max POA around a given parameter point
+	"""
+	beta_S, beta_ratio, income_ratio, gamma, t_vac = paras
+	beta_S_range = (beta_S * 0.8, beta_S * 1.2)
+	beta_ratio_range = (beta_ratio * 0.8, beta_ratio * 1.2)
+	income_ratio_range = (income_ratio * 0.8, income_ratio * 1.2)
+	gamma_range = (gamma * 0.8, gamma * 1.2)
+	optimal = minimize(POA_calculator,
+	                   [uni(beta_S_range[0], beta_S_range[1]),
+	                    uni(beta_ratio_range[0], beta_ratio_range[1]),
+	                    uni(income_ratio_range[0], income_ratio_range[1]),
+	                    uni(gamma_range[0], gamma_range[1])],
+	                   args=t_vac,
+	                   method='L-BFGS-B',
+	                   bounds=[beta_S_range,
+	                           beta_ratio_range,
+	                           income_ratio_range,
+	                           gamma_range])
+	POA = POA_calculator(optimal.x, t_vac)
+	return -POA, optimal.x
+
+
+def POA_calculator(paras, t_vac):
+	"""
+	Compute POA with given parameters
+	"""
+	beta_S, beta_ratio, income_ratio, gamma = paras
+
+	GDP1 = income_ratio
+	GDP2 = 1
+	U_S = []
+	U_M = []
+	SS_list = []
+	SM_list = []
+	socialU = []
+	beta_M = beta_S * beta_ratio
+	step_size = 0.01
+	S0_S_range = np.arange(0, 1 + step_size, step_size)
+	for S0_S in S0_S_range:
+		SS, IS, t_range = simulate(beta_S, GAMMA, S0_S, I_0, t_vac, False)
+		# susceptible group utility
+		SS_list.append(GDP1 * np.mean(SS) * t_vac)
+		# player's expected utility in susceptible group
+		U_S.append(np.mean(
+			[dU_by_dt(GDP1, beta_S, SS[i], IS[i], S0_S, t_range[i], t_vac) for i in
+			 range(len(t_range))]) * t_vac)
+
+		S0_M = 1 - S0_S
+		SM, IM, t_range = simulate(beta_M, GAMMA, S0_M, I_0, t_vac, False)
+		# mask group utility
+		SM_list.append(GDP2 * np.mean(SM) * t_vac)
+		# player's expected utility in mask group
+		U_M.append(np.mean(
+			[dU_by_dt(GDP2, beta_M, SM[i], IM[i], S0_M, t_range[i], t_vac) for i in
+			 range(len(t_range))]) * t_vac)
+
+		socialU.append(SS_list[-1] + SM_list[-1])
+
+	max_social = max(socialU)
+	maxIndex = socialU.index(max_social)
+
+	NE_S0_S_range, NE_U_S, NE_U_M, NE_utility = NE_searcher(t_vac, GDP1, GDP2, beta_S, beta_M, GAMMA)
+	NE_S0_S = NE_S0_S_range[-1]
+	POA = max_social / NE_utility
+	return -POA
+
+
 def main():
 	# tmp()
 	# tests()
@@ -749,9 +867,9 @@ def main():
 	# utility_plotter(beta=BETA_0, income_ratio=6, beta_ratio=0.5, t_vac=100, gamma=GAMMA)
 	# utility_plotter_interaction(income_ratio=2.5, beta_ratio=0.5, t_vac=100)
 	# POA_heatmap()
-	# POA_monte_carlo(runs=20000)
+	# POA_Monte_Carlo(runs=20000)
 
-	# max POA found
+	# # max POA found
 	# utility_plotter(beta=0.9794676182860252,
 	#                 income_ratio=8.47300431687476,
 	#                 beta_ratio=0.148881166,
@@ -761,13 +879,15 @@ def main():
 	# OPT_heatmap(beta=1, t_vac=100, gamma=1 / 14)
 
 	# OPT_heatmap_V2(beta=1, t_vac=100, income_ratio=8.47300431687476)
-	POA_heatmap_V2(beta=1, t_vac=100, income_ratio=8.47300431687476)
+	# POA_heatmap_V2(beta=1, t_vac=100, income_ratio=8.47300431687476)
 
-	# utility_plotter(beta=0.9794676182860252,
-	#                 income_ratio=1,
-	#                 beta_ratio=1,
-	#                 t_vac=10,
-	#                 gamma=0.17000166641559938)
+	utility_plotter(beta=0.7870890437712303,
+	                income_ratio=7.729210571954948,
+	                beta_ratio=0.11910493280000001,
+	                gamma=0.20301395795482735,
+	                t_vac=100)
+
+	# POA_MT_optimizer(runs=1)
 
 	return
 
