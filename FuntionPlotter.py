@@ -235,7 +235,8 @@ def utility_plotter(beta, income_ratio, beta_ratio, gamma, t_vac):
 	ax2.set_xlabel('susceptible size')
 	ax2.set_ylabel('utility')
 	ax2.legend()
-	fig.suptitle(f'POA={round(max_social / NE_utility, 4)}')
+	# fig.suptitle(f'POA={round(max_social / NE_utility, 4)}')
+	fig.suptitle('POA={:.4f}'.format(POA))
 	plt.show()
 	plt.close(fig)
 	return
@@ -756,17 +757,17 @@ def OPT_heatmap_V2(beta, t_vac, income_ratio):
 	return
 
 
-def POA_MT_optimizer(runs):
+def POA_MT_optimizer(beta_S, beta_ratio, income_ratio, gamma, t_vac, runs):
 	"""
 	Search for a max POA with multiprocessing
 	"""
 	np.random.seed()
 
-	beta_S = 0.9794676182860252
-	beta_ratio = 0.148881166
-	income_ratio = 8.47300431687476
-	gamma = 0.17000166641559938
-	t_vac = 100
+	# beta_S = 0.9794676182860252
+	# beta_ratio = 0.148881166
+	# income_ratio = 8.47300431687476
+	# gamma = 0.17000166641559938
+	# t_vac = 100
 	initial_paras = [beta_S, beta_ratio, income_ratio, gamma]
 	max_POA = -POA_calculator(initial_paras, t_vac)
 	max_paras = [beta_S, beta_ratio, income_ratio, gamma]
@@ -887,12 +888,12 @@ def main():
 	# POA_heatmap()
 	# POA_Monte_Carlo(runs=20000)
 
-	# # max POA found
-	# utility_plotter(beta=0.9794676182860252,
-	#                 income_ratio=8.47300431687476,
-	#                 beta_ratio=0.148881166,
-	#                 t_vac=100,
-	#                 gamma=0.17000166641559938)
+	# max POA found
+	utility_plotter(beta=1.1753611419432302,
+	                income_ratio=10.12476515963674,
+	                beta_ratio=0.11910493280000001,
+	                t_vac=100,
+	                gamma=0.20400199969871927)
 
 	# OPT_heatmap(beta=1, t_vac=100, gamma=1 / 14)
 
@@ -905,7 +906,12 @@ def main():
 	#                 gamma=0.20301395795482735,
 	#                 t_vac=100)
 
-	POA_MT_optimizer(runs=50)
+	# POA_MT_optimizer(beta_S=0.9794676182860252,
+	#                  beta_ratio=0.148881166,
+	#                  income_ratio=8.47300431687476,
+	#                  gamma=0.17000166641559938,
+	#                  t_vac=100,
+	#                  runs=50)
 
 	return
 
