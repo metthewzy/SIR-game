@@ -96,8 +96,8 @@ def t_second_V2(S1, S2, beta, gamma, S0, I0):
 	return ret
 
 
-def area_against_beta():
-	beta_range = np.arange(10, 0.15, -0.01)
+def area_lower_bound_against_beta():
+	beta_range = np.arange(10, 0.15, -0.1)
 	S0 = 1
 	I0_global = 0.0001
 	t_vac = 100
@@ -114,22 +114,63 @@ def area_against_beta():
 		t_peak_est = t_first_half + t_second_half
 		ts.append(t_peak_est)
 		areas_est.append(t_first_half * 2 / 3 * S0 + t_second_half * S_peak)
-		# S, I, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False)
-		# areas_act.append(np.mean(S) * t_vac)
-		# percentages.append(areas_est[-1] / areas_act[-1])
+		S, I, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False)
+		areas_act.append(np.mean(S) * t_vac)
+		percentages.append(areas_est[-1] / areas_act[-1])
 	fig = plt.figure()
 	ax1 = fig.add_subplot(121)
 	ax2 = fig.add_subplot(122)
 	ax1.plot(beta_range, areas_est, label='estimated')
-	# ax1.plot(beta_range, areas_act, label='actual')
+	ax1.plot(beta_range, areas_act, label='actual')
 	ax2.plot(beta_range, ts)
 	ax1.set_xlabel('beta')
 	ax1.set_ylabel('area')
 	ax2.set_xlabel('beta')
 	ax2.set_ylabel('t_peak_est')
 	ax_tw = ax1.twinx()
-	# ax_tw.plot(beta_range, percentages, linestyle=':', color='r')
-	ax_tw.set_ylim(0.5, 1)
+	ax_tw.plot(beta_range, percentages, linestyle=':', color='r')
+	# ax_tw.set_ylim(0.5, 1)
+	ax_tw.set_ylabel('est/act')
+	ax1.legend()
+	print(min(areas_est))
+	plt.show()
+	return
+
+
+def area_upper_bound_against_beta():
+	beta_range = np.arange(10, 0.15, -0.1)
+	S0 = 1
+	I0_global = 0.0001
+	t_vac = 100
+	gamma = 1 / 14
+	I0 = I0_global * S0
+	areas_est = []
+	areas_act = []
+	ts = []
+	percentages = []
+	for beta in beta_range:
+		S_peak = gamma / beta
+		t_first_half = t_first(S0, S0 / 3 * 2, beta, gamma, S0, I0)
+		t_second_half = t_second_V2(S0 / 3 * 2, S_peak, beta, gamma, S0, I0)
+		t_peak_est = t_first_half + t_second_half
+		ts.append(t_peak_est)
+		areas_est.append(t_first_half * S0 + t_second_half * 2 / 3 * S0 + (t_vac - t_peak_est) * S_peak)
+		S, I, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False)
+		areas_act.append(np.mean(S) * t_vac)
+		percentages.append(areas_act[-1] / areas_est[-1])
+	fig = plt.figure()
+	ax1 = fig.add_subplot(121)
+	ax2 = fig.add_subplot(122)
+	ax1.plot(beta_range, areas_est, label='estimated')
+	ax1.plot(beta_range, areas_act, label='actual')
+	ax2.plot(beta_range, ts)
+	ax1.set_xlabel('beta')
+	ax1.set_ylabel('area')
+	ax2.set_xlabel('beta')
+	ax2.set_ylabel('t_peak_est')
+	ax_tw = ax1.twinx()
+	ax_tw.plot(beta_range, percentages, linestyle=':', color='r')
+	# ax_tw.set_ylim(0.5, 1)
 	ax_tw.set_ylabel('est/act')
 	ax1.legend()
 	print(min(areas_est))
@@ -140,7 +181,8 @@ def area_against_beta():
 def main():
 	# POA_plot()
 	# t_peak_area_comparison()
-	area_against_beta()
+	# area_lower_bound_against_beta()
+	area_upper_bound_against_beta()
 	return
 
 
