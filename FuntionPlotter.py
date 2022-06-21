@@ -896,23 +896,23 @@ def main():
 	# POA_heatmap()
 	# POA_Monte_Carlo(runs=20000)
 
-	# # max POA found
-	# utility_plotter(beta=1.1753611419432302,
-	# 				income_ratio=10.12476515963674,
-	# 				beta_ratio=0.11910493280000001,
-	# 				gamma=0.20400199969871927,
-	# 				t_vac=100)
+	# max POA found
+	utility_plotter(beta=1.1753611419432302,
+					income_ratio=10.12476515963674,
+					beta_ratio=0.11910493280000001,
+					gamma=0.20400199969871927,
+					t_vac=100)
 
 	# OPT_heatmap(beta=1, t_vac=100, gamma=1 / 14)
 
 	# OPT_heatmap_V2(beta=1, t_vac=100, income_ratio=8.47300431687476)
 	# POA_heatmap_V2(beta=1, t_vac=100, income_ratio=8.47300431687476)
 
-	utility_plotter(beta=1.1753611419432302,
-					income_ratio=5,
-					beta_ratio=0.7,
-					gamma=0.20400199969871927,
-					t_vac=100)
+	# utility_plotter(beta=1.1753611419432302,
+	# 				income_ratio=5,
+	# 				beta_ratio=0.7,
+	# 				gamma=0.20400199969871927,
+	# 				t_vac=100)
 
 	# POA_MT_optimizer(beta_S=0.9794676182860252,
 	#                  beta_ratio=0.148881166,
