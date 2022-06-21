@@ -821,11 +821,12 @@ def POA_optimizer(paras, t_vac):
 	"""
 	Maximize for a max POA around a given parameter point
 	"""
+	low, high = 0.5, 2
 	beta_S, beta_ratio, income_ratio, gamma = paras
-	beta_S_range = (beta_S * 0.8, beta_S * 1.2)
-	beta_ratio_range = (beta_ratio * 0.8, beta_ratio * 1.2)
-	income_ratio_range = (income_ratio * 0.8, income_ratio * 1.2)
-	gamma_range = (gamma * 0.8, gamma * 1.2)
+	beta_S_range = (beta_S * low, beta_S * high)
+	beta_ratio_range = (beta_ratio * low, beta_ratio * high)
+	income_ratio_range = (income_ratio * low, income_ratio * high)
+	gamma_range = (gamma * low, gamma * high)
 	optimal = minimize(POA_calculator,
 					   [uni(beta_S_range[0], beta_S_range[1]),
 						uni(beta_ratio_range[0], beta_ratio_range[1]),
@@ -896,12 +897,12 @@ def main():
 	# POA_heatmap()
 	# POA_Monte_Carlo(runs=20000)
 
-	# max POA found
-	utility_plotter(beta=1.1753611419432302,
-					income_ratio=10.12476515963674,
-					beta_ratio=0.11910493280000001,
-					gamma=0.20400199969871927,
-					t_vac=100)
+	# # max POA found
+	# utility_plotter(beta=1.1753611419432302,
+	# 				income_ratio=10.12476515963674,
+	# 				beta_ratio=0.11910493280000001,
+	# 				gamma=0.20400199969871927,
+	# 				t_vac=100)
 
 	# OPT_heatmap(beta=1, t_vac=100, gamma=1 / 14)
 
@@ -914,12 +915,12 @@ def main():
 	# 				gamma=0.20400199969871927,
 	# 				t_vac=100)
 
-	# POA_MT_optimizer(beta_S=0.9794676182860252,
-	#                  beta_ratio=0.148881166,
-	#                  income_ratio=8.47300431687476,
-	#                  gamma=0.17000166641559938,
-	#                  t_vac=100,
-	#                  runs=50)
+	POA_MT_optimizer(beta_S=0.9794676182860252,
+	                 beta_ratio=0.148881166,
+	                 income_ratio=8.47300431687476,
+	                 gamma=0.17000166641559938,
+	                 t_vac=100,
+	                 runs=50)
 
 	return
 
