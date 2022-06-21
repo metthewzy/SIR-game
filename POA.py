@@ -30,7 +30,7 @@ def t_peak_comparison():
 	I0_global = 0.0001
 	t_vac = 100
 	gamma = 1 / 14
-	beta = 1
+	beta = 0.2
 	I0 = I0_global * S0
 	S, I, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False)
 	fig = plt.figure()
@@ -39,10 +39,9 @@ def t_peak_comparison():
 	ax1.plot(t_range, I, label='I')
 
 	S_peak = gamma / beta
-	ax1.axhline(S_peak, label='S_peak', color='grey', linestyle=':')
 	S_peak_idx = [i for i in range(len(S)) if S[i] >= S_peak][-1]
 	t_peak = t_range[S_peak_idx]
-	ax1.axvline(t_peak, label='t_peak', color='red', linestyle=':')
+	ax1.vlines(x=t_peak, ymin=0, ymax=S_peak, label='t_peak', color='red', linestyle=':')
 
 	C1 = S0 / (gamma - beta * S0)
 	C2 = (beta * (I0 + S0) - gamma) * S0 / (gamma - beta * S0)
@@ -51,7 +50,13 @@ def t_peak_comparison():
 	C2 = gamma - gamma * np.log(0.5) - beta * I0 - beta * S0
 	t_second_half = 1 / C2 * np.log((gamma / beta) / (gamma / beta + C1 * C2) * (S0 / 2 + C1 * C2) / (S0 / 2))
 	t_peak_est = t_first_half + t_second_half
-	ax1.axvline(t_peak_est, label='t_peak_est', color='blue', linestyle=':')
+	ax1.vlines(x=t_peak_est, ymin=0, ymax=S_peak, label='t_peak_est', color='blue', linestyle=':')
+
+	ax1.vlines(x=t_first_half, ymin=0, ymax=S0 / 2, color='grey')
+	ax1.hlines(y=S0 / 2, xmin=0, xmax=t_first_half, color='grey')
+	ax1.hlines(y=S_peak, xmin=t_first_half, xmax=t_peak, label='S_peak', color='grey', linestyle=':')
+	print(t_first_half)
+
 	# ax1.set_xlim(0, 20)
 	ax1.set_title(f'beta={round(beta, 3)}')
 	ax1.legend()
