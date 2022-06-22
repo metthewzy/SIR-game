@@ -770,6 +770,8 @@ def POA_MT_optimizer(beta_S, beta_ratio, income_ratio, gamma, t_vac, runs):
 	"""
 	np.random.seed()
 
+	beta_S_orig, beta_ratio_orig, income_ratio_orig, gamma_orig = beta_S, beta_ratio, income_ratio, gamma
+
 	# beta_S = 0.9794676182860252
 	# beta_ratio = 0.148881166
 	# income_ratio = 8.47300431687476
@@ -810,9 +812,13 @@ def POA_MT_optimizer(beta_S, beta_ratio, income_ratio, gamma, t_vac, runs):
 	[beta_S, beta_ratio, income_ratio, gamma] = max_paras
 	print('MAX POA=', max_POA)
 	print('beta_S=', beta_S)
+	print(beta_S / beta_S_orig)
 	print('beta_ratio=', beta_ratio)
+	print(beta_ratio / beta_ratio_orig)
 	print('income_ratio=', income_ratio)
+	print(income_ratio / income_ratio_orig)
 	print('gamma=', gamma)
+	print(gamma / gamma_orig)
 
 	return
 
@@ -821,7 +827,7 @@ def POA_optimizer(paras, t_vac):
 	"""
 	Maximize for a max POA around a given parameter point
 	"""
-	low, high = 0.5, 2
+	low, high = 0.4, 3
 	beta_S, beta_ratio, income_ratio, gamma = paras
 	beta_S_range = (beta_S * low, beta_S * high)
 	beta_ratio_range = (beta_ratio * low, beta_ratio * high)
