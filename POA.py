@@ -26,11 +26,11 @@ def POA_plot():
 
 
 def t_peak_area_comparison():
-	S0 = 0.24
+	S0 = 0.2
 	I0_global = 0.0001
-	t_vac = 100
-	gamma = 0.20400199969871927
-	beta = 1.1753611419432302
+	t_vac = 400
+	gamma = 0.5100049992467981
+	beta = 2.938402854858076
 	I0 = I0_global * S0
 	S, I, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False)
 	fig = plt.figure()
@@ -178,11 +178,46 @@ def area_upper_bound_against_beta():
 	return
 
 
+def second_derivative():
+	phi_step = 0.01
+	phi_range = np.arange(phi_step, 1 + phi_step, phi_step)
+	phi = 0.2
+	beta = 1
+	S0 = phi
+	I0_global = 0.0001
+	t_vac = 100
+	gamma = 1 / 14
+	I0 = I0_global * phi
+	S, I, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False)
+	S_peak = gamma / beta
+	print(f'S_peak={S_peak}')
+	dS = [0]
+	dS.extend([S[i] - S[i - 1] for i in range(1, len(S))])
+	d2S = [0]
+	d2S.extend([dS[i] - dS[i - 1] for i in range(1, len(dS))])
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot(121)
+	ax2 = fig.add_subplot(122)
+	ax1.plot(t_range, S, label='S')
+	ax1.plot(t_range, I, label='I')
+	ax1.plot(t_range, [S[i] - I[i] for i in range(len(S))], label='S-I')
+	ax2.plot(t_range, d2S, label='d2S')
+	ax1.axhline(S_peak, label='S_peak', linestyle=':')
+	ax2.axhline(0, linestyle=':')
+	ax1.legend()
+	ax2.legend()
+	plt.show()
+	return
+
+
 def main():
 	# POA_plot()
 	# t_peak_area_comparison()
 	# area_lower_bound_against_beta()
-	area_upper_bound_against_beta()
+	# area_upper_bound_against_beta()
+
+	second_derivative()
 	return
 
 

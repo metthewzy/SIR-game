@@ -118,7 +118,7 @@ def simulate_interaction_V2(beta11, beta12, beta21, beta22, gamma, S1_0, S2_0, t
 	I1 = [I_0 * S1_0]
 	S2 = [S2_0]
 	I2 = [I_0 * S2_0]
-	dt = 0.01
+	dt = 0.001
 	t_range = np.arange(0, t_vac + dt, dt)
 	for t in t_range[1:]:
 		dS1 = - (beta11 * S1[-1] * I1[-1] + beta12 * S1[-1] * I2[-1]) * dt
@@ -903,12 +903,12 @@ def main():
 	# POA_heatmap()
 	# POA_Monte_Carlo(runs=20000)
 
-	# # max POA found
-	# utility_plotter(beta=1.1753611419432302,
-	# 				income_ratio=10.12476515963674,
-	# 				beta_ratio=0.11910493280000001,
-	# 				gamma=0.20400199969871927,
-	# 				t_vac=100)
+	# max POA found
+	utility_plotter(beta=2.938402854858076,
+					income_ratio=24.048534651984465,
+					beta_ratio=0.059552466400000004,
+					gamma=0.5100049992467981,
+					t_vac=100)
 
 	# OPT_heatmap(beta=1, t_vac=100, gamma=1 / 14)
 
@@ -921,12 +921,12 @@ def main():
 	# 				gamma=0.20400199969871927,
 	# 				t_vac=100)
 
-	POA_MT_optimizer(beta_S=0.9794676182860252,
-	                 beta_ratio=0.148881166,
-	                 income_ratio=8.47300431687476,
-	                 gamma=0.17000166641559938,
-	                 t_vac=100,
-	                 runs=50)
+	# POA_MT_optimizer(beta_S=0.9794676182860252,
+	#                  beta_ratio=0.148881166,
+	#                  income_ratio=8.47300431687476,
+	#                  gamma=0.17000166641559938,
+	#                  t_vac=100,
+	#                  runs=50)
 
 	return
 
