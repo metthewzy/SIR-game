@@ -196,18 +196,45 @@ def second_derivative():
 	d2S = [0]
 	d2S.extend([dS[i] - dS[i - 1] for i in range(1, len(dS))])
 
+	flip_idx1 = [i for i in range(1, len(d2S)) if (S[i] - I[i] - S_peak) * (S[i - 1] - I[i - 1] - S_peak) <= 0][-1]
+	print(f'S-I intercepts S_peak at {t_range[flip_idx1]}')
+
+	flip_idx2 = [i for i in range(1, len(d2S)) if d2S[i] * d2S[i - 1] <= 0][-1]
+	print(f'd2S flipping at {t_range[flip_idx2]}')
+
 	fig = plt.figure()
 	ax1 = fig.add_subplot(121)
 	ax2 = fig.add_subplot(122)
 	ax1.plot(t_range, S, label='S')
 	ax1.plot(t_range, I, label='I')
-	ax1.plot(t_range, [S[i] - I[i] for i in range(len(S))], label='S-I')
+
+	ax1.plot(t_range, [I0 * np.exp(t * (beta * phi - gamma)) for t in t_range])
+	ax1.plot(t_range, [I0 * np.exp(t * (beta * phi * (1 - 0.5) - gamma)) for t in t_range])
+	# ax1.plot(t_range, [S[i] - I[i] for i in range(len(S))], label='S-I')
 	ax2.plot(t_range, d2S, label='d2S')
-	ax1.axhline(S_peak, label='S_peak', linestyle=':')
+
+	ax1.axhline(phi * 0.5)
+	# ax1.axhline(S_peak, label='S_peak', linestyle=':')
 	ax2.axhline(0, linestyle=':')
+
+	# ax1.axvline(t_range[flip_idx1], linestyle=':')
+	ax2.axvline(t_range[flip_idx2], linestyle=':')
+
 	ax1.legend()
 	ax2.legend()
+	# ax1.set_xlim(0, 60)
+	# ax1.set_ylim(0, phi)
 	plt.show()
+	return
+
+
+def tmp():
+	beta = 1
+	phi = 0.2
+	gamma = 1/14
+	t1 = 20
+	I0 = phi * 0.0001
+	e_range = np.arange(0, 0.5, 0.01)
 	return
 
 
