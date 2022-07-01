@@ -229,12 +229,19 @@ def second_derivative():
 
 
 def tmp():
+	phi_range = np.arange(0.001, 1, 0.001)
 	beta = 1
-	phi = 0.2
 	gamma = 1/14
-	t1 = 20
-	I0 = phi * 0.0001
-	e_range = np.arange(0, 0.5, 0.01)
+	epsilon = 0.5
+	T = 100
+	areas = []
+	for phi in phi_range:
+		area = phi * T - 1 / (2 * beta * epsilon) * (1 - gamma / (1 - epsilon) / (beta * phi)) * (1 + epsilon * gamma / beta / phi)
+		areas.append(area)
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	ax1.plot(phi_range, areas)
+	plt.show()
 	return
 
 
@@ -244,7 +251,9 @@ def main():
 	# area_lower_bound_against_beta()
 	# area_upper_bound_against_beta()
 
-	second_derivative()
+	# second_derivative()
+
+	tmp()
 	return
 
 
