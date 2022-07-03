@@ -228,6 +228,59 @@ def second_derivative():
 	return
 
 
+def area_comparison():
+	phi_step = 0.01
+	phi_range = np.arange(phi_step, 1, phi_step)
+	S_areas = []
+	approximated_areas = []
+	t1s = []
+	for phi in phi_range:
+		beta = 1
+		S0 = phi
+		I0_global = 0.0001
+		t_vac = 100
+		gamma = 1 / 14
+		I0 = I0_global * phi
+		S, I, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False)
+		S_peak = gamma / beta
+		S_area = np.mean(S) * t_vac
+		S_areas.append(S_area)
+		t1 = t1_searcher(S, I, t_range, S_peak, beta, t_vac)
+		t1s.append(t1)
+		i = list(t_range).index(t1)
+		approximated_area = phi * t1 + (S[i] + S_peak) * (t_vac - t1) / 2
+		approximated_areas.append(approximated_area)
+	for i in range(len(t1s)):
+		print(np.round(phi_range[i], 3), t1s[i])
+	fig = plt.figure()
+	ax1 = fig.add_subplot(121)
+	ax2 = fig.add_subplot(122)
+	ax1.plot(phi_range, S_areas, label='actual area')
+	ax1.plot(phi_range, approximated_areas, label='approx area')
+	ax2.plot(phi_range, t1s, label='t1')
+	ax1.set_xlabel('phi')
+	ax2.set_ylabel('area')
+
+	ax2.set_xlabel('phi')
+	ax1.legend()
+	ax2.legend()
+	plt.show()
+	return
+
+
+def t1_searcher(S, I, t_range, S_peak, beta, t_vac):
+	for i in range(len(t_range)):
+		St = S[i]
+		It = I[i]
+		t = t_range[i]
+		if St < S_peak:
+			return t_vac
+		dS = - beta * St * It
+		if St + dS * (t_vac - t) <= S_peak:
+			return t
+	return t
+
+
 def tmp():
 	phi_range = np.arange(0.001, 1, 0.001)
 	beta = 1
@@ -253,7 +306,9 @@ def main():
 
 	# second_derivative()
 
-	tmp()
+	area_comparison()
+
+	# tmp()
 	return
 
 
