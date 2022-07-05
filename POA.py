@@ -250,8 +250,7 @@ def area_comparison():
 		i = list(t_range).index(t1)
 		approximated_area = phi * t1 + (S[i] + S_peak) * (t_vac - t1) / 2
 		approximated_areas.append(approximated_area)
-	for i in range(len(t1s)):
-		print(np.round(phi_range[i], 3), t1s[i])
+		plot_area(S, t_range, phi, S_peak, i, t_vac, S_area, approximated_area)
 	fig = plt.figure()
 	ax1 = fig.add_subplot(121)
 	ax2 = fig.add_subplot(122)
@@ -279,6 +278,20 @@ def t1_searcher(S, I, t_range, S_peak, beta, t_vac):
 		if St + dS * (t_vac - t) <= S_peak:
 			return t
 	return t
+
+
+def plot_area(S, t_range, phi, S_peak, i, t_vac, S_area, approximated_area):
+	t1 = t_range[i]
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	ax1.plot(t_range, S, label='S')
+	ax1.axhline(S_peak, linestyle=':', label='S_peak')
+	ax1.fill_between([0, t1], [phi, phi], alpha=0.5, color='grey')
+	ax1.fill_between([t1, t_vac], [S[i], S_peak], alpha=0.5, color='grey')
+	fig.suptitle(f'phi={round(phi, 3)}\nratio={round(S_area / approximated_area, 4)}')
+	ax1.legend()
+	plt.show()
+	return
 
 
 def tmp():
