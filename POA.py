@@ -231,34 +231,61 @@ def second_derivative():
 def area_comparison():
 	phi_step = 0.01
 	phi_range = np.arange(phi_step, 1, phi_step)
-	S_areas = []
-	approximated_areas = []
+	S1_areas = []
+	S2_areas = []
+	approximated_areas1 = []
+	approximated_areas2 = []
 	t1s = []
+	t2s = []
+	payment_ratio = 10
+	I0_global = 0.0001
+	t_vac = 1000
+	gamma = 1 / 14
 	for phi in phi_range:
 		beta = 1
 		S0 = phi
-		I0_global = 0.0001
-		t_vac = 100
-		gamma = 1 / 14
-		I0 = I0_global * phi
-		S, I, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False)
+		I0 = I0_global * S0
+		S1, I1, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False)
 		S_peak = gamma / beta
-		S_area = np.mean(S) * t_vac
-		S_areas.append(S_area)
-		t1 = t1_searcher(S, I, t_range, S_peak, beta, t_vac)
+		S1_area = np.mean(S1) * t_vac * payment_ratio
+		S1_areas.append(S1_area)
+		t1 = t1_searcher(S1, I1, t_range, S_peak, beta, t_vac)
 		t1s.append(t1)
 		i = list(t_range).index(t1)
-		approximated_area = phi * t1 + (S[i] + S_peak) * (t_vac - t1) / 2
-		approximated_areas.append(approximated_area)
-		plot_area(S, t_range, phi, S_peak, i, t_vac, S_area, approximated_area)
+		approximated_area1 = (S0 * t1 + (S1[i] + S_peak) * (t_vac - t1) / 2) * payment_ratio
+		approximated_areas1.append(approximated_area1)
+
+		# plot_area(S1, t_range, S_peak, i, t_vac, S1_area, approximated_area1)
+
+		beta = 0.5
+		S0 = 1 - phi
+		I0 = I0_global * S0
+		S2, I2, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False)
+		S_peak = gamma / beta
+		S2_area = np.mean(S2) * t_vac
+		S2_areas.append(S2_area)
+		t2 = t1_searcher(S2, I2, t_range, S_peak, beta, t_vac)
+		t2s.append(t2)
+		i = list(t_range).index(t2)
+		approximated_area2 = S0 * t2 + (S2[i] + S_peak) * (t_vac - t2) / 2
+		approximated_areas2.append(approximated_area2)
+
+		plot_area(S2, t_range, S_peak, i, t_vac, S2_area, approximated_area2)
+
 	fig = plt.figure()
+	# ax1 = fig.add_subplot()
 	ax1 = fig.add_subplot(121)
 	ax2 = fig.add_subplot(122)
-	ax1.plot(phi_range, S_areas, label='actual area')
-	ax1.plot(phi_range, approximated_areas, label='approx area')
-	ax2.plot(phi_range, t1s, label='t1')
-	ax1.set_xlabel('phi')
-	ax2.set_ylabel('area')
+	ax1.plot(phi_range, [S1_areas[i] + S2_areas[i] for i in range(len(S1_areas))], label='actual utility')
+	ax2.plot(phi_range, [approximated_areas1[i] + approximated_areas2[i] for i in range(len(approximated_areas1))],
+			 label='approx utility')
+	ax1.plot(phi_range, S1_areas, label='actual 1')
+	ax1.plot(phi_range, S2_areas, label='actual 2')
+	ax2.plot(phi_range, approximated_areas1, label='approx 1')
+	ax2.plot(phi_range, approximated_areas2, label='approx 2')
+	# ax2.plot(phi_range, t1s, label='t1')
+	ax1.set_xlabel('phi_1')
+	# ax2.set_ylabel('area')
 
 	ax2.set_xlabel('phi')
 	ax1.legend()
@@ -280,7 +307,8 @@ def t1_searcher(S, I, t_range, S_peak, beta, t_vac):
 	return t
 
 
-def plot_area(S, t_range, phi, S_peak, i, t_vac, S_area, approximated_area):
+def plot_area(S, t_range, S_peak, i, t_vac, S_area, approximated_area):
+	phi = S[0]
 	t1 = t_range[i]
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
@@ -297,12 +325,13 @@ def plot_area(S, t_range, phi, S_peak, i, t_vac, S_area, approximated_area):
 def tmp():
 	phi_range = np.arange(0.001, 1, 0.001)
 	beta = 1
-	gamma = 1/14
+	gamma = 1 / 14
 	epsilon = 0.5
 	T = 100
 	areas = []
 	for phi in phi_range:
-		area = phi * T - 1 / (2 * beta * epsilon) * (1 - gamma / (1 - epsilon) / (beta * phi)) * (1 + epsilon * gamma / beta / phi)
+		area = phi * T - 1 / (2 * beta * epsilon) * (1 - gamma / (1 - epsilon) / (beta * phi)) * (
+					1 + epsilon * gamma / beta / phi)
 		areas.append(area)
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
