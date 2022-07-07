@@ -229,7 +229,7 @@ def second_derivative():
 
 
 def area_comparison():
-	phi_step = 0.01
+	phi_step = 0.001
 	phi_range = np.arange(phi_step, 1, phi_step)
 	S1_areas = []
 	S2_areas = []
@@ -241,8 +241,9 @@ def area_comparison():
 	I0_global = 0.0001
 	t_vac = 100
 	gamma = 1 / 14
+	beta1 = 1
+	beta2 = 0.5
 	for phi in phi_range:
-		beta1 = 1
 		S0 = phi
 		I0 = I0_global * S0
 		S1, I1, t_range = simulate(beta1, gamma, S0, I0_global, t_vac, False)
@@ -255,7 +256,6 @@ def area_comparison():
 		approximated_area1 = (S0 * t1 + (S1[i1] + S1_peak) * (t_vac - t1) / 2) * payment_ratio
 		approximated_areas1.append(approximated_area1)
 
-		beta2 = 0.5
 		S0 = 1 - phi
 		I0 = I0_global * S0
 		S2, I2, t_range = simulate(beta2, gamma, S0, I0_global, t_vac, False)
@@ -268,17 +268,20 @@ def area_comparison():
 		approximated_area2 = S0 * t2 + (S2[i2] + S2_peak) * (t_vac - t2) / 2
 		approximated_areas2.append(approximated_area2)
 
-		# if phi == 0.64 or phi == 0.17:
-		# 	plot_area(beta1, gamma, S1, I1, t_range, S1_peak, i1, t_vac, S1_area, approximated_area1)
-		# 	plot_area(beta2, gamma, S2, I2, t_range, S2_peak, i2, t_vac, S2_area, approximated_area2)
+		if 0.171 < phi < 0.173:
+			plot_area(beta1, gamma, S1, I1, t_range, S1_peak, i1, t_vac, payment_ratio, S1_area, approximated_area1)
+			plot_area(beta2, gamma, S2, I2, t_range, S2_peak, i2, t_vac, 1, S2_area, approximated_area2)
 
-		plot_area(beta1, gamma, S1, I1, t_range, S1_peak, i1, t_vac, S1_area, approximated_area1)
-		plot_area(beta2, gamma, S2, I2, t_range, S2_peak, i2, t_vac, S2_area, approximated_area2)
+	# plot_area(beta1, gamma, S1, I1, t_range, S1_peak, i1, t_vac, payment_ratio, S1_area, approximated_area1)
+	# plot_area(beta2, gamma, S2, I2, t_range, S2_peak, i2, t_vac, 1, S2_area, approximated_area2)
 
 	S_areas = [S1_areas[i] + S2_areas[i] for i in range(len(S1_areas))]
-	max_utility = max(S_areas[len(S_areas) // 2:])
+	max_utility = max(S_areas)
 	max_idx = S_areas.index(max_utility)
+	dU1 = -(S1_areas[max_idx - 1] - S1_areas[max_idx]) / phi_step
+	dU2 = -(S2_areas[max_idx - 1] - S2_areas[max_idx]) / phi_step
 	print('max when phi=', phi_range[max_idx])
+	print(f'At max dU1/d phi={round(dU1, 5)}, dU2/d phi={round(dU2, 5)}')
 	approximated_areas = [approximated_areas1[i] + approximated_areas2[i] for i in range(len(approximated_areas1))]
 	fig = plt.figure()
 	# ax1 = fig.add_subplot()
@@ -314,21 +317,25 @@ def t1_searcher(S, I, t_range, S_peak, beta, t_vac):
 	return t
 
 
-def plot_area(beta, gamma, S, I, t_range, S_peak, i, t_vac, S_area, approximated_area):
+def plot_area(beta, gamma, S, I, t_range, S_peak, i, t_vac, payment_ratio, S_area, approximated_area):
 	phi = S[0]
-	t1 = t_range[i]
+	# t1 = t_range[i]
+	t1 = t_vac - (phi - S_peak) / (beta * S_peak * (I[0] + phi - S_peak + S_peak * np.log(S_peak / phi)))
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
 	ax1.plot(t_range, S, label='S')
-	ax1.axhline(S_peak, linestyle=':', label='S_peak')
-	ax1.fill_between([0, t1], [phi, phi], alpha=0.5, color='grey')
-	ax1.fill_between([t1, t_vac], [S[i], S_peak], alpha=0.5, color='grey')
-	fig.suptitle(f'phi={round(phi, 3)}\nratio={round(S_area / approximated_area, 4)}')
+	ax1.plot(t_range, I, label='I')
+	ax1.axhline(S_peak, color='b', linestyle=':', label='S_peak')
+	ax1.axhline(I[0] + phi - S_peak + S_peak * np.log(S_peak / phi),  color='r', linestyle=':', label='I_peak')
+	ax1.fill_between([0, t1, t_vac], [phi, phi, S_peak], alpha=0.5, color='grey')
+	# ax1.fill_between([t1, t_vac], [S[i], S_peak], alpha=0.5, color='grey')
+	fig.suptitle(
+		f'phi={round(phi, 3)}\nratio={round(payment_ratio * (t_vac * phi - (t_vac - t1) * (phi - S_peak) / 2) / S_area, 4)}')
 
 	if S[0] >= gamma / beta:
 		t_peak_est = (np.log(S[0] / I[0]) - np.log(S_peak) - np.log(
 			S_peak / (S[0] + I[0] + S_peak * np.log(S_peak / S[0]) - S_peak))) / beta / (
-								 S[0] + I[0] + S_peak * np.log(S_peak / S[0]))
+							 S[0] + I[0] + S_peak * np.log(S_peak / S[0]))
 		ax1.axvline(t_peak_est, linestyle=':')
 	ax1.legend()
 	plt.show()
@@ -353,6 +360,101 @@ def tmp():
 	return
 
 
+def group_utility(beta, gamma, phi, I0_global, t_vac, payment_ratio, num_steps=10000):
+	S0 = phi
+	S1, I1, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False, num_steps)
+	S1_area = np.mean(S1) * t_vac * payment_ratio
+	return S1_area
+
+
+def group_peak_searcher():
+	phi_step = 0.001
+	phi_range = np.arange(phi_step, 1, phi_step)
+	S1_areas = []
+	S2_areas = []
+	payment_ratio = 5
+	I0_global = 0.0001
+	t_vac = 100
+	gamma = 1 / 14
+	beta1 = 2
+	beta2 = 0.5
+	mids = []
+	lefts = []
+	rights = []
+	U_mids = []
+	U_lefts = []
+	U_rights = []
+	for phi in phi_range:
+		S0 = phi
+		I0 = I0_global * S0
+		S1, I1, t_range = simulate(beta1, gamma, S0, I0_global, t_vac, False)
+		S1_area = np.mean(S1) * t_vac * payment_ratio
+		S1_areas.append(S1_area)
+	max_utility1 = max(S1_areas)
+	max_idx1 = S1_areas.index(max_utility1)
+	left, mid, right = phi_range[max_idx1 - 1], phi_range[max_idx1], phi_range[max_idx1 + 1]
+	for _ in range(20):
+		print(mid)
+		U_mid = group_utility(beta1, gamma, mid, I0_global, t_vac, payment_ratio)
+		mids.append(mid)
+		lefts.append(left)
+		rights.append(right)
+
+		left2, right2 = left, right
+		U_left = group_utility(beta1, gamma, left2, I0_global, t_vac, payment_ratio)
+		U_right = group_utility(beta1, gamma, right2, I0_global, t_vac, payment_ratio)
+
+		U_mids.append(U_mid)
+		U_lefts.append(U_left)
+		U_rights.append(U_right)
+		while (U_mid - U_left) * (U_mid - U_right) >= 0:
+			left2 = mid + (left2 - mid) / 2
+			right2 = mid + (right2 - mid) / 2
+			U_left = group_utility(beta1, gamma, left2, I0_global, t_vac, payment_ratio)
+			U_right = group_utility(beta1, gamma, right2, I0_global, t_vac, payment_ratio)
+
+		if U_left < U_mid:
+			left = mid
+		else:
+			right = mid
+
+		mid = (left + right) / 2
+
+	U_mid = group_utility(beta1, gamma, mid, I0_global, t_vac, payment_ratio)
+	U_left = group_utility(beta1, gamma, left, I0_global, t_vac, payment_ratio)
+	U_right = group_utility(beta1, gamma, right, I0_global, t_vac, payment_ratio)
+
+	mids.append(mid)
+	lefts.append(left)
+	rights.append(right)
+
+	U_mids.append(U_mid)
+	U_lefts.append(U_left)
+	U_rights.append(U_right)
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot(121)
+	ax2 = fig.add_subplot(122)
+	ax1.plot(phi_range, S1_areas)
+	ax1.axvline(mid, linestyle=':')
+	ax1.axhline(U_mid, linestyle=':')
+	ax2.plot(mids, U_mids, label='mid')
+	ax2.plot(lefts, U_lefts, label='left')
+	ax2.plot(rights, U_rights, label='right')
+	ax2.legend()
+	plt.show()
+
+	S0 = mid
+	print(S0)
+	S1, I1, t_range = simulate(beta1, gamma, S0, I0_global, t_vac, False)
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	ax1.plot(t_range, S1)
+	ax1.axhline(gamma / beta1, linestyle=':')
+	plt.show()
+	return
+
+
 def main():
 	# POA_plot()
 	# t_peak_area_comparison()
@@ -362,6 +464,7 @@ def main():
 	# second_derivative()
 
 	area_comparison()
+	# group_peak_searcher()
 
 	# tmp()
 	return
