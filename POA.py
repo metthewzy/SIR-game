@@ -457,13 +457,13 @@ def group_peak_searcher():
 
 def main():
 	# POA_plot()
-	# t_peak_area_comparison()
+	t_peak_area_comparison()
 	# area_lower_bound_against_beta()
 	# area_upper_bound_against_beta()
 
 	# second_derivative()
 
-	area_comparison()
+	# area_comparison()
 	# group_peak_searcher()
 
 	# tmp()
