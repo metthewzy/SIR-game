@@ -25,35 +25,50 @@ def POA_plot():
 	return
 
 
-def t_peak_area_comparison():
-	S0 = 0.44
+def t_peak_area_comparison(S0):
+	print(S0)
+	# S0 = 0.16
 	I0_global = 0.0001
 	t_vac = 100
-	gamma = 1/14
+	gamma = 1 / 14
 	beta = 1
 	I0 = I0_global * S0
 	S, I, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False)
+	# fig = plt.figure()
+	# ax1 = fig.add_subplot()
+	# ax1.plot(t_range, S, label='S')
+	# ax1.plot(t_range, I, label='I')
 
 	S_peak = gamma / beta
 	k_max = round(np.floor(S0 / S_peak))
-	print('k max=', k_max)
+	# print('k max=', k_max)
 	S_ts = [S0]
-	# k=1
-	# print(S0, k * S_peak)
+	ts = [0]
+
 	for k in range(k_max, 0, -1):
+		if k* S_peak == S0:
+			continue
 		S_ts.append(k * S_peak)
 		t_k = t_S(beta, gamma, S0, I0, S_ts[-1])
-		print('t_kpeak=', t_k)
-		fig = plt.figure()
-		ax1 = fig.add_subplot()
-		ax1.plot(t_range, S, label='S')
-		ax1.plot(t_range, I, label='I')
-		ax1.axhline(k * S_peak, linestyle=':', color='red', label='S_kpeak')
-		ax1.axvline(t_k, linestyle=':', color='gray', label='t_kpeak')
-		ax1.legend()
-		plt.show()
+		ts.append(t_k)
+		# print('t_kpeak=', t_k)
 
-	return
+	approximated_area = 0
+	for i in range(len(S_ts)):
+		if i == 0:
+			continue
+		approximated_area += S_ts[i - 1] * (ts[i] - ts[i - 1])
+		# ax1.hlines(S_ts[i - 1], ts[i - 1], ts[i])
+		# ax1.vlines(ts[i], S_ts[i - 1], S_ts[i])
+
+	approximated_area += S_ts[-1] * (t_vac - ts[-1]) / 2 if ts[-1] < t_vac else S_ts[-1] * (t_vac - ts[-1])
+	# ax1.hlines(S_ts[-1], ts[-1], t_vac)
+	# ax1.vlines(t_vac, 0, S_ts[-1])
+	actual_area = np.mean(S) * t_vac
+	# print(approximated_area, actual_area)
+
+	# plt.show()
+	return approximated_area, actual_area
 
 
 def t_S(beta, gamma, S0, I0, St):
@@ -61,9 +76,9 @@ def t_S(beta, gamma, S0, I0, St):
 	b = - beta * (I0 + S0)
 	c = gamma * S0 / 2
 	dt = []
-	for S in np.arange(S0, St - (St - S0) / 1000000, (St - S0) / 1000000):
-		dt.append(1 / (a * S**2 + b * S + c))
-		# dt.append(1/(-beta * S * (I0+S0-S+gamma/beta*(S/S0-1)/(S/S0))))
+	for S in np.arange(S0, St + (St - S0) / 100000, (St - S0) / 100000):
+		dt.append(1 / (a * S ** 2 + b * S + c))
+	# dt.append(1/(-beta * S * (I0+S0-S+gamma/beta*(S/S0-1)/(S/S0))))
 	ret = np.mean(dt) * (St - S0)
 	return ret
 
@@ -319,7 +334,7 @@ def plot_area(beta, gamma, S, I, t_range, S_peak, i, t_vac, payment_ratio, S_are
 	ax1.plot(t_range, S, label='S')
 	ax1.plot(t_range, I, label='I')
 	ax1.axhline(S_peak, color='b', linestyle=':', label='S_peak')
-	ax1.axhline(I[0] + phi - S_peak + S_peak * np.log(S_peak / phi),  color='r', linestyle=':', label='I_peak')
+	ax1.axhline(I[0] + phi - S_peak + S_peak * np.log(S_peak / phi), color='r', linestyle=':', label='I_peak')
 	ax1.fill_between([0, t1, t_vac], [phi, phi, S_peak], alpha=0.5, color='grey')
 	# ax1.fill_between([t1, t_vac], [S[i], S_peak], alpha=0.5, color='grey')
 	fig.suptitle(
@@ -448,9 +463,28 @@ def group_peak_searcher():
 	return
 
 
+def approximated_area_comparison():
+	approx_areas = []
+	act_areas = []
+	S0s = np.arange(0.01, 1, 0.01)
+	for S0 in np.arange(0.01, 1, 0.01):
+		approx_area, act_area = t_peak_area_comparison(S0)
+		approx_areas.append(approx_area)
+		act_areas.append(act_area)
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	ax1.plot(S0s, approx_areas, label='approx')
+	ax1.plot(S0s, act_areas, label='act')
+	ax1.legend()
+	plt.show()
+	return
+
+
 def main():
 	# POA_plot()
-	t_peak_area_comparison()
+	approximated_area_comparison()
+
 	# area_lower_bound_against_beta()
 	# area_upper_bound_against_beta()
 
