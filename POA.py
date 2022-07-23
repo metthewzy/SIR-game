@@ -33,27 +33,37 @@ def t_peak_area_comparison():
 	beta = 1
 	I0 = I0_global * S0
 	S, I, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False)
-	fig = plt.figure()
-	ax1 = fig.add_subplot()
-	ax1.plot(t_range, S, label='S')
-	ax1.plot(t_range, I, label='I')
 
 	S_peak = gamma / beta
-	k = np.floor(S0 / S_peak)
+	k_max = round(np.floor(S0 / S_peak))
+	print('k max=', k_max)
+	S_ts = [S0]
+	# k=1
 	# print(S0, k * S_peak)
-	t_k = t_of_S(beta, gamma, S0, I0, S0, k * S_peak)
-	print('t_kpeak=', t_k)
-	ax1.axhline(k * S_peak, linestyle=':', color='red', label='S_kpeak')
-	ax1.axvline(t_k, linestyle=':', color='gray', label='t_kpeak')
-	ax1.legend()
-	plt.show()
+	for k in range(k_max, 0, -1):
+		S_ts.append(k * S_peak)
+		t_k = t_S(beta, gamma, S0, I0, S_ts[-1])
+		print('t_kpeak=', t_k)
+		fig = plt.figure()
+		ax1 = fig.add_subplot()
+		ax1.plot(t_range, S, label='S')
+		ax1.plot(t_range, I, label='I')
+		ax1.axhline(k * S_peak, linestyle=':', color='red', label='S_kpeak')
+		ax1.axvline(t_k, linestyle=':', color='gray', label='t_kpeak')
+		ax1.legend()
+		plt.show()
+
 	return
 
 
-def t_of_S(beta, gamma, S0, I0, S1, S2):
-	D1 = beta - gamma / S0
-	D2 = gamma - beta * I0 - beta * S0
-	ret = np.log(S2 / (S2 - D2 / D1) / S1 * (S1 - D2 / D1)) / D2
+def t_S(beta, gamma, S0, I0, St):
+	a = beta - gamma / 2 / S0
+	b = - beta * (I0 + S0)
+	c = gamma * S0 / 2
+	dt = []
+	for S in np.arange(S0, St - (St - S0) / 1000000, (St - S0) / 1000000):
+		dt.append(1 / (a * S**2 + b * S + c))
+	ret = np.mean(dt) * (St - S0)
 	return ret
 
 
