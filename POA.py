@@ -63,6 +63,7 @@ def t_S(beta, gamma, S0, I0, St):
 	dt = []
 	for S in np.arange(S0, St - (St - S0) / 1000000, (St - S0) / 1000000):
 		dt.append(1 / (a * S**2 + b * S + c))
+		# dt.append(1/(-beta * S * (I0+S0-S+gamma/beta*(S/S0-1)/(S/S0))))
 	ret = np.mean(dt) * (St - S0)
 	return ret
 
