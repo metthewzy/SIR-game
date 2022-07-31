@@ -49,6 +49,7 @@ def t_peak_area_comparison(S0, plot=False):
 	t2s = [0]
 	r1s = []
 	r2s = []
+	t3s = [0]
 
 	for k in range(k_max, 0, -1):
 		if k * S_peak == S0:
@@ -60,10 +61,13 @@ def t_peak_area_comparison(S0, plot=False):
 		r2s.append(r2)
 		ts.append(t_k)
 		t2s.append(t2_k)
+		t3_k, r1, r2 = t3_S(beta, gamma, S0, I0, S_ts[-1])
+		t3s.append(t3_k)
 		# print(t_k, t2_k)
 	# print('t_kpeak=', t_k)
 
 	approximated_area = 0
+	print(len(S_ts), len(t2s), len(t3s))
 	for i in range(len(S_ts)):
 		if i == 0:
 			continue
@@ -72,6 +76,7 @@ def t_peak_area_comparison(S0, plot=False):
 			ax1.hlines(S_ts[i - 1], ts[i - 1], ts[i], color='green')
 			ax1.vlines(ts[i], S_ts[i - 1], S_ts[i], color='green')
 			ax1.vlines(t2s[i], S_ts[i - 1], S_ts[i], color='red')
+			ax1.vlines(t3s[i], S_ts[i - 1], S_ts[i], color='orange')
 
 	approximated_area += S_ts[-1] * (t_vac - ts[-1]) / 2 if ts[-1] < t_vac else S_ts[-1] * (t_vac - ts[-1])
 
@@ -125,6 +130,42 @@ def t2_S(beta, gamma, S0, I0, St):
 	b = - beta * (I0 + S0)
 	c = gamma * S0 / 2
 	ret = F(St) - F0(S0)
+	print(np.sqrt(b**2 - 4 * a * c), beta * S0 - gamma)
+	# print('X=', np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * St)
+	# print('Y=', np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * St)
+	r1 = (np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * S0)/(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * S0)
+	r2 = (abs(b) - a * S0 - abs(a * c / b))/(a * S0 - abs(a * c / b))
+	# print('X/Y=', r1)
+	# print('X\'=', abs(b) - a * St - abs(a * c / b))
+	# print('Y\'=', a * St - abs(a * c / b))
+	# print('X\'/Y\'', r2)
+	return ret, r1, r2
+
+
+def t3_S(beta, gamma, S0, I0, St):
+	def F0(x):
+		ret = (np.log(np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * x)
+				- np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
+			   / np.sqrt(b ** 2 - 4 * a * c)
+
+		# ret = (np.log(np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * x)
+		# 	   - np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
+		# 	  / (beta * S0 - gamma)
+		# ret = np.log(np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * x) / np.sqrt(b ** 2 - 4 * a * c)
+		return ret
+
+	def F(x):
+		# ret = (np.log(np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * x)
+		# 		- np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
+		# 	   / np.sqrt(b ** 2 - 4 * a * c)
+		ret = np.log((beta * S0 - beta * x / 2 - gamma / 4) / (beta * x - gamma / 2)) \
+			   / (beta * S0 - gamma)
+		return ret
+
+	a = beta - gamma / 2 / S0
+	b = - beta * (I0 + S0)
+	c = gamma * S0 / 2
+	ret = F(St) - F(S0)
 	print(np.sqrt(b**2 - 4 * a * c), beta * S0 - gamma)
 	# print('X=', np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * St)
 	# print('Y=', np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * St)
