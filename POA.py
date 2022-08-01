@@ -130,7 +130,7 @@ def t2_S(beta, gamma, S0, I0, St):
 	b = - beta * (I0 + S0)
 	c = gamma * S0 / 2
 	ret = F(St) - F0(S0)
-	print(np.sqrt(b**2 - 4 * a * c), beta * S0 - gamma)
+	# print(np.sqrt(b**2 - 4 * a * c), beta * S0 - gamma)
 	# print('X=', np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * St)
 	# print('Y=', np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * St)
 	r1 = (np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * S0)/(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * S0)
@@ -166,7 +166,7 @@ def t3_S(beta, gamma, S0, I0, St):
 	b = - beta * (I0 + S0)
 	c = gamma * S0 / 2
 	ret = F(St) - F(S0)
-	print(np.sqrt(b**2 - 4 * a * c), beta * S0 - gamma)
+	# print(np.sqrt(b**2 - 4 * a * c), beta * S0 - gamma)
 	# print('X=', np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * St)
 	# print('Y=', np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * St)
 	r1 = (np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * S0)/(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * S0)
