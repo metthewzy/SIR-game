@@ -63,7 +63,7 @@ def t_peak_area_comparison(S0, plot=False):
 		t2s.append(t2_k)
 		t3_k, r1, r2 = t3_S(beta, gamma, S0, I0, S_ts[-1])
 		t3s.append(t3_k)
-		# print(t_k, t2_k)
+	# print(t_k, t2_k)
 	# print('t_kpeak=', t_k)
 
 	approximated_area = 0
@@ -82,6 +82,8 @@ def t_peak_area_comparison(S0, plot=False):
 
 	actual_area = np.mean(S) * t_vac
 	# print(approximated_area, actual_area)
+	print(ts)
+	print(t2s)
 	if plot:
 		ax1.hlines(S_ts[-1], ts[-1], t_vac, color='green')
 		ax1.vlines(t_vac, 0, S_ts[-1], color='green')
@@ -98,7 +100,7 @@ def t_S(beta, gamma, S0, I0, St):
 	b = - beta * (I0 + S0)
 	c = gamma * S0 / 2
 	dt = []
-	for S in np.arange(S0, St + (St - S0) / 100000, (St - S0) / 100000):
+	for S in np.arange(S0, St + (St - S0) / 10000, (St - S0) / 10000):
 		dt.append(1 / (a * S ** 2 + b * S + c))
 	# dt.append(1/(-beta * S * (I0+S0-S+gamma/beta*(S/S0-1)/(S/S0))))
 	ret = np.mean(dt) * (St - S0)
@@ -109,8 +111,8 @@ def t_S(beta, gamma, S0, I0, St):
 def t2_S(beta, gamma, S0, I0, St):
 	def F0(x):
 		ret = (np.log(np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * x)
-				- np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
-			   / np.sqrt(b ** 2 - 4 * a * c)
+			   - np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
+			  / np.sqrt(b ** 2 - 4 * a * c)
 
 		# ret = (np.log(np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * x)
 		# 	   - np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
@@ -123,7 +125,7 @@ def t2_S(beta, gamma, S0, I0, St):
 		# 		- np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
 		# 	   / np.sqrt(b ** 2 - 4 * a * c)
 		ret = np.log((beta * S0 - beta * x - gamma / 2) / (beta * x - gamma / 2)) \
-			   / (beta * S0 - gamma)
+			  / (beta * S0 - gamma)
 		return ret
 
 	a = beta - gamma / 2 / S0
@@ -133,8 +135,8 @@ def t2_S(beta, gamma, S0, I0, St):
 	# print(np.sqrt(b**2 - 4 * a * c), beta * S0 - gamma)
 	# print('X=', np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * St)
 	# print('Y=', np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * St)
-	r1 = (np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * S0)/(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * S0)
-	r2 = (abs(b) - a * S0 - abs(a * c / b))/(a * S0 - abs(a * c / b))
+	r1 = (np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * S0) / (np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * S0)
+	r2 = (abs(b) - a * S0 - abs(a * c / b)) / (a * S0 - abs(a * c / b))
 	# print('X/Y=', r1)
 	# print('X\'=', abs(b) - a * St - abs(a * c / b))
 	# print('Y\'=', a * St - abs(a * c / b))
@@ -145,8 +147,8 @@ def t2_S(beta, gamma, S0, I0, St):
 def t3_S(beta, gamma, S0, I0, St):
 	def F0(x):
 		ret = (np.log(np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * x)
-				- np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
-			   / np.sqrt(b ** 2 - 4 * a * c)
+			   - np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
+			  / np.sqrt(b ** 2 - 4 * a * c)
 
 		# ret = (np.log(np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * x)
 		# 	   - np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
@@ -159,22 +161,22 @@ def t3_S(beta, gamma, S0, I0, St):
 		# 		- np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
 		# 	   / np.sqrt(b ** 2 - 4 * a * c)
 		ret = np.log((beta * S0 - beta * x / 2 - gamma / 4) / (beta * x - gamma / 2)) \
-			   / (beta * S0 - gamma)
+			  / (beta * S0 - gamma)
 		return ret
 
 	a = beta - gamma / 2 / S0
 	b = - beta * (I0 + S0)
 	c = gamma * S0 / 2
-	ret = F(St) - F(S0)
+	ret = F(St) - F0(S0)
 	# print(np.sqrt(b**2 - 4 * a * c), beta * S0 - gamma)
 	# print('X=', np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * St)
 	# print('Y=', np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * St)
-	r1 = (np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * S0)/(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * S0)
-	r2 = (abs(b) - a * S0 - abs(a * c / b))/(a * S0 - abs(a * c / b))
-	print('X/Y=', r1)
+	r1 = (np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * S0) / (np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * S0)
+	r2 = (abs(b) - a * S0 - abs(a * c / b)) / (a * S0 - abs(a * c / b))
+	# print('X/Y=', r1)
 	# print('X\'=', abs(b) - a * St - abs(a * c / b))
 	# print('Y\'=', a * St - abs(a * c / b))
-	print('X\'/Y\'', r2)
+	# print('X\'/Y\'', r2)
 	return ret, r1, r2
 
 
@@ -579,10 +581,79 @@ def approximated_area_comparison():
 	return
 
 
+def t0_area_comparison(S0):
+	I0_global = 0.0001
+	t_vac = 100
+	gamma = 1 / 14
+	beta = 1
+	I0 = I0_global * S0
+	S_peak = gamma / beta
+	print('S_peak=', S_peak)
+	S, I, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False)
+
+	for t_peak_idx in range(len(t_range)):
+		if S[t_peak_idx] <= S_peak:
+			break
+	actual_area = np.mean(S[:t_peak_idx]) * t_range[t_peak_idx]
+	print(f'actual:\n{actual_area}')
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot(111)
+	# ax2 = fig.add_subplot(122)
+	ax1.plot(t_range, S, label='S')
+	ax1.plot(t_range, I, label='I')
+	k_max = round(np.ceil(S0 / S_peak)) - 1
+
+	S_ts = [S0]
+	# print(S_ts[-1], S0)
+	ts = [0]
+	t2s = [0]
+
+	for k in range(k_max, 0, -1):
+		S_ts.append(k * S_peak)
+		t_k = t_S(beta, gamma, S0, I0, S_ts[-1])
+		t2_k, r1, r2 = t3_S(beta, gamma, S0, I0, S_ts[-1])
+		ts.append(t_k)
+		t2s.append(t2_k)
+
+	approx_area = 0
+	approx_area2 = 0
+	approx_yz = 0
+	for i in range(2, len(ts)):
+		approx_area += (ts[i] - ts[i - 1]) * S_ts[i - 1]
+		approx_area2 += (t2s[i] - t2s[i - 1]) * S_ts[i - 1]
+
+	for i in range(1, k_max - 1):
+		approx_yz += gamma * (i + 1) / (S0 * beta - gamma) / beta * (np.log(3) + gamma / S0 / beta)
+	print(approx_area)
+	print(approx_area2)
+	print(approx_yz)
+
+	approx_area += t_S(beta, gamma, S0, I0, S0 - S_peak) * S0
+	approx_area2 += t3_S(beta, gamma, S0, I0, S0 - S_peak)[0] * S0
+	print(f'approx1(green):\n{approx_area}, {round(approx_area / actual_area * 100, 2)}%')
+	print(f'approx2(red):\n{approx_area2}, {round(approx_area2 / actual_area * 100, 2)}%')
+
+	for t_idx in range(len(S_ts)):
+		if t_idx == 0:
+			continue
+		ax1.hlines(S_ts[t_idx - 1], ts[t_idx - 1], ts[t_idx], color='green')
+		ax1.vlines(ts[t_idx], S_ts[t_idx - 1], S_ts[t_idx], color='green')
+		ax1.vlines(t2s[t_idx], S_ts[t_idx - 1], S_ts[t_idx], color='red')
+
+	print(ts)
+	print(t_S(beta, gamma, S0, I0, S0 - S_peak))
+	print(t2s)
+	print(t3_S(beta, gamma, S0, I0, S0 - S_peak)[0])
+	plt.show()
+	return
+
+
 def main():
 	# POA_plot()
 	# approximated_area_comparison()
-	t_peak_area_comparison(0.5, True)
+	# t_peak_area_comparison(0.45, True)
+	# t0_area_comparison(0.07142857142857142 * 5 + 0.01)
 
 	# area_lower_bound_against_beta()
 	# area_upper_bound_against_beta()

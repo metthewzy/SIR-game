@@ -45,7 +45,7 @@ def tests():
 	return
 
 
-def simulate(beta, gamma, S0, I0, t_vac, showPlot, num_steps=10000):
+def simulate(beta, gamma, S0, I0, t_vac=100, showPlot=False, num_steps=10000):
 	"""
 	1 group SIR simulation
 	"""
@@ -65,6 +65,7 @@ def simulate(beta, gamma, S0, I0, t_vac, showPlot, num_steps=10000):
 		ax = fig.add_subplot()
 		ax.plot(t_range, S, label='S')
 		ax.plot(t_range, I, label='I')
+		ax.axhline(gamma / beta)
 		ax.legend()
 		plt.show()
 		plt.close(fig)
@@ -445,7 +446,7 @@ def tmp():
 	income_ratio = 8.47300431687476
 	gamma = 0.17000166641559938
 	max_POA = 1
-	with open('POA.txt', 'w') as f:
+	with open('POA2.txt', 'w') as f:
 		f.write(f'MAX POA=\n{max_POA}\n\n')
 		f.write(f'beta_S=\n{beta_S}\n\n')
 		f.write(f'beta_ratio=\n{beta_ratio}\n\n')
@@ -797,7 +798,7 @@ def POA_MT_optimizer(beta_S, beta_ratio, income_ratio, gamma, t_vac, runs):
 					max_POA = POA
 					max_paras = paras
 					print('MAX POA updated at run', num_threads)
-					with open('POA.txt', 'w') as fl:
+					with open(f'POA_{t_vac}.txt', 'w') as fl:
 						[beta_S, beta_ratio, income_ratio, gamma] = max_paras
 						fl.write(f'MAX POA=\n{max_POA}\n\n')
 						fl.write(f'beta_S=\n{beta_S}\n\n')
@@ -895,7 +896,7 @@ def POA_calculator(paras, t_vac):
 
 
 def main():
-	# tmp()
+	tmp()
 	# tests()
 
 	# utility_plotter(beta=BETA_0, income_ratio=6, beta_ratio=0.5, t_vac=100, gamma=GAMMA)
@@ -903,12 +904,18 @@ def main():
 	# POA_heatmap()
 	# POA_Monte_Carlo(runs=20000)
 
-	# max POA found
-	utility_plotter(beta=2.938402854858076,
-					income_ratio=24.048534651984465,
-					beta_ratio=0.059552466400000004,
-					gamma=0.5100049992467981,
-					t_vac=100)
+	# # max POA found
+	# utility_plotter(beta=2.938402854858076,
+	# 				income_ratio=24.048534651984465,
+	# 				beta_ratio=0.059552466400000004,
+	# 				gamma=0.5100049992467981,
+	# 				t_vac=100)
+
+	# utility_plotter(beta=1,
+	# 				income_ratio=1,
+	# 				beta_ratio=0.8,
+	# 				gamma=1 / 14,
+	# 				t_vac=100)
 
 	# OPT_heatmap(beta=1, t_vac=100, gamma=1 / 14)
 
@@ -925,9 +932,20 @@ def main():
 	#                  beta_ratio=0.148881166,
 	#                  income_ratio=8.47300431687476,
 	#                  gamma=0.17000166641559938,
-	#                  t_vac=100,
+	#                  t_vac=200,
 	#                  runs=50)
 
+	# POA_MT_optimizer(beta_S=0.9794676182860252,
+	#                  beta_ratio=0.148881166,
+	#                  income_ratio=8.47300431687476,
+	#                  gamma=0.17000166641559938,
+	#                  t_vac=500,
+	#                  runs=50)
+
+	# S, I, t_range = simulate(2.938402854858076, 0.5100049992467981, 0.2, I_0, t_vac=300, showPlot=True)
+	# S, I, t_range = simulate(2.938402854858076 * 0.059552466400000004, 0.5100049992467981, 1, I_0, t_vac=100,
+	# 						 showPlot=True)
+	# print(S[0], S[-1])
 	return
 
 
