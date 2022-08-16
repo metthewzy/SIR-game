@@ -243,7 +243,7 @@ def utility_plotter(beta, income_ratio, beta_ratio, gamma, t_vac):
 	ax1.legend(loc='upper left', bbox_to_anchor=(0, -0.15))
 	ax2.legend(loc='upper left', bbox_to_anchor=(0, -0.15))
 	# fig.suptitle(f'POA={round(max_social / NE_utility, 4)}')
-	fig.suptitle('POA={:.6f}'.format(POA))
+	fig.suptitle('POA={:.6f}'.format(POA) + f"\nT={t_vac}")
 	plt.tight_layout()
 	plt.show()
 	plt.close(fig)
@@ -896,7 +896,7 @@ def POA_calculator(paras, t_vac):
 
 
 def main():
-	tmp()
+	# tmp()
 	# tests()
 
 	# utility_plotter(beta=BETA_0, income_ratio=6, beta_ratio=0.5, t_vac=100, gamma=GAMMA)
@@ -904,18 +904,40 @@ def main():
 	# POA_heatmap()
 	# POA_Monte_Carlo(runs=20000)
 
-	# # max POA found
+	# # max POA found T=100
 	# utility_plotter(beta=2.938402854858076,
 	# 				income_ratio=24.048534651984465,
 	# 				beta_ratio=0.059552466400000004,
 	# 				gamma=0.5100049992467981,
 	# 				t_vac=100)
 
-	# utility_plotter(beta=1,
-	# 				income_ratio=1,
-	# 				beta_ratio=0.8,
-	# 				gamma=1 / 14,
-	# 				t_vac=100)
+	# # max POA found T=200
+	# utility_plotter(beta=2.245134809875011,
+	# 				income_ratio=25.419012950624282,
+	# 				beta_ratio=0.059552466400000004,
+	# 				gamma=0.5100049992467981,
+	# 				t_vac=200)
+
+	# max POA found T=500
+	utility_plotter(beta=1.889472717620211,
+					income_ratio=25.419012950624282,
+					beta_ratio=0.059552466400000004,
+					gamma=0.5100049992467981,
+					t_vac=500)
+	#
+	# # max POA found T=800
+	# utility_plotter(beta=2.938402854858076,
+	# 				income_ratio=25.419012950624282,
+	# 				beta_ratio=0.446643498,
+	# 				gamma=0.23068256054884434,
+	# 				t_vac=800)
+	#
+	# # max POA found T=1000
+	# utility_plotter(beta=2.938402854858076,
+	# 				income_ratio=25.419012950624282,
+	# 				beta_ratio=0.446643498,
+	# 				gamma=0.23093961301051627,
+	# 				t_vac=1000)
 
 	# OPT_heatmap(beta=1, t_vac=100, gamma=1 / 14)
 
@@ -932,14 +954,14 @@ def main():
 	#                  beta_ratio=0.148881166,
 	#                  income_ratio=8.47300431687476,
 	#                  gamma=0.17000166641559938,
-	#                  t_vac=200,
+	#                  t_vac=800,
 	#                  runs=50)
-
+	#
 	# POA_MT_optimizer(beta_S=0.9794676182860252,
 	#                  beta_ratio=0.148881166,
 	#                  income_ratio=8.47300431687476,
 	#                  gamma=0.17000166641559938,
-	#                  t_vac=500,
+	#                  t_vac=1000,
 	#                  runs=50)
 
 	# S, I, t_range = simulate(2.938402854858076, 0.5100049992467981, 0.2, I_0, t_vac=300, showPlot=True)
