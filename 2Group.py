@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 
 
 def two_group_simulate(phi1, phi2, beta1, beta2, gamma, epsilon, T, num_steps, plot=False):
+	"""
+	Simulate 2 group2 with interaction
+	"""
 	S1 = [phi1 * (1 - epsilon)]
 	I1 = [phi1 * epsilon]
 	R1 = [0]
