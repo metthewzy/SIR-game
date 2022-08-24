@@ -2,6 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def zero_searcher(f, left, right):
+	mid = (left + right) / 2
+	for _ in range(20):
+		if f(mid) < 0:
+			left = mid
+		else:
+			right = mid
+		mid = (left + right) / 2
+	return mid
+
+
 def g_plotter():
 	beta = 0.25
 	gamma = 1 / 14
@@ -12,19 +23,40 @@ def g_plotter():
 	def g(S):
 		ret = S - np.exp(-phi * beta / gamma * (1 - S))
 		return ret
+
 	gs = []
 	for S in S_range:
 		gs.append(g(S))
 
+	S_peak = gamma / (phi * beta) * np.log(gamma / (phi * beta)) + 1
+	g_peak = g(S_peak)
+	g_0 = g(0)
+	S_inf = zero_searcher(g, 0, S_peak)
+	upper_bound = (phi * beta + gamma * np.log(gamma / (phi * beta))) / \
+				  (phi * beta + gamma * np.exp(phi * beta / gamma) * ((phi * beta) / gamma - 1 + np.log(
+					  gamma / (phi * beta))))
+	lower_bound = gamma / (np.exp(phi * beta / gamma) * gamma - phi * beta)
+
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
-	ax1.plot(S_range, gs)
 	# ax1.set_aspect('equal')
-	# ax1.set_ylim(-0.3, 0.3)
-	ax1.grid(True, which='both')
-
+	# ax1.grid(True, which='both')
 	ax1.axhline(y=0, color='k')
 	ax1.axvline(x=0, color='k')
+	ax1.plot(S_range, gs)
+	ax1.plot([0, S_peak], [g_0, g_peak], linestyle='--', c='grey')
+	ax1.plot([0, lower_bound], [g_0, 0], linestyle='--', c='grey')
+	ax1.plot(S_peak, g_peak, marker='o', c='k', markersize=5)
+	ax1.plot(0, g_0, marker='o', c='k', markersize=5)
+	ax1.plot(S_inf, 0, marker='o', c='k', markersize=5)
+	ax1.plot(upper_bound, 0, marker='o', c='k', markersize=5)
+	ax1.plot(lower_bound, 0, marker='o', c='k', markersize=5)
+	ax1.annotate(r'$g_p$', (S_peak, g_peak), textcoords="offset points", xytext=(5, -15), ha='left')
+	ax1.annotate(r'$g(0)$', (0, g_0), textcoords="offset points", xytext=(20, 0), ha='left')
+	ax1.annotate(r'$\overline{S}(\infty)$', (S_inf, 0), textcoords="offset points", xytext=(0, -15), ha='left')
+	ax1.annotate(r'U', (upper_bound, 0), textcoords="offset points", xytext=(0, -15), ha='left')
+	ax1.annotate(r'L', (lower_bound, 0), textcoords="offset points", xytext=(-5, 10), ha='right')
+
 	ax1.set_xlabel(r'$\overline{S}$')
 	ax1.set_ylabel(r'$g(\overline{S})$')
 	fig.savefig('g(S).png')
