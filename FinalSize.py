@@ -52,13 +52,13 @@ def g_plotter():
 	ax1.plot(upper_bound, 0, marker='o', c='k', markersize=5)
 	ax1.plot(lower_bound, 0, marker='o', c='k', markersize=5)
 	ax1.annotate(r'$g_p$', (S_peak, g_peak), textcoords="offset points", xytext=(5, -15), ha='left')
-	ax1.annotate(r'$g(0)$', (0, g_0), textcoords="offset points", xytext=(20, 0), ha='left')
+	ax1.annotate(r'$g(0)$', (0, g_0), textcoords="offset points", xytext=(15, 0), va='center')
 	ax1.annotate(r'$\overline{S}(\infty)$', (S_inf, 0), textcoords="offset points", xytext=(0, -15), ha='left')
-	ax1.annotate(r'U', (upper_bound, 0), textcoords="offset points", xytext=(0, -15), ha='left')
-	ax1.annotate(r'L', (lower_bound, 0), textcoords="offset points", xytext=(-5, 10), ha='right')
+	ax1.annotate(r'$UB$', (upper_bound, 0), textcoords="offset points", xytext=(0, -15), ha='left')
+	ax1.annotate(r'$LB$', (lower_bound, 0), textcoords="offset points", xytext=(-5, 10), ha='right')
 
 	ax1.set_xlabel(r'$\overline{S}$')
-	ax1.set_ylabel(r'$g(\overline{S})$')
+	ax1.set_title(r'$g(\overline{S})$')
 	fig.savefig('g(S).png')
 	# plt.show()
 	return
