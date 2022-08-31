@@ -448,20 +448,13 @@ def plot_area(beta, gamma, S, I, t_range, S_peak, i, t_vac, payment_ratio, S_are
 
 
 def tmp():
-	phi_range = np.arange(0.001, 1, 0.001)
-	beta = 1
+	beta1 = 1
+	beta2 = 1
 	gamma = 1 / 14
-	epsilon = 0.5
-	T = 100
-	areas = []
-	for phi in phi_range:
-		area = phi * T - 1 / (2 * beta * epsilon) * (1 - gamma / (1 - epsilon) / (beta * phi)) * (
-				1 + epsilon * gamma / beta / phi)
-		areas.append(area)
-	fig = plt.figure()
-	ax1 = fig.add_subplot()
-	ax1.plot(phi_range, areas)
-	plt.show()
+	PR = 2
+	NE = PR / (np.exp(beta1 / gamma) - beta1 / gamma)
+	OPT = PR * gamma / beta1 + gamma / beta2
+	print(OPT / NE)
 	return
 
 
@@ -664,10 +657,10 @@ def S_infinity_comparison(beta, gamma, t_vac):
 		S0 = phi
 		I0 = I0_global * S0
 		S1, I1, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False, num_steps=100000)
-		S_infinity.append(S1[-1] / phi)
-		S_lower.append(1 / (np.exp(phi * beta / gamma) - phi * beta / gamma))
+		S_infinity.append(S1[-1])
+		S_lower.append(phi / (np.exp(phi * beta / gamma) - phi * beta / gamma))
 		S_upper.append(
-			(phi * beta / gamma - np.log(phi * beta / gamma)) /
+			phi * (phi * beta / gamma - np.log(phi * beta / gamma)) /
 			(phi * beta / gamma +
 			 np.exp(phi * beta / gamma) * (phi * beta / gamma - 1 - np.log(phi * beta / gamma))))
 
@@ -702,13 +695,13 @@ def main():
 	# area_comparison()
 	# group_peak_searcher()
 
-	# tmp()
-	S_infinity_comparison(0.1, 1 / 14, 10000)
-	S_infinity_comparison(0.25, 1 / 14, 10000)
-	S_infinity_comparison(0.5, 1 / 14, 10000)
-	S_infinity_comparison(1, 1 / 14, 10000)
-	S_infinity_comparison(2, 1 / 14, 10000)
-	S_infinity_comparison(5, 1 / 14, 10000)
+	tmp()
+	# S_infinity_comparison(0.1, 1 / 14, 10000)
+	# S_infinity_comparison(0.25, 1 / 14, 10000)
+	# S_infinity_comparison(0.5, 1 / 14, 10000)
+	# S_infinity_comparison(1, 1 / 14, 10000)
+	# S_infinity_comparison(2, 1 / 14, 10000)
+	# S_infinity_comparison(5, 1 / 14, 10000)
 	return
 
 
