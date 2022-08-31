@@ -111,8 +111,8 @@ def t_S(beta, gamma, S0, I0, St):
 def t2_S(beta, gamma, S0, I0, St):
 	def F0(x):
 		ret = (np.log(np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * x)
-			   - np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
-			  / np.sqrt(b ** 2 - 4 * a * c)
+		       - np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
+		      / np.sqrt(b ** 2 - 4 * a * c)
 
 		# ret = (np.log(np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * x)
 		# 	   - np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
@@ -125,7 +125,7 @@ def t2_S(beta, gamma, S0, I0, St):
 		# 		- np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
 		# 	   / np.sqrt(b ** 2 - 4 * a * c)
 		ret = np.log((beta * S0 - beta * x - gamma / 2) / (beta * x - gamma / 2)) \
-			  / (beta * S0 - gamma)
+		      / (beta * S0 - gamma)
 		return ret
 
 	a = beta - gamma / 2 / S0
@@ -147,8 +147,8 @@ def t2_S(beta, gamma, S0, I0, St):
 def t3_S(beta, gamma, S0, I0, St):
 	def F0(x):
 		ret = (np.log(np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * x)
-			   - np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
-			  / np.sqrt(b ** 2 - 4 * a * c)
+		       - np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
+		      / np.sqrt(b ** 2 - 4 * a * c)
 
 		# ret = (np.log(np.sqrt(b ** 2 - 4 * a * c) - b - 2 * a * x)
 		# 	   - np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
@@ -161,7 +161,7 @@ def t3_S(beta, gamma, S0, I0, St):
 		# 		- np.log(np.sqrt(b ** 2 - 4 * a * c) + b + 2 * a * x)) \
 		# 	   / np.sqrt(b ** 2 - 4 * a * c)
 		ret = np.log((beta * S0 - beta * x / 2 - gamma / 4) / (beta * x - gamma / 2)) \
-			  / (beta * S0 - gamma)
+		      / (beta * S0 - gamma)
 		return ret
 
 	a = beta - gamma / 2 / S0
@@ -440,7 +440,7 @@ def plot_area(beta, gamma, S, I, t_range, S_peak, i, t_vac, payment_ratio, S_are
 	if S[0] >= gamma / beta:
 		t_peak_est = (np.log(S[0] / I[0]) - np.log(S_peak) - np.log(
 			S_peak / (S[0] + I[0] + S_peak * np.log(S_peak / S[0]) - S_peak))) / beta / (
-							 S[0] + I[0] + S_peak * np.log(S_peak / S[0]))
+				             S[0] + I[0] + S_peak * np.log(S_peak / S[0]))
 		ax1.axvline(t_peak_est, linestyle=':')
 	ax1.legend()
 	plt.show()
@@ -649,6 +649,45 @@ def t0_area_comparison(S0):
 	return
 
 
+def S_infinity_comparison(beta, gamma, t_vac):
+	phi_step = 0.001
+	phi_range = np.arange(phi_step, 1, phi_step)
+	I0_global = 0.0001
+	# t_vac = 10000
+	# t_vacs = [100, 200, 500, 1000, 10000]
+	# gamma = 1 / 14
+	# beta = 0.1
+	S_infinity = []
+	S_lower = []
+	S_upper = []
+	for phi in phi_range:
+		S0 = phi
+		I0 = I0_global * S0
+		S1, I1, t_range = simulate(beta, gamma, S0, I0_global, t_vac, False, num_steps=100000)
+		S_infinity.append(S1[-1] / phi)
+		S_lower.append(1 / (np.exp(phi * beta / gamma) - phi * beta / gamma))
+		S_upper.append(
+			(phi * beta / gamma - np.log(phi * beta / gamma)) /
+			(phi * beta / gamma +
+			 np.exp(phi * beta / gamma) * (phi * beta / gamma - 1 - np.log(phi * beta / gamma))))
+
+	fig = plt.figure(figsize=(8, 6))
+	ax1 = fig.add_subplot()
+	ax1.plot(phi_range, S_infinity, label=r'$S_\infty$')
+	ax1.plot(phi_range, S_lower, label=f'Lower')
+	ax1.plot(phi_range, S_upper, label=f'Upper')
+	ax1.axvline(gamma / beta, color='grey', linestyle=':', label=r'$\gamma/\beta$')
+	y1, y2 = ax1.get_ylim()
+	ax1.set_ylim(0, y2)
+	ax1.set_xlim(0, 1)
+	ax1.set_title(rf'$\beta={round(beta, 3)},\gamma={round(gamma, 3)},T={t_vac}$')
+	ax1.set_xlabel(r'$\phi$')
+	ax1.legend()
+	fig.savefig(f'fig/b={round(beta, 3)}g={round(gamma, 3)}T={t_vac}.png')
+	# plt.show()
+	return
+
+
 def main():
 	# POA_plot()
 	# approximated_area_comparison()
@@ -664,6 +703,12 @@ def main():
 	# group_peak_searcher()
 
 	# tmp()
+	S_infinity_comparison(0.1, 1 / 14, 10000)
+	S_infinity_comparison(0.25, 1 / 14, 10000)
+	S_infinity_comparison(0.5, 1 / 14, 10000)
+	S_infinity_comparison(1, 1 / 14, 10000)
+	S_infinity_comparison(2, 1 / 14, 10000)
+	S_infinity_comparison(5, 1 / 14, 10000)
 	return
 
 
