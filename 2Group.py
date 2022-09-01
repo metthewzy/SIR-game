@@ -177,6 +177,8 @@ def final_size_searcher(beta, beta_ratio, gamma, epsilon):
 	phi1_range = np.arange(0, 1 + phi1_step, phi1_step)
 	S1_infs = []
 	S2_infs = []
+	S1_approx = []
+	S2_approx = []
 	for phi1 in phi1_range:
 		phi2 = 1 - phi1
 		optimal = minimize(two_group_loss, [phi1 / 2, phi2 / 2],
@@ -187,6 +189,8 @@ def final_size_searcher(beta, beta_ratio, gamma, epsilon):
 		S1, S2 = optimal.x
 		S1_infs.append(S1)
 		S2_infs.append(S2)
+		S1_approx.append()
+			(1-epsilon) * phi1 * (gamma - beta )
 	# print([(S1, S2) for (S1, S2) in zip(S1_infs, S2_infs)])
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
