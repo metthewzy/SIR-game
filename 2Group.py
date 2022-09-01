@@ -182,19 +182,26 @@ def final_size_searcher(beta, beta_ratio, gamma, epsilon):
 	for phi1 in phi1_range:
 		phi2 = 1 - phi1
 		optimal = minimize(two_group_loss, [phi1 / 2, phi2 / 2],
-						   args=(phi1, beta, beta_ratio, gamma, epsilon),
-						   method='L-BFGS-B',
-						   bounds=[(0, phi1), (0, phi2)])
+		                   args=(phi1, beta, beta_ratio, gamma, epsilon),
+		                   method='L-BFGS-B',
+		                   bounds=[(0, phi1), (0, phi2)])
 		# print(optimal.fun)
 		S1, S2 = optimal.x
 		S1_infs.append(S1)
 		S2_infs.append(S2)
-		S1_approx.append()
-			(1-epsilon) * phi1 * (gamma - beta )
+		S1_approx.append((1 - epsilon) * phi1 *
+		                 (gamma - beta * (phi1 + beta_ratio * (beta_ratio + epsilon - beta_ratio * epsilon) * phi2)) /
+		                 (gamma + beta * (epsilon - 1) * (phi1 + beta_ratio ** 2 * phi2)))
+		S2_approx.append((1 - epsilon) * phi2 *
+		                 (gamma - beta * (phi1 + (beta_ratio - 1) * epsilon * phi1 + beta_ratio ** 2 * phi2)) /
+		                 (gamma + beta * (epsilon - 1) * (phi1 + beta_ratio ** 2 * phi2)))
 	# print([(S1, S2) for (S1, S2) in zip(S1_infs, S2_infs)])
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
-	[ax1.scatter(S1_infs[i], S2_infs[i], color='blue', alpha=1 - 0.75 * phi1_range[i], s=1) for i in range(len(S1_infs))]
+	[ax1.scatter(S1_infs[i], S2_infs[i], color='blue', alpha=1 - 0.75 * phi1_range[i], s=1) for i in
+	 range(len(S1_infs))]
+	[ax1.scatter(S1_approx[i], S2_approx[i], color='red', alpha=1 - 0.75 * phi1_range[i], s=1) for i in
+	 range(len(S1_approx))]
 	ax1.set_xlabel(r'$S_1(\infty)$')
 	ax1.set_ylabel(r'$S_2(\infty)$')
 	plt.show()
