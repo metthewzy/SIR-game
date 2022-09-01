@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.optimize import minimize
 
 
 def two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, num_steps=10000, plot=False):
@@ -48,23 +49,26 @@ def NE_searcher(beta1, beta2, gamma, epsilon, T):
 	return
 
 
-def OPT_searcher(beta, beta_ratio, gamma, epsilon, T, payment_ratio):
+def utility_plotter(beta, beta_ratio, gamma, epsilon, T, payment_ratio):
+	"""
+	plot the group and individual utility of 2 groups interacting over phi
+	"""
 	phi1_step = 0.01
 	phi1_range = np.arange(phi1_step, 1, phi1_step)
-	print(phi1_range, phi1_range[1:-1])
+	# print(phi1_range, phi1_range[1:-1])
 	group_utility1 = []
 	group_utility2 = []
 	individual_utility1 = []
 	individual_utility2 = []
 
+	# # phi1 = 0
 	# phi1 = 0
-	phi1 = 0
-	phi2 = 1 - phi1
-	t_range, S1, S2 = two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, plot=False)
-	group_utility1.append(np.mean(S1) * T * payment_ratio)
-	group_utility2.append(np.mean(S2) * T)
-	individual_utility1.append(T * payment_ratio)
-	individual_utility2.append(group_utility2[-1] / phi2)
+	# phi2 = 1 - phi1
+	# t_range, S1, S2 = two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, plot=False)
+	# group_utility1.append(np.mean(S1) * T * payment_ratio)
+	# group_utility2.append(np.mean(S2) * T)
+	# individual_utility1.append(payment_ratio)
+	# individual_utility2.append(group_utility2[-1] / phi2)
 
 	for phi1 in phi1_range:
 		phi2 = 1 - phi1
@@ -74,14 +78,14 @@ def OPT_searcher(beta, beta_ratio, gamma, epsilon, T, payment_ratio):
 		individual_utility1.append(group_utility1[-1] / phi1)
 		individual_utility2.append(group_utility2[-1] / phi2)
 
+	# # phi1 = 1
 	# phi1 = 1
-	phi1 = 1
-	phi2 = 1 - phi1
-	t_range, S1, S2 = two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, plot=False)
-	group_utility1.append(np.mean(S1) * T * payment_ratio)
-	group_utility2.append(np.mean(S2) * T)
-	individual_utility1.append(group_utility1[-1] / phi1)
-	individual_utility2.append(T)
+	# phi2 = 1 - phi1
+	# t_range, S1, S2 = two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, plot=False)
+	# group_utility1.append(np.mean(S1) * T * payment_ratio)
+	# group_utility2.append(np.mean(S2) * T)
+	# individual_utility1.append(group_utility1[-1] / phi1)
+	# individual_utility2.append(1)
 
 	fig = plt.figure()
 	ax1 = fig.add_subplot(121)
@@ -101,7 +105,10 @@ def OPT_searcher(beta, beta_ratio, gamma, epsilon, T, payment_ratio):
 	return
 
 
-def final_size_solver(phi1, beta, beta_ratio, gamma, epsilon):
+def final_size_plotter(phi1, beta, beta_ratio, gamma, epsilon):
+	"""
+	Plot the final size functions. The zero points are the final sizes
+	"""
 	phi2 = 1 - phi1
 	b11 = beta
 	b12 = b21 = beta * beta_ratio
@@ -162,10 +169,69 @@ def final_size_solver(phi1, beta, beta_ratio, gamma, epsilon):
 	return
 
 
+def final_size_searcher(beta, beta_ratio, gamma, epsilon):
+	"""
+	search for the final sizes of 2 groups interacting
+	"""
+	phi1_step = 0.01
+	phi1_range = np.arange(0, 1 + phi1_step, phi1_step)
+	S1_infs = []
+	S2_infs = []
+	for phi1 in phi1_range:
+		phi2 = 1 - phi1
+		optimal = minimize(two_group_loss, [phi1 / 2, phi2 / 2],
+						   args=(phi1, beta, beta_ratio, gamma, epsilon),
+						   method='L-BFGS-B',
+						   bounds=[(0, phi1), (0, phi2)])
+		# print(optimal.fun)
+		S1, S2 = optimal.x
+		S1_infs.append(S1)
+		S2_infs.append(S2)
+	# print([(S1, S2) for (S1, S2) in zip(S1_infs, S2_infs)])
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	[ax1.scatter(S1_infs[i], S2_infs[i], color='blue', alpha=1 - 0.75 * phi1_range[i], s=1) for i in range(len(S1_infs))]
+	ax1.set_xlabel(r'$S_1(\infty)$')
+	ax1.set_ylabel(r'$S_2(\infty)$')
+	plt.show()
+	return
+
+
+def two_group_loss(point, phi1, beta, beta_ratio, gamma, epsilon):
+	loss = f1(point, phi1, beta, beta_ratio, gamma, epsilon) ** 2
+	loss += f2(point, phi1, beta, beta_ratio, gamma, epsilon) ** 2
+	return loss
+
+
+def f1(point, phi1, beta, beta_ratio, gamma, epsilon):
+	[S1, S2] = point
+	phi2 = 1 - phi1
+	b11 = beta
+	b12 = beta * beta_ratio
+	# b22 = beta * beta_ratio * beta_ratio
+	S1_0 = phi1 * (1 - epsilon)
+	# S2_0 = phi2 * (1 - epsilon)
+	ret = S1 - S1_0 * np.exp(b11 / gamma * (S1 - phi1) + b12 / gamma * (S2 - phi2))
+	return ret
+
+
+def f2(point, phi1, beta, beta_ratio, gamma, epsilon):
+	[S1, S2] = point
+	phi2 = 1 - phi1
+	# b11 = beta
+	b21 = beta * beta_ratio
+	b22 = beta * beta_ratio * beta_ratio
+	# S1_0 = phi1 * (1 - epsilon)
+	S2_0 = phi2 * (1 - epsilon)
+	ret = S2 - S2_0 * np.exp(b21 / gamma * (S1 - phi1) + b22 / gamma * (S2 - phi2))
+	return ret
+
+
 def main():
 	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
-	# OPT_searcher(1, 0.9, 1 / 14, 0.0001, 100, 1.025)
-	final_size_solver(0.5, 0.5, 0.9, 1/14, 0.0001)
+	# utility_plotter(1, 0.9, 1 / 14, 0.0001, 100, 1.025)
+	# final_size_plotter(0.5, 0.5, 0.9, 1 / 14, 0.0001)
+	final_size_searcher(0.5, 0.5, 1 / 14, 0.0001)
 	return
 
 
