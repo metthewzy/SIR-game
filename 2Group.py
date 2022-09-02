@@ -198,10 +198,11 @@ def final_size_searcher(beta, beta_ratio, gamma, epsilon):
 	# print([(S1, S2) for (S1, S2) in zip(S1_infs, S2_infs)])
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
-	[ax1.scatter(S1_infs[i], S2_infs[i], color='blue', alpha=1 - 0.75 * phi1_range[i], s=1) for i in
-	 range(len(S1_infs))]
-	[ax1.scatter(S1_approx[i], S2_approx[i], color='red', alpha=1 - 0.75 * phi1_range[i], s=1) for i in
-	 range(len(S1_approx))]
+	ax1.plot(S1_infs, S2_infs)
+	# [ax1.scatter(S1_infs[i], S2_infs[i], color='blue', alpha=1 - 0.75 * phi1_range[i], s=1) for i in
+	#  range(len(S1_infs))]
+	# [ax1.scatter(S1_approx[i], S2_approx[i], color='red', alpha=1 - 0.75 * phi1_range[i], s=1) for i in
+	#  range(len(S1_approx))]
 	ax1.set_xlabel(r'$S_1(\infty)$')
 	ax1.set_ylabel(r'$S_2(\infty)$')
 	plt.show()
@@ -223,7 +224,7 @@ def f1(point, phi1, beta, beta_ratio, gamma, epsilon):
 	S1_0 = phi1 * (1 - epsilon)
 	# S2_0 = phi2 * (1 - epsilon)
 	ret = S1 - S1_0 * np.exp(b11 / gamma * (S1 - phi1) + b12 / gamma * (S2 - phi2))
-	return ret
+	return -ret
 
 
 def f2(point, phi1, beta, beta_ratio, gamma, epsilon):
@@ -235,14 +236,14 @@ def f2(point, phi1, beta, beta_ratio, gamma, epsilon):
 	# S1_0 = phi1 * (1 - epsilon)
 	S2_0 = phi2 * (1 - epsilon)
 	ret = S2 - S2_0 * np.exp(b21 / gamma * (S1 - phi1) + b22 / gamma * (S2 - phi2))
-	return ret
+	return -ret
 
 
 def main():
 	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
 	# utility_plotter(1, 0.9, 1 / 14, 0.0001, 100, 1.025)
 	# final_size_plotter(0.5, 0.5, 0.9, 1 / 14, 0.0001)
-	final_size_searcher(0.5, 0.5, 1 / 14, 0.0001)
+	final_size_searcher(2, 0.5, 1 / 14, 0.0001)
 	return
 
 
