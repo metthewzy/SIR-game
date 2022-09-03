@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
+binary_iterations = 50
+
 
 def two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, num_steps=10000, plot=False):
 	"""
@@ -169,9 +171,9 @@ def final_size_plotter(phi1, beta, beta_ratio, gamma, epsilon):
 	return
 
 
-def final_size_searcher(beta, beta_ratio, gamma, epsilon):
+def final_size_searcher_scipy(beta, beta_ratio, gamma, epsilon):
 	"""
-	search for the final sizes of 2 groups interacting
+	search for the final sizes of 2 groups interacting using SciPy optimizer
 	"""
 	phi1_step = 0.01
 	phi1_range = np.arange(0, 1 + phi1_step, phi1_step)
@@ -209,6 +211,72 @@ def final_size_searcher(beta, beta_ratio, gamma, epsilon):
 	return
 
 
+def final_size_searcher_binary(beta, beta_ratio, gamma, epsilon):
+	"""
+	search for the final sizes of 2 groups interacting using binary search
+	"""
+	phi1_step = 0.005
+	phi1_range = np.arange(0, 1 + phi1_step, phi1_step)
+	l = len(phi1_range)
+	S1_final = []
+	S2_final = []
+	for phi1 in phi1_range:
+		phi2 = 1 - phi1
+		S2_l = 0
+		S2_r = phi2 * (1 - epsilon)
+		for _ in range(binary_iterations):
+			S2_m = (S2_l + S2_r) / 2
+			S1 = S1_final_searcher(S2_m, beta, beta_ratio, gamma, epsilon, phi1)
+			f = f2([S1, S2_m], phi1, beta, beta_ratio, gamma, epsilon)
+			if f > 0:
+				S2_r = S2_m
+			else:
+				S2_l = S2_m
+		S2 = S2_m
+		S1 = S1_final_searcher(S2, beta, beta_ratio, gamma, epsilon, phi1)
+		S1_final.append(S1)
+		S2_final.append(S2)
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	ax1.set_xlabel('S1')
+	ax1.set_ylabel('S2')
+	ax1.set_title('Scatter color becomes lighter as phi_1 increase in cycles\n'
+	              f'beta={round(beta, 3)},  beta ratio={round(beta_ratio, 3)},  gamma={round(gamma, 3)}')
+	ax1.plot(S1_final, S2_final, color='gray')
+	# cs = [np.exp(i - l) / np.exp(l) for i in range(l)]
+	# ax1.scatter(S1_final, S2_final, c=cs, cmap='binary_r')
+	for i in range(20):
+		ax1.scatter(S1_final[round(i * l / 20):round((i + 1) * l / 20)],
+		            S2_final[round(i * l / 20):round((i + 1) * l / 20)],
+		            c=range(round(i * l / 20), round((i + 1) * l / 20)),
+		            edgecolors='black', cmap='binary_r', s=20, zorder=2)
+	plt.show()
+	return
+
+
+def S1_final_searcher(S2, beta, beta_ratio, gamma, epsilon, phi1):
+	S_trace = []
+	f_trace = []
+	S1_l = 0
+	S1_r = phi1 * (1 - epsilon)
+	for _ in range(binary_iterations):
+		S1_m = (S1_l + S1_r) / 2
+		f = f1([S1_m, S2], phi1, beta, beta_ratio, gamma, epsilon)
+		S_trace.append(S1_m)
+		f_trace.append(f)
+		if f > 0:
+			S1_r = S1_m
+		else:
+			S1_l = S1_m
+	# print(S_trace)
+	# print(f_trace)
+	# fig = plt.figure()
+	# ax1 = fig.add_subplot()
+	# ax1.plot(S_trace, f_trace)
+	# plt.show()
+	return S1_m
+
+
 def two_group_loss(point, phi1, beta, beta_ratio, gamma, epsilon):
 	loss = f1(point, phi1, beta, beta_ratio, gamma, epsilon) ** 2
 	loss += f2(point, phi1, beta, beta_ratio, gamma, epsilon) ** 2
@@ -224,7 +292,7 @@ def f1(point, phi1, beta, beta_ratio, gamma, epsilon):
 	S1_0 = phi1 * (1 - epsilon)
 	# S2_0 = phi2 * (1 - epsilon)
 	ret = S1 - S1_0 * np.exp(b11 / gamma * (S1 - phi1) + b12 / gamma * (S2 - phi2))
-	return -ret
+	return ret
 
 
 def f2(point, phi1, beta, beta_ratio, gamma, epsilon):
@@ -236,14 +304,33 @@ def f2(point, phi1, beta, beta_ratio, gamma, epsilon):
 	# S1_0 = phi1 * (1 - epsilon)
 	S2_0 = phi2 * (1 - epsilon)
 	ret = S2 - S2_0 * np.exp(b21 / gamma * (S1 - phi1) + b22 / gamma * (S2 - phi2))
-	return -ret
+	return ret
+
+
+def f1_plotter(beta, beta_ratio, gamma, epsilon):
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	phi1 = phi2 = 0.5
+	S2_range = np.arange(0, phi2, 0.1)
+	for S2 in S2_range:
+		S1_range = np.arange(0, phi1, 0.001)
+		fs = [f1([S1, S2], phi1, beta, beta_ratio, gamma, epsilon) for S1 in S1_range]
+		ax1.plot(S1_range, fs, label=f'S2={round(S2, 2)}')
+
+	ax1.set_xlabel('S1')
+	ax1.set_ylabel('f')
+	ax1.legend()
+	plt.show()
+	return
 
 
 def main():
 	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
 	# utility_plotter(1, 0.9, 1 / 14, 0.0001, 100, 1.025)
-	# final_size_plotter(0.5, 0.5, 0.9, 1 / 14, 0.0001)
-	final_size_searcher(2, 0.5, 1 / 14, 0.0001)
+	# final_size_plotter(0.5, 0.5, 0.5, 1 / 14, 0.0001)
+	# final_size_searcher_scipy(2, 0.5, 1 / 14, 0.0001)
+	final_size_searcher_binary(1, 0.8, 1 / 14, 0.0001)
+	# f1_plotter(0.5, 0.5, 1 / 14, 0.0001)
 	return
 
 
