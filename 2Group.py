@@ -107,7 +107,7 @@ def utility_plotter(beta, beta_ratio, gamma, epsilon, T, payment_ratio):
 	return
 
 
-def final_size_plotter(phi1, beta, beta_ratio, gamma, epsilon):
+def final_size_function_plotter(phi1, beta, beta_ratio, gamma, epsilon):
 	"""
 	Plot the final size functions. The zero points are the final sizes
 	"""
@@ -211,9 +211,9 @@ def final_size_searcher_scipy(beta, beta_ratio, gamma, epsilon):
 	return
 
 
-def final_size_searcher_binary(beta, beta_ratio, gamma, epsilon):
+def final_size_plotter(beta, beta_ratio, gamma, epsilon):
 	"""
-	search for the final sizes of 2 groups interacting using binary search
+	plot the final sizes of 2 groups interacting over various phi1 values
 	"""
 	phi1_step = 0.005
 	phi1_range = np.arange(0, 1 + phi1_step, phi1_step)
@@ -221,19 +221,7 @@ def final_size_searcher_binary(beta, beta_ratio, gamma, epsilon):
 	S1_final = []
 	S2_final = []
 	for phi1 in phi1_range:
-		phi2 = 1 - phi1
-		S2_l = 0
-		S2_r = phi2 * (1 - epsilon)
-		for _ in range(binary_iterations):
-			S2_m = (S2_l + S2_r) / 2
-			S1 = S1_final_searcher(S2_m, beta, beta_ratio, gamma, epsilon, phi1)
-			f = f2([S1, S2_m], phi1, beta, beta_ratio, gamma, epsilon)
-			if f > 0:
-				S2_r = S2_m
-			else:
-				S2_l = S2_m
-		S2 = S2_m
-		S1 = S1_final_searcher(S2, beta, beta_ratio, gamma, epsilon, phi1)
+		S1, S2 = final_size_searcher(phi1, beta, beta_ratio, gamma, epsilon)
 		S1_final.append(S1)
 		S2_final.append(S2)
 	fig = plt.figure()
@@ -252,6 +240,26 @@ def final_size_searcher_binary(beta, beta_ratio, gamma, epsilon):
 		            edgecolors='black', cmap='binary_r', s=20, zorder=2)
 	plt.show()
 	return
+
+
+def final_size_searcher(phi1, beta, beta_ratio, gamma, epsilon):
+	"""
+	binary search the final sizes of 2 groups interacting
+	"""
+	phi2 = 1 - phi1
+	S2_l = 0
+	S2_r = phi2 * (1 - epsilon)
+	for _ in range(binary_iterations):
+		S2_m = (S2_l + S2_r) / 2
+		S1 = S1_final_searcher(S2_m, beta, beta_ratio, gamma, epsilon, phi1)
+		f = f2([S1, S2_m], phi1, beta, beta_ratio, gamma, epsilon)
+		if f > 0:
+			S2_r = S2_m
+		else:
+			S2_l = S2_m
+	S2 = S2_m
+	S1 = S1_final_searcher(S2, beta, beta_ratio, gamma, epsilon, phi1)
+	return S1, S2
 
 
 def S1_final_searcher(S2, beta, beta_ratio, gamma, epsilon, phi1):
@@ -327,9 +335,9 @@ def f1_plotter(beta, beta_ratio, gamma, epsilon):
 def main():
 	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
 	# utility_plotter(1, 0.9, 1 / 14, 0.0001, 100, 1.025)
-	# final_size_plotter(0.5, 0.5, 0.5, 1 / 14, 0.0001)
+	# final_size_function_plotter(0.5, 0.5, 0.5, 1 / 14, 0.0001)
 	# final_size_searcher_scipy(2, 0.5, 1 / 14, 0.0001)
-	final_size_searcher_binary(1, 0.8, 1 / 14, 0.0001)
+	final_size_plotter(1, 0.8, 1 / 14, 0.0001)
 	# f1_plotter(0.5, 0.5, 1 / 14, 0.0001)
 	return
 
