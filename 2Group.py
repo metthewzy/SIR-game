@@ -46,11 +46,6 @@ def two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, num_step
 	return t_range, S1, S2
 
 
-def NE_searcher(beta1, beta2, gamma, epsilon, T):
-	# try phi1=1
-	return
-
-
 def utility_plotter(beta, beta_ratio, gamma, epsilon, T, payment_ratio):
 	"""
 	plot the group and individual utility of 2 groups interacting over phi
@@ -211,7 +206,7 @@ def final_size_searcher_scipy(beta, beta_ratio, gamma, epsilon):
 	return
 
 
-def final_size_plotter(beta, beta_ratio, gamma, epsilon):
+def final_size_plotter(beta, beta_ratio, gamma, epsilon, payment_ratio=1):
 	"""
 	plot the final sizes of 2 groups interacting over various phi1 values
 	"""
@@ -221,11 +216,14 @@ def final_size_plotter(beta, beta_ratio, gamma, epsilon):
 	S1_final = []
 	S2_final = []
 	for phi1 in phi1_range:
-		S1, S2 = final_size_searcher(phi1, beta, beta_ratio, gamma, epsilon)
+		S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon)
 		S1_final.append(S1)
 		S2_final.append(S2)
 	fig = plt.figure()
-	ax1 = fig.add_subplot()
+	ax1 = fig.add_subplot(221)
+	ax2 = fig.add_subplot(222)
+	# ax3 = ax2.twinx()
+	ax4 = fig.add_subplot(223)
 	ax1.set_xlabel('S1')
 	ax1.set_ylabel('S2')
 	ax1.set_title('Scatter color becomes lighter as phi_1 increase in cycles\n'
@@ -238,11 +236,32 @@ def final_size_plotter(beta, beta_ratio, gamma, epsilon):
 		            S2_final[round(i * l / 20):round((i + 1) * l / 20)],
 		            c=range(round(i * l / 20), round((i + 1) * l / 20)),
 		            edgecolors='black', cmap='binary_r', s=20, zorder=2)
+
+	ax2.plot(phi1_range, [S1 * payment_ratio for S1 in S1_final], label='S1')
+	ax2.set_xlabel(r'$\phi_1$')
+	ax2.set_title(f'group utility\npayment ratio={round(payment_ratio, 5)}')
+	# ax2.set_ylabel('S1')
+	ax2.plot(phi1_range, S2_final, label='S2')
+	ax2.plot(phi1_range, [S1_final[i] * payment_ratio + S2_final[i] for i in range(len(S1_final))], label='social')
+	# ax3.set_xlabel(r'$\phi_1$')
+	# ax3.set_ylabel('S2')
+	ax2.legend()
+
+	ax4.plot(phi1_range[1:-1], [payment_ratio * S1_final[i] / phi1_range[i] for i in range(1, l - 1)], label='S1')
+	# ax5 = ax4.twinx()
+	ax4.plot(phi1_range[1:-1], [S2_final[i] / (1 - phi1_range[i]) for i in range(1, l - 1)], label='S2')
+	ax4.set_xlabel(r'$\phi_1$')
+	# ax4.set_ylabel('S1')
+	# ax5.set_ylabel('S2')
+	ax4.set_title('individual utility')
+	ax4.legend()
+	# print(S1_final[1] / phi1_range[1], S2_final[1] / (1 - phi1_range[1]))
+	# print(1 / (S1_final[1] / phi1_range[1]) * (S2_final[1] / (1 - phi1_range[1])))
 	plt.show()
 	return
 
 
-def final_size_searcher(phi1, beta, beta_ratio, gamma, epsilon):
+def final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon):
 	"""
 	binary search the final sizes of 2 groups interacting
 	"""
@@ -337,7 +356,7 @@ def main():
 	# utility_plotter(1, 0.9, 1 / 14, 0.0001, 100, 1.025)
 	# final_size_function_plotter(0.5, 0.5, 0.5, 1 / 14, 0.0001)
 	# final_size_searcher_scipy(2, 0.5, 1 / 14, 0.0001)
-	final_size_plotter(1, 0.8, 1 / 14, 0.0001)
+	final_size_plotter(beta=0.5, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001, payment_ratio=100)
 	# f1_plotter(0.5, 0.5, 1 / 14, 0.0001)
 	return
 
