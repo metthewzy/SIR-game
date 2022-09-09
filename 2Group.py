@@ -179,19 +179,19 @@ def final_size_searcher_scipy(beta, beta_ratio, gamma, epsilon):
 	for phi1 in phi1_range:
 		phi2 = 1 - phi1
 		optimal = minimize(two_group_loss, [phi1 / 2, phi2 / 2],
-		                   args=(phi1, beta, beta_ratio, gamma, epsilon),
-		                   method='L-BFGS-B',
-		                   bounds=[(0, phi1), (0, phi2)])
+						   args=(phi1, beta, beta_ratio, gamma, epsilon),
+						   method='L-BFGS-B',
+						   bounds=[(0, phi1), (0, phi2)])
 		# print(optimal.fun)
 		S1, S2 = optimal.x
 		S1_infs.append(S1)
 		S2_infs.append(S2)
 		S1_approx.append((1 - epsilon) * phi1 *
-		                 (gamma - beta * (phi1 + beta_ratio * (beta_ratio + epsilon - beta_ratio * epsilon) * phi2)) /
-		                 (gamma + beta * (epsilon - 1) * (phi1 + beta_ratio ** 2 * phi2)))
+						 (gamma - beta * (phi1 + beta_ratio * (beta_ratio + epsilon - beta_ratio * epsilon) * phi2)) /
+						 (gamma + beta * (epsilon - 1) * (phi1 + beta_ratio ** 2 * phi2)))
 		S2_approx.append((1 - epsilon) * phi2 *
-		                 (gamma - beta * (phi1 + (beta_ratio - 1) * epsilon * phi1 + beta_ratio ** 2 * phi2)) /
-		                 (gamma + beta * (epsilon - 1) * (phi1 + beta_ratio ** 2 * phi2)))
+						 (gamma - beta * (phi1 + (beta_ratio - 1) * epsilon * phi1 + beta_ratio ** 2 * phi2)) /
+						 (gamma + beta * (epsilon - 1) * (phi1 + beta_ratio ** 2 * phi2)))
 	# print([(S1, S2) for (S1, S2) in zip(S1_infs, S2_infs)])
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
@@ -227,15 +227,15 @@ def final_size_plotter(beta, beta_ratio, gamma, epsilon, payment_ratio=1):
 	ax1.set_xlabel('S1')
 	ax1.set_ylabel('S2')
 	ax1.set_title('Scatter color becomes lighter as phi_1 increase in cycles\n'
-	              f'beta={round(beta, 3)},  beta ratio={round(beta_ratio, 3)},  gamma={round(gamma, 3)}')
+				  f'beta={round(beta, 3)},  beta ratio={round(beta_ratio, 3)},  gamma={round(gamma, 3)}')
 	ax1.plot(S1_final, S2_final, color='gray')
 	# cs = [np.exp(i - l) / np.exp(l) for i in range(l)]
 	# ax1.scatter(S1_final, S2_final, c=cs, cmap='binary_r')
 	for i in range(20):
 		ax1.scatter(S1_final[round(i * l / 20):round((i + 1) * l / 20)],
-		            S2_final[round(i * l / 20):round((i + 1) * l / 20)],
-		            c=range(round(i * l / 20), round((i + 1) * l / 20)),
-		            edgecolors='black', cmap='binary_r', s=20, zorder=2)
+					S2_final[round(i * l / 20):round((i + 1) * l / 20)],
+					c=range(round(i * l / 20), round((i + 1) * l / 20)),
+					edgecolors='black', cmap='binary_r', s=20, zorder=2)
 
 	ax2.plot(phi1_range, [S1 * payment_ratio for S1 in S1_final], label='S1')
 	ax2.set_xlabel(r'$\phi_1$')
@@ -351,12 +351,60 @@ def f1_plotter(beta, beta_ratio, gamma, epsilon):
 	return
 
 
+def final_size_approximation_comparison(beta, beta_ratio, gamma, epsilon):
+	"""
+	compare the approximated final sizes
+	"""
+	phi1_step = 0.005
+	phi1_range = np.arange(0, 1 + phi1_step, phi1_step)
+	l = len(phi1_range)
+	S1_final = []
+	S2_final = []
+	S1_final_approx = []
+	S2_final_approx = []
+	for phi1 in phi1_range:
+		S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon)
+		S1_final.append(S1)
+		S2_final.append(S2)
+		S1_approx, S2_approx = final_size_approximation(phi1, beta, beta_ratio, gamma, epsilon)
+		S1_final_approx.append(S1_approx)
+		S2_final_approx.append(S2_approx)
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	ax1.scatter(S1_final, S2_final, label='actual')
+	ax1.scatter(S1_final_approx, S2_final_approx, label='approx')
+	ax1.legend()
+	ax1.set_xlabel('S1')
+	ax1.set_ylabel('S2')
+	plt.show()
+	return
+
+
+def final_size_approximation(phi1, beta, beta_ratio, gamma, epsilon):
+	phi2 = 1 - phi1
+	b11 = beta
+	b12 = b21 = beta * beta_ratio
+	b22 = beta * beta_ratio * beta_ratio
+	D = np.exp(((b11 + b21) * phi1 + (b12 + b22) * phi2) / gamma) * gamma ** 2 + \
+		np.exp((b21 * phi1 + b22 * phi2) / gamma) * b11 * gamma * (epsilon - 1) * phi1 + \
+		np.exp((b11 * phi1 + b12 * phi2) / gamma) * b22 * gamma * (epsilon - 1) * phi2 - \
+		(b12 * b21 - b11 * b22) * (epsilon - 1) ** 2 * phi1 * phi2
+	S1 = - gamma * (epsilon - 1) * phi1 * \
+		 (np.exp((b21 * phi1 + b22 * phi2) / gamma) * gamma - (b12 - b22) * (epsilon - 1) * phi2) / D
+	S2 = - gamma * (epsilon - 1) * phi2 * \
+		 (np.exp((b11 * phi1 + b12 * phi2) / gamma) * gamma - (b11 - b21) * (epsilon - 1) * phi1) / D
+
+	return S1, S2
+
+
 def main():
 	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
 	# utility_plotter(1, 0.9, 1 / 14, 0.0001, 100, 1.025)
 	# final_size_function_plotter(0.5, 0.5, 0.5, 1 / 14, 0.0001)
 	# final_size_searcher_scipy(2, 0.5, 1 / 14, 0.0001)
-	final_size_plotter(beta=0.5, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001, payment_ratio=100)
+	# final_size_plotter(beta=0.5, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001, payment_ratio=100)
+	final_size_approximation_comparison(beta=0.5, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
 	# f1_plotter(0.5, 0.5, 1 / 14, 0.0001)
 	return
 
