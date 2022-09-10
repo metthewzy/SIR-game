@@ -371,17 +371,74 @@ def final_size_approximation_comparison(beta, beta_ratio, gamma, epsilon):
 		S2_final_approx.append(S2_approx)
 
 	fig = plt.figure()
-	ax1 = fig.add_subplot()
-	ax1.scatter(S1_final, S2_final, label='actual')
-	ax1.scatter(S1_final_approx, S2_final_approx, label='approx')
+	ax1 = fig.add_subplot(121)
+	ax2 = fig.add_subplot(122)
+
+	ax1.plot(phi1_range, S1_final, label='actual')
+	ax1.plot(phi1_range, S1_final_approx, label='approx')
+	ax1.set_title('S1')
+	ax2.plot(phi1_range, S2_final, label='actual')
+	ax2.plot(phi1_range, S2_final_approx, label='approx')
+	ax2.set_title('S2')
 	ax1.legend()
-	ax1.set_xlabel('S1')
-	ax1.set_ylabel('S2')
+	ax2.legend()
+	# ax1.scatter(S1_final, S2_final, label='actual')
+	# ax1.scatter(S1_final_approx, S2_final_approx, label='approx')
+	# for i in range(l):
+	# 	print(i % 10)
+	# 	if i % 10 == 0:
+	# 		plt.show()
+	# 		fig = plt.figure()
+	# 		ax1 = fig.add_subplot()
+	# 	ax1.scatter(S1_final[i], S2_final[i], color='blue')
+	# 	ax1.scatter(S1_final_approx[i], S2_final_approx[i], color='orange')
+	# ax1.legend()
+	# ax1.set_xlabel('S1')
+	# ax1.set_ylabel('S2')
+	plt.show()
+	return
+
+
+def final_size_approximation_comparison2(beta, beta_ratio, gamma, epsilon):
+	"""
+	compare the approximated final sizes
+	"""
+	phi1_step = 0.005
+	phi1_range = np.arange(0, 1 + phi1_step, phi1_step)
+	l = len(phi1_range)
+	S1_final = []
+	S2_final = []
+	S1_final_approx = []
+	S11_final_approx = []
+	S12_final_approx = []
+	for phi1 in phi1_range:
+		S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon)
+		S1_final.append(S1)
+		S2_final.append(S2)
+
+		S1_approx, S2_approx = final_size_approximation(phi1, beta, beta_ratio, gamma, epsilon)
+		S1_final_approx.append(S1_approx)
+		S11, S12 = final_size_approximation2(phi1, beta, beta_ratio, gamma, epsilon)
+		S11_final_approx.append(S11)
+		S12_final_approx.append(S12)
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	# ax2 = fig.add_subplot(122)
+
+	ax1.plot(phi1_range, S1_final, label='actual')
+	ax1.plot(phi1_range, S1_final_approx, label='approx')
+	ax1.plot(phi1_range, S11_final_approx, label='approx1')
+	ax1.plot(phi1_range, S12_final_approx, label='approx2')
+	ax1.legend()
 	plt.show()
 	return
 
 
 def final_size_approximation(phi1, beta, beta_ratio, gamma, epsilon):
+	"""
+	approximate the final sizes
+	"""
 	phi2 = 1 - phi1
 	b11 = beta
 	b12 = b21 = beta * beta_ratio
@@ -398,13 +455,35 @@ def final_size_approximation(phi1, beta, beta_ratio, gamma, epsilon):
 	return S1, S2
 
 
+def final_size_approximation2(phi1, beta, beta_ratio, gamma, epsilon):
+	"""
+	approximate the final sizes
+	"""
+	phi2 = 1 - phi1
+	b11 = beta
+	b12 = b21 = beta * beta_ratio
+	b22 = beta * beta_ratio * beta_ratio
+	c1 = (1 - epsilon) * phi1 / np.exp(b11 * phi1 / gamma + b12 * phi2 / gamma)
+	c2 = (1 - epsilon) * phi2 / np.exp(b21 * phi1 / gamma + b22 * phi2 / gamma)
+	c3 = c2 / (1 - c2 * b22 / gamma)
+	c4 = (c2 * b21 / gamma) / (1 - c2 * b22 / gamma)
+	sqrt_term = np.sqrt(
+		-c1 ** 2 * (b11 + c4 * b12) ** 2 + gamma ** 2 - 2 * c1 * (b11 + c4 * b12) * (c3 * b12 + gamma))
+	S11 = ((gamma ** 2 - c1 * (b11 + c4 * b12) * (c3 * b12 + gamma)) * np.abs(c1) - c1 * np.abs(gamma) * sqrt_term) \
+		  / (c1 * (b11 + c4 * b12) ** 2 * np.abs(c1))
+	S12 = ((gamma ** 2 - c1 * (b11 + c4 * b12) * (c3 * b12 + gamma)) * np.abs(c1) + c1 * np.abs(gamma) * sqrt_term) \
+		  / (c1 * (b11 + c4 * b12) ** 2 * np.abs(c1))
+	return S11, S12
+
+
 def main():
 	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
 	# utility_plotter(1, 0.9, 1 / 14, 0.0001, 100, 1.025)
 	# final_size_function_plotter(0.5, 0.5, 0.5, 1 / 14, 0.0001)
 	# final_size_searcher_scipy(2, 0.5, 1 / 14, 0.0001)
-	# final_size_plotter(beta=0.5, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001, payment_ratio=100)
-	final_size_approximation_comparison(beta=0.5, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
+	# final_size_plotter(beta=0.5, beta_ratio=0.7, gamma=1 / 14, epsilon=0.0001, payment_ratio=1)
+	# final_size_approximation_comparison(beta=0.5, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
+	final_size_approximation_comparison2(beta=0.5, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
 	# f1_plotter(0.5, 0.5, 1 / 14, 0.0001)
 	return
 
