@@ -490,17 +490,79 @@ def tmp(beta, beta_ratio, gamma, epsilon):
 	b11 = beta
 	b12 = b21 = beta * beta_ratio
 	b22 = beta * beta_ratio * beta_ratio
-	ret = []
+	term1 = []
+	term2 = []
+	term3 = []
+	term32 = []
+	y = beta / gamma
+	k = beta_ratio
 	for phi1 in phi1_range:
 		phi2 = 1 - phi1
 		c1 = (1 - epsilon) * phi1 / np.exp(b11 * phi1 / gamma + b12 * phi2 / gamma)
 		c2 = (1 - epsilon) * phi2 / np.exp(b21 * phi1 / gamma + b22 * phi2 / gamma)
-		ret.append(1 - 2 * c1 * b11 / gamma - 4 * c1 * c2 * b12 * b21 / gamma / (gamma - 2 * c2 * b22))
+		term1.append(1 - 2 * c1 * b11 / gamma - 4 * c1 * c2 * b12 * b21 / gamma / (gamma - 2 * c2 * b22))
+		term2.append(2 * c1 * b11 / gamma)
+		term3.append(4 * c1 * c2 * b12 * b21 / gamma / (gamma - 2 * c2 * b22))
+
+		term32.append((4 * (k ** 2) * (y ** 2) + 2 * 1 * (k ** 2) * y)
+					  / np.exp((phi1 + (k ** 2) + phi2 * (k ** 2)) * y))
+
+	# term32.append(y * 2 * phi2 * (k ** 2)
+	# 			  / np.exp(k * phi1 + (k ** 2) * phi2)
+	# 			  * (1 + 8 * phi1 * y / np.exp(k * y)) - 1)
 
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
-	ax1.plot(phi1_range, ret)
-	ax1.axhline(0)
+	# ax1.plot(phi1_range, term1, label='overall')
+	# ax1.plot(phi1_range, term2, label='term2')
+	ax1.plot(phi1_range, term3, label='term3')
+	# ax1.plot(phi1_range, term32, label='term32')
+	ax1.axhline(0, c='grey')
+	# ax1.axhline(0.5, color='gray')
+	# ax1.axvline(gamma / (1 - beta_ratio) / beta, color='gray')
+	ax1.legend()
+	plt.show()
+	return
+
+
+def tmp2(beta_ratio, gamma, epsilon):
+	beta_low = 0.01 / 14
+	beta_high = 2 / 14
+	beta_step = (beta_high - beta_low) / 40
+	beta_range = np.arange(beta_low, beta_high + beta_step, beta_step)
+	phi1_step = 0.01
+	phi1_range = np.arange(phi1_step, 1, phi1_step)
+	peaks1 = []
+	peaks2 = []
+	max_phi = []
+	for beta in beta_range:
+		b11 = beta
+		b12 = b21 = beta * beta_ratio
+		b22 = beta * beta_ratio * beta_ratio
+		term1 = []
+		term2 = []
+		# term3 = []
+
+		for phi1 in phi1_range:
+			phi2 = 1 - phi1
+			c1 = (1 - epsilon) * phi1 / np.exp(b11 * phi1 / gamma + b12 * phi2 / gamma)
+			c2 = (1 - epsilon) * phi2 / np.exp(b21 * phi1 / gamma + b22 * phi2 / gamma)
+			term1.append(1 - 2 * c1 * b11 / gamma - 4 * c1 * c2 * b12 * b21 / gamma / (gamma - 2 * c2 * b22))
+			term2.append(2 * c1 * b11 / gamma)
+		# term3.append(4 * c1 * c2 * b12 * b21 / gamma / (gamma - 2 * c2 * b22))
+		peaks1.append(min(term1))
+		peaks2.append(max(term2))
+		max_phi.append(phi1_range[term2.index(max(term2))])
+	print(max_phi)
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	ax1.plot(beta_range, peaks1, label='term1 min')
+	ax1.plot(beta_range, peaks2, label='term2 peak')
+	ax1.plot(beta_range, max_phi, label='phi')
+	# ax1.plot(phi1_range, term2, label='term2')
+	# ax1.plot(phi1_range, term3, label='term3')
+	ax1.axhline(0.5, color='gray')
+	ax1.legend()
 	plt.show()
 	return
 
@@ -514,7 +576,8 @@ def main():
 	# final_size_approximation_comparison(beta=0.5, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
 	# final_size_approximation_comparison2(beta=3, beta_ratio=0.7, gamma=1 / 14, epsilon=0.0001)
 	# f1_plotter(0.5, 0.5, 1 / 14, 0.0001)
-	tmp(beta=2, beta_ratio=0.7, gamma=1 / 14, epsilon=0.0001)
+	tmp(beta=100 / 14, beta_ratio=0.1, gamma=1 / 14, epsilon=0.0001)
+	# tmp2(beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
 	return
 
 
