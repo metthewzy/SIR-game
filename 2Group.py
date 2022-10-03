@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
-binary_iterations = 50
+binary_iterations = 70
 
 
 def two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, num_steps=10000, plot=False):
@@ -72,6 +72,63 @@ def utility_plotter(beta, beta_ratio, gamma, epsilon, T, payment_ratio):
 		t_range, S1, S2 = two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, plot=False)
 		group_utility1.append(np.mean(S1) * T * payment_ratio)
 		group_utility2.append(np.mean(S2) * T)
+		individual_utility1.append(group_utility1[-1] / phi1)
+		individual_utility2.append(group_utility2[-1] / phi2)
+
+	# # phi1 = 1
+	# phi1 = 1
+	# phi2 = 1 - phi1
+	# t_range, S1, S2 = two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, plot=False)
+	# group_utility1.append(np.mean(S1) * T * payment_ratio)
+	# group_utility2.append(np.mean(S2) * T)
+	# individual_utility1.append(group_utility1[-1] / phi1)
+	# individual_utility2.append(1)
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot(121)
+	ax2 = fig.add_subplot(122)
+	ax1.plot(phi1_range, group_utility1, label='Group 1')
+	ax1.plot(phi1_range, group_utility2, label='Group 2')
+	ax1.plot(phi1_range, [group_utility1[i] + group_utility2[i] for i in range(len(group_utility1))], label='Social')
+	ax2.plot(phi1_range, individual_utility1, label='Group 1')
+	ax2.plot(phi1_range, individual_utility2, label='Group 2')
+	ax1.set_xlabel('phi1')
+	ax2.set_xlabel('phi1')
+	ax1.set_title('Group utility')
+	ax2.set_title('Individual utility')
+	ax1.legend()
+	ax2.legend()
+	plt.show()
+	return
+
+
+def utility_plotter_final_size(beta, beta_ratio, gamma, epsilon, payment_ratio):
+	"""
+	plot the group and individual utility of 2 groups interacting over phi based on final sizes
+	"""
+	phi1_step = 0.01
+	phi1_range = np.arange(phi1_step, 1, phi1_step)
+	# print(phi1_range, phi1_range[1:-1])
+	group_utility1 = []
+	group_utility2 = []
+	individual_utility1 = []
+	individual_utility2 = []
+
+	# # phi1 = 0
+	# phi1 = 0
+	# phi2 = 1 - phi1
+	# t_range, S1, S2 = two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, plot=False)
+	# group_utility1.append(np.mean(S1) * T * payment_ratio)
+	# group_utility2.append(np.mean(S2) * T)
+	# individual_utility1.append(payment_ratio)
+	# individual_utility2.append(group_utility2[-1] / phi2)
+
+	for phi1 in phi1_range:
+		phi2 = 1 - phi1
+		S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon)
+		# t_range, S1, S2 = two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, plot=False)
+		group_utility1.append(S1 * payment_ratio)
+		group_utility2.append(S2)
 		individual_utility1.append(group_utility1[-1] / phi1)
 		individual_utility2.append(group_utility2[-1] / phi2)
 
@@ -415,10 +472,20 @@ def final_size_approximation_comparison2(beta, beta_ratio, gamma, epsilon):
 	S2_final_approx = []
 	S1_final_approx2 = []
 	S2_final_approx2 = []
+	S1_final_approx3 = []
+	# cons = []
+	cons1 = []
+	cons2 = []
 	for phi1 in phi1_range:
 		S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon)
 		S1_final.append(S1)
 		S2_final.append(S2)
+		cons1.append((S1 - phi1) * beta / gamma + (S2 - (1 - phi1)) * beta * beta_ratio / gamma)
+		cons2.append(
+			(S1 - phi1) * beta * beta_ratio / gamma + (S2 - (1 - phi1)) * beta * beta_ratio * beta_ratio / gamma)
+
+		# cons1.append(S1 * beta / gamma)
+		# cons2.append(S2 * beta * beta_ratio / gamma)
 
 		S1_approx, S2_approx = final_size_approximation(phi1, beta, beta_ratio, gamma, epsilon)
 		S1_final_approx.append(S1_approx)
@@ -426,6 +493,8 @@ def final_size_approximation_comparison2(beta, beta_ratio, gamma, epsilon):
 		S1_approx2, S2_approx2 = final_size_approximation2(phi1, beta, beta_ratio, gamma, epsilon)
 		S1_final_approx2.append(S1_approx2)
 		S2_final_approx2.append(S2_approx2)
+		S1_approx3 = final_size_approximation3(phi1, beta, beta_ratio, gamma, epsilon)
+		S1_final_approx3.append(S1_approx3)
 
 	fig = plt.figure()
 	ax1 = fig.add_subplot(121)
@@ -433,10 +502,15 @@ def final_size_approximation_comparison2(beta, beta_ratio, gamma, epsilon):
 
 	ax1.plot(phi1_range, S1_final, label='actual')
 	ax2.plot(phi1_range, S2_final, label='actual')
-	ax1.plot(phi1_range, S1_final_approx, label='approx')
-	ax2.plot(phi1_range, S2_final_approx, label='approx')
-	ax1.plot(phi1_range, S1_final_approx2, label='approx1')
-	ax2.plot(phi1_range, S2_final_approx2, label='approx2')
+	ax1.plot(phi1_range, S1_final_approx, label='lower bound')
+	ax2.plot(phi1_range, S2_final_approx, label='lower bound')
+	ax1.plot(phi1_range, S1_final_approx2, label='upper bound')
+	ax2.plot(phi1_range, S2_final_approx2, label='upper bound')
+	ax1.plot(phi1_range, S1_final_approx3, label='upper bound 2')
+	# ax1.plot(phi1_range, cons, label='constraint')
+	# ax1.plot(phi1_range, cons1, label='cons1')
+	# ax1.plot(phi1_range, cons2, label='cons2')
+	# ax1.axhline(1, c='grey')
 	ax1.set_title('S1')
 	ax2.set_title('S2')
 	ax1.legend()
@@ -447,27 +521,24 @@ def final_size_approximation_comparison2(beta, beta_ratio, gamma, epsilon):
 
 def final_size_approximation(phi1, beta, beta_ratio, gamma, epsilon):
 	"""
-	approximate the final sizes with e^x=1+x
+	approximate lower bound of the final sizes with e^x=1+x
 	"""
 	phi2 = 1 - phi1
 	b11 = beta
 	b12 = b21 = beta * beta_ratio
 	b22 = beta * beta_ratio * beta_ratio
-	D = np.exp(((b11 + b21) * phi1 + (b12 + b22) * phi2) / gamma) * gamma ** 2 + \
-		np.exp((b21 * phi1 + b22 * phi2) / gamma) * b11 * gamma * (epsilon - 1) * phi1 + \
-		np.exp((b11 * phi1 + b12 * phi2) / gamma) * b22 * gamma * (epsilon - 1) * phi2 - \
-		(b12 * b21 - b11 * b22) * (epsilon - 1) ** 2 * phi1 * phi2
-	S1 = - gamma * (epsilon - 1) * phi1 * \
-		 (np.exp((b21 * phi1 + b22 * phi2) / gamma) * gamma - (b12 - b22) * (epsilon - 1) * phi2) / D
-	S2 = - gamma * (epsilon - 1) * phi2 * \
-		 (np.exp((b11 * phi1 + b12 * phi2) / gamma) * gamma - (b11 - b21) * (epsilon - 1) * phi1) / D
-
+	c1 = (1 - epsilon) * phi1 / np.exp((b11 * phi1 + b12 * phi2) / gamma)
+	c2 = (1 - epsilon) * phi2 / np.exp((b21 * phi1 + b22 * phi2) / gamma)
+	S1 = c1 * gamma * (c2 * (b12 - b22) + gamma) / \
+		 (gamma * (gamma - c2 * b22) - c1 * (c2 * b12 * b21 - c2 * b11 * b22 + b11 * gamma))
+	S2 = c2 * gamma * (c1 * (b21 - b11) + gamma) / \
+		 (gamma * (gamma - c2 * b22) - c1 * (c2 * b12 * b21 - c2 * b11 * b22 + b11 * gamma))
 	return S1, S2
 
 
 def final_size_approximation2(phi1, beta, beta_ratio, gamma, epsilon):
 	"""
-	approximate the final sizes with e^x=1+2x
+	approximate upper bound of the final sizes with e^x=e-1+x
 	"""
 	phi2 = 1 - phi1
 	b11 = beta
@@ -475,13 +546,34 @@ def final_size_approximation2(phi1, beta, beta_ratio, gamma, epsilon):
 	b22 = beta * beta_ratio * beta_ratio
 	c1 = (1 - epsilon) * phi1 / np.exp(b11 * phi1 / gamma + b12 * phi2 / gamma)
 	c2 = (1 - epsilon) * phi2 / np.exp(b21 * phi1 / gamma + b22 * phi2 / gamma)
-	# c3 = c2 / (1 - c2 * b22 / gamma)
-	# c4 = (c2 * b21 / gamma) / (1 - c2 * b22 / gamma)
-	S1 = (c1 * gamma * (2 * c2 * (b12 - b22) + gamma)) / \
-		 (gamma * (-2 * c2 * b22 + gamma) - 2 * c1 * (2 * c2 * b12 * b21 - 2 * c2 * b11 * b22 + b11 * gamma))
-	S2 = (c2 * gamma * (2 * c1 * (b21 - b11) + gamma)) / \
-		 (gamma * (-2 * c2 * b22 + gamma) - 2 * c1 * (2 * c2 * b12 * b21 - 2 * c2 * b11 * b22 + b11 * gamma))
+	e = np.exp(1)
+	S1 = (c1 * (e - 1) * gamma * (c2 * (b12 - b22) + gamma)) / \
+		 (gamma * (- c2 * b22 + gamma) - c1 * (c2 * b12 * b21 - c2 * b11 * b22 + b11 * gamma))
+	S2 = -(c2 * (e - 1) * gamma * (c1 * (b11 - b21) - gamma)) / \
+		 (gamma * (- c2 * b22 + gamma) - c1 * (c2 * b12 * b21 - c2 * b11 * b22 + b11 * gamma))
 	return S1, S2
+
+
+def final_size_approximation3(phi1, beta, beta_ratio, gamma, epsilon):
+	"""
+	approximate upper bound of approximation2
+	"""
+	phi2 = 1 - phi1
+	b11 = beta
+	b12 = b21 = beta * beta_ratio
+	b22 = beta * beta_ratio * beta_ratio
+	c1 = (1 - epsilon) * phi1 / np.exp(b11 * phi1 / gamma + b12 * phi2 / gamma)
+	c2 = (1 - epsilon) * phi2 / np.exp(b21 * phi1 / gamma + b22 * phi2 / gamma)
+	e = np.exp(1)
+
+	# S1 = ((e - 1) * c1 + ((e - 1) * b12 * c1 * c2) / (gamma - b22 * c2)) / \
+	# 	 (1 - b11 * c1 / gamma - 1 / e / e / (1 - 1 / e))
+	# S1 = ((e - 1) * (c1 + c2 * (b12 * c1 / gamma) / (1 - 1 / e))) / \
+	# 	 (1 - 1 / e - 1 / e / e / (1 - 1 / e))
+
+	S1 = ((e - 1) * (c1 + c2 * (b12 * c1 / gamma) / (1 - 1 / e))) / \
+		 (1 - 1 / e - 1 / e / e / (1 - 1 / e))
+	return S1
 
 
 def tmp(beta, beta_ratio, gamma, epsilon):
@@ -494,6 +586,7 @@ def tmp(beta, beta_ratio, gamma, epsilon):
 	term2 = []
 	term3 = []
 	term32 = []
+	term33 = []
 	y = beta / gamma
 	k = beta_ratio
 	for phi1 in phi1_range:
@@ -504,8 +597,11 @@ def tmp(beta, beta_ratio, gamma, epsilon):
 		term2.append(2 * c1 * b11 / gamma)
 		term3.append(4 * c1 * c2 * b12 * b21 / gamma / (gamma - 2 * c2 * b22))
 
-		term32.append((4 * (k ** 2) * (y ** 2) + 2 * 1 * (k ** 2) * y)
-					  / np.exp((phi1 + (k ** 2) + phi2 * (k ** 2)) * y))
+		term32.append(
+			16 * phi1 * phi2 * (k ** 2) * (y ** 2) / np.exp((phi1 + k + phi2 * (k ** 2)) * y)
+		)
+
+		term33.append(2 * c2 * y * k ** 2)
 
 	# term32.append(y * 2 * phi2 * (k ** 2)
 	# 			  / np.exp(k * phi1 + (k ** 2) * phi2)
@@ -516,10 +612,12 @@ def tmp(beta, beta_ratio, gamma, epsilon):
 	# ax1.plot(phi1_range, term1, label='overall')
 	# ax1.plot(phi1_range, term2, label='term2')
 	ax1.plot(phi1_range, term3, label='term3')
-	# ax1.plot(phi1_range, term32, label='term32')
+	ax1.plot(phi1_range, term32, label='term32')
+	ax1.plot(phi1_range, term33, label='term33')
+	ax1.plot(phi1_range, [term32[i] + term33[i] for i in range(len(phi1_range))])
 	ax1.axhline(0, c='grey')
 	# ax1.axhline(0.5, color='gray')
-	# ax1.axvline(gamma / (1 - beta_ratio) / beta, color='gray')
+	# ax1.axvline(2 / (0.05 * (1 - (k ** 2)) + k + (k ** 2)), color='gray')
 	ax1.legend()
 	plt.show()
 	return
@@ -567,17 +665,52 @@ def tmp2(beta_ratio, gamma, epsilon):
 	return
 
 
+def tmp3(beta_ratio, gamma, epsilon):
+	beta_low = 0.01 / 14
+	beta_high = 4 / 14
+	# beta_low = 0.071
+	# beta_high = 0.072
+	beta_step = (beta_high - beta_low) / 100
+	beta_range = np.arange(beta_low, beta_high + beta_step, beta_step)
+
+	S1s = []
+	S2s = []
+
+	for beta in beta_range:
+		phi1 = 0.5
+		# phi2 = 1 - phi1
+		S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon)
+		# S1s.append(S1 * beta / gamma)
+		# S2s.append(S2 * beta * beta_ratio / gamma)
+		S1s.append(S1)
+		S2s.append(S2)
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	# ax2 = fig.add_subplot(122)
+	ax1.plot(beta_range, S1s, label='S1')
+	ax1.plot(beta_range, S2s, label='S2')
+	ax1.plot(beta_range, [S1s[i] + S2s[i] for i in range(len(beta_range))], label='sum')
+	# ax1.axhline(1 - epsilon, color='gray')
+	ax1.axvline(gamma, color='gray')
+	ax1.legend()
+	plt.show()
+	return
+
+
 def main():
 	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
-	# utility_plotter(1, 0.9, 1 / 14, 0.0001, 100, 1.025)
+	# utility_plotter(5 / 14, 0.2, 1 / 14, 0.0001, 100, 3)
+	utility_plotter_final_size(2 / 14, 0.75, 1 / 14, 0.0001, 1.1)
 	# final_size_function_plotter(0.5, 0.5, 0.5, 1 / 14, 0.0001)
 	# final_size_searcher_scipy(2, 0.5, 1 / 14, 0.0001)
 	# final_size_plotter(beta=0.5, beta_ratio=0.7, gamma=1 / 14, epsilon=0.0001, payment_ratio=1)
 	# final_size_approximation_comparison(beta=0.5, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
-	# final_size_approximation_comparison2(beta=3, beta_ratio=0.7, gamma=1 / 14, epsilon=0.0001)
+	# final_size_approximation_comparison2(beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
 	# f1_plotter(0.5, 0.5, 1 / 14, 0.0001)
-	tmp(beta=100 / 14, beta_ratio=0.1, gamma=1 / 14, epsilon=0.0001)
+	# tmp(beta=20 / 14, beta_ratio=0.1, gamma=1 / 14, epsilon=0.0001)
 	# tmp2(beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
+	# tmp3(0.9, 1 / 14, 0.0001)
 	return
 
 
