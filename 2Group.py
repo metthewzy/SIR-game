@@ -106,6 +106,9 @@ def utility_plotter_final_size(beta, beta_ratio, gamma, epsilon, payment_ratio):
 	"""
 	plot the group and individual utility of 2 groups interacting over phi based on final sizes
 	"""
+	b11 = beta
+	b12 = b21 = beta * beta_ratio
+	b22 = beta * beta_ratio * beta_ratio
 	phi1_step = 0.01
 	phi1_range = np.arange(phi1_step, 1, phi1_step)
 	# print(phi1_range, phi1_range[1:-1])
@@ -153,6 +156,11 @@ def utility_plotter_final_size(beta, beta_ratio, gamma, epsilon, payment_ratio):
 	ax2.set_xlabel('phi1')
 	ax1.set_title('Group utility')
 	ax2.set_title('Individual utility')
+	# ax1.plot(phi1_range,
+	# 		 [payment_ratio * phi1_range[i] * gamma / beta + (1 - phi1_range[i]) * gamma / beta / beta_ratio for i in
+	# 		  range(len(phi1_range))])
+	ax1.axvline((- b12 * (1 - epsilon) + gamma) / (1 - epsilon) / (b11 - b12), label='peak1')
+	# ax1.axvline(1 - (b21 * (1 - epsilon) - gamma) / (1 - epsilon) / (b21 - b22), linestyle=':', label='peak2')
 	ax1.legend()
 	ax2.legend()
 	plt.show()
@@ -539,6 +547,7 @@ def final_size_approximation(phi1, beta, beta_ratio, gamma, epsilon):
 def final_size_approximation2(phi1, beta, beta_ratio, gamma, epsilon):
 	"""
 	approximate upper bound of the final sizes with e^x=e-1+x
+	not working because x can go above 1
 	"""
 	phi2 = 1 - phi1
 	b11 = beta
@@ -700,8 +709,8 @@ def tmp3(beta_ratio, gamma, epsilon):
 
 def main():
 	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
-	# utility_plotter(5 / 14, 0.2, 1 / 14, 0.0001, 100, 3)
-	utility_plotter_final_size(2 / 14, 0.75, 1 / 14, 0.0001, 1.1)
+	# utility_plotter(beta=5 / 14, beta_ratio=0.2, gamma=1 / 14, epsilon=0.0001, T=100, payment_ratio=3)
+	utility_plotter_final_size(beta=2 / 14, beta_ratio=0, gamma=1 / 14, epsilon=0.0001, payment_ratio=1)
 	# final_size_function_plotter(0.5, 0.5, 0.5, 1 / 14, 0.0001)
 	# final_size_searcher_scipy(2, 0.5, 1 / 14, 0.0001)
 	# final_size_plotter(beta=0.5, beta_ratio=0.7, gamma=1 / 14, epsilon=0.0001, payment_ratio=1)
