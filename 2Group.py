@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
-binary_iterations = 70
-OPT_iterations = 20
+binary_iterations = 100
+OPT_iterations = 30
 NE_iterations = 50
 
 
@@ -168,6 +168,70 @@ def utility_plotter_final_size(beta, beta_ratio, gamma, epsilon, payment_ratio):
 	return
 
 
+def utility_plotter_sigma(beta, beta_ratio, gamma, epsilon, payment_ratio, sigma):
+	"""
+	plot the group and individual utility of 2 groups interacting over phi based on final sizes and survival rate
+	"""
+	b11 = beta
+	b12 = b21 = beta * beta_ratio
+	b22 = beta * beta_ratio * beta_ratio
+	phi1_step = 0.01
+	phi1_range = np.arange(phi1_step, 1, phi1_step)
+	# print(phi1_range, phi1_range[1:-1])
+	group_utility1 = []
+	group_utility2 = []
+	individual_utility1 = []
+	individual_utility2 = []
+
+	# # phi1 = 0
+	# phi1 = 0
+	# phi2 = 1 - phi1
+	# t_range, S1, S2 = two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, plot=False)
+	# group_utility1.append(np.mean(S1) * T * payment_ratio)
+	# group_utility2.append(np.mean(S2) * T)
+	# individual_utility1.append(payment_ratio)
+	# individual_utility2.append(group_utility2[-1] / phi2)
+
+	for phi1 in phi1_range:
+		phi2 = 1 - phi1
+		S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon)
+		# t_range, S1, S2 = two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, plot=False)
+		group_utility1.append((S1 * (1 - sigma) + phi1 * sigma) * payment_ratio)
+		group_utility2.append(S2 * (1 - sigma) + phi2 * sigma)
+		individual_utility1.append(group_utility1[-1] / phi1)
+		individual_utility2.append(group_utility2[-1] / phi2)
+
+	# # phi1 = 1
+	# phi1 = 1
+	# phi2 = 1 - phi1
+	# t_range, S1, S2 = two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, plot=False)
+	# group_utility1.append(np.mean(S1) * T * payment_ratio)
+	# group_utility2.append(np.mean(S2) * T)
+	# individual_utility1.append(group_utility1[-1] / phi1)
+	# individual_utility2.append(1)
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot(121)
+	ax2 = fig.add_subplot(122)
+	# ax1.plot(phi1_range,
+	# 		 [min(phi1_range[i], gamma / beta) * payment_ratio + (1 - phi1_range[i]) for i in range(len(phi1_range))],
+	# 		 label='UB social', c='grey', linestyle=':')
+	ax1.plot(phi1_range, group_utility1, label='Group 1')
+	ax1.plot(phi1_range, group_utility2, label='Group 2')
+	ax1.plot(phi1_range, [group_utility1[i] + group_utility2[i] for i in range(len(group_utility1))], label='Social')
+	ax2.plot(phi1_range, individual_utility1, label='Group 1')
+	ax2.plot(phi1_range, individual_utility2, label='Group 2')
+
+	ax1.set_xlabel('phi1')
+	ax2.set_xlabel('phi1')
+	ax1.set_title('Group utility')
+	ax2.set_title('Individual utility')
+	ax1.legend()
+	ax2.legend()
+	plt.show()
+	return
+
+
 def POA_final_size(beta, beta_ratio, gamma, epsilon, payment_ratio):
 	"""
 	compute POA of 2 groups interacting over phi based on final sizes
@@ -203,8 +267,8 @@ def POA_final_size(beta, beta_ratio, gamma, epsilon, payment_ratio):
 	social_max_idx = np.argmax(social_utility)
 	if 0 < social_max_idx < len(phi1_range) - 1:
 		social_phi1, social_OPT = social_peak_binary_search(phi1_range[social_max_idx - 1],
-															 phi1_range[social_max_idx + 1],
-															 beta, beta_ratio, gamma, epsilon, payment_ratio)
+															phi1_range[social_max_idx + 1],
+															beta, beta_ratio, gamma, epsilon, payment_ratio)
 	else:
 		social_OPT = social_utility[social_max_idx]
 		social_phi1 = phi1_range[social_max_idx]
@@ -221,16 +285,28 @@ def POA_final_size(beta, beta_ratio, gamma, epsilon, payment_ratio):
 		NE_phi1, NE_utility = NE_binary_search(phi1_range[NE_idx], phi1_range[NE_idx + 1],
 											   beta, beta_ratio, gamma, epsilon, payment_ratio)
 
-	POA = NE_utility / social_OPT
-	print(f'OPT at {round(social_phi1, 5)} NE at {round(NE_phi1, 5)}')
+	# POA = NE_utility / social_OPT
+	POA = social_OPT / NE_utility
+	print(f'OPT=\n{round(social_OPT, 5)}\nNE=\n{round(NE_utility, 5)}')
 	print(f'POA={round(POA, 5)}')
+
+	OPT_UB = gamma / beta * payment_ratio + (1 - gamma / beta)
+	phi1 = 1
+	phi2 = 0
+	c1 = (1 - epsilon) * phi1 / np.exp((b11 * phi1 + b12 * phi2) / gamma)
+	c2 = (1 - epsilon) * phi2 / np.exp((b21 * phi1 + b22 * phi2) / gamma)
+	NE_LB = (c1 + c1 * c2 * b12 / gamma) * payment_ratio
+	# POA_LB = NE_LB / OPT_UB
+	POA_LB = OPT_UB / NE_LB
+	print(f'OPT upper bound=\n{round(OPT_UB, 5)}\nNE lower bound=\n{round(NE_LB, 5)}')
+	print(f'POA lower bound={round(POA_LB, 5)}')
 
 	fig = plt.figure()
 	ax1 = fig.add_subplot(121)
 	ax2 = fig.add_subplot(122)
-	# ax1.plot(phi1_range,
-	# 		 [min(phi1_range[i], gamma / beta) * payment_ratio + (1 - phi1_range[i]) for i in range(len(phi1_range))],
-	# 		 label='UB social', c='grey', linestyle=':')
+	ax1.plot(phi1_range,
+			 [min(phi1_range[i], gamma / beta) * payment_ratio + (1 - phi1_range[i]) for i in range(len(phi1_range))],
+			 label='Social upper bound', c='red', linestyle=':')
 	ax1.axvline(social_phi1, c='grey', linestyle=':')
 	ax2.axvline(NE_phi1, c='grey', linestyle=':')
 	ax1.plot(phi1_range, group_utility1, label='Group 1')
@@ -242,14 +318,63 @@ def POA_final_size(beta, beta_ratio, gamma, epsilon, payment_ratio):
 	ax2.set_xlabel('phi1')
 	ax1.set_title('Group utility')
 	ax2.set_title('Individual utility')
-
+	ax1.set_xlim(0, 1)
+	ax2.set_xlim(0, 1)
 	ax1.legend()
 	ax2.legend()
 	plt.show()
 	return
 
 
-def social_peak_binary_search(phi1_l, phi1_r, beta, beta_ratio, gamma, epsilon, payment_ratio):
+def bad_POA_final_size(beta, beta_ratio, gamma, epsilon, plot):
+	"""
+	compute the bad POA of 2 groups interacting by aligning at phi1=1
+	"""
+	b11 = beta
+	b12 = b21 = beta * beta_ratio
+	b22 = beta * beta_ratio * beta_ratio
+	phi1_step = 0.01
+	# phi1_range = np.arange(0, 1 + phi1_step, phi1_step)
+	# group_utility1 = []
+	# group_utility2 = []
+	# social_utility = []
+	# individual_utility1 = []
+	# individual_utility2 = []
+
+	# compute payment ratio using phi1=1
+	phi1 = 1 - phi1_step / 100000
+	phi2 = 1 - phi1
+	S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon)
+	payment_ratio = (S2 / phi2) / (S1 / phi1)
+	print(f'payment ratio={round(payment_ratio, 5)}')
+	NE_phi1 = phi1
+	NE_utility = S1 * payment_ratio + S2
+
+	# search for social OPT
+	social_phi1, social_OPT = social_peak_binary_search(phi1_step / 100000,
+														1 - phi1_step / 100000,
+														beta, beta_ratio, gamma, epsilon, payment_ratio, plot=plot)
+
+	# POA = NE_utility / social_OPT
+	POA = social_OPT / NE_utility
+	print(f'OPT=\n{round(social_OPT, 5)}\nNE=\n{round(NE_utility, 5)}')
+	print(f'POA={round(POA, 5)}')
+
+	OPT_UB = gamma / beta * payment_ratio + (1 - gamma / beta)
+	phi1 = 1
+	phi2 = 0
+	c1 = (1 - epsilon) * phi1 / np.exp((b11 * phi1 + b12 * phi2) / gamma)
+	c2 = (1 - epsilon) * phi2 / np.exp((b21 * phi1 + b22 * phi2) / gamma)
+	NE_LB = (c1 + c1 * c2 * b12 / gamma) * payment_ratio
+	# POA_LB = NE_LB / OPT_UB
+	POA_LB = OPT_UB / NE_LB
+	print(f'OPT upper bound=\n{round(OPT_UB, 5)}\nNE lower bound=\n{round(NE_LB, 5)}')
+	print(f'POA bound={round(POA_LB, 5)}')
+	print(f'1/c1={round(1 / (c1 * beta / gamma), 5)}')
+	return
+
+
+def social_peak_binary_search(phi1_l, phi1_r, beta, beta_ratio, gamma, epsilon, payment_ratio, plot=False):
 	phi1s = []
 	socials = []
 	for _ in range(OPT_iterations):
@@ -258,19 +383,22 @@ def social_peak_binary_search(phi1_l, phi1_r, beta, beta_ratio, gamma, epsilon, 
 		phi1_l2 = phi1_m + (phi1_l - phi1_m) / 2
 		S1_l, S2_l = final_size_searcher_binary(phi1_l2, beta, beta_ratio, gamma, epsilon)
 		social_l = S1_l * payment_ratio + S2_l
-		# phi1s.append(phi1_l2)
-		# socials.append(social_l)
+		if plot:
+			phi1s.append(phi1_l2)
+			socials.append(social_l)
 
 		S1_m, S2_m = final_size_searcher_binary(phi1_m, beta, beta_ratio, gamma, epsilon)
 		social_m = S1_m * payment_ratio + S2_m
-		phi1s.append(phi1_m)
-		socials.append(social_m)
+		if plot:
+			phi1s.append(phi1_m)
+			socials.append(social_m)
 
 		phi1_r2 = phi1_m + (phi1_r - phi1_m) / 2
 		S1_r, S2_r = final_size_searcher_binary(phi1_r2, beta, beta_ratio, gamma, epsilon)
 		social_r = S1_r * payment_ratio + S2_r
-		# phi1s.append(phi1_r2)
-		# socials.append(social_r)
+		if plot:
+			phi1s.append(phi1_r2)
+			socials.append(social_r)
 
 		if social_l < social_m:
 			phi1_l = phi1_l2
@@ -281,15 +409,15 @@ def social_peak_binary_search(phi1_l, phi1_r, beta, beta_ratio, gamma, epsilon, 
 	phi1_m = (phi1_l + phi1_r) / 2
 	S1_m, S2_m = final_size_searcher_binary(phi1_m, beta, beta_ratio, gamma, epsilon)
 	social_m = S1_m * payment_ratio + S2_m
-	phi1s.append(phi1_m)
-	socials.append(social_m)
-
-	# phi1s, socials = zip(*sorted(zip(phi1s, socials)))
-	# fig = plt.figure()
-	# ax1 = fig.add_subplot()
-	# ax1.plot(phi1s, socials)
-	# ax1.axvline(phi1_m)
-	# plt.show()
+	if plot:
+		phi1s.append(phi1_m)
+		socials.append(social_m)
+		phi1s, socials = zip(*sorted(zip(phi1s, socials)))
+		fig = plt.figure()
+		ax1 = fig.add_subplot()
+		ax1.plot(phi1s, socials)
+		ax1.axvline(phi1_m, c='grey', linestyle=':')
+		plt.show()
 
 	return phi1_m, social_m
 
@@ -874,7 +1002,10 @@ def main():
 	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
 	# utility_plotter(beta=5 / 14, beta_ratio=0.2, gamma=1 / 14, epsilon=0.0001, T=100, payment_ratio=3)
 	# utility_plotter_final_size(beta=2 / 14, beta_ratio=0.0001, gamma=1 / 14, epsilon=0.0001, payment_ratio=1.5)
-	POA_final_size(beta=5 / 14, beta_ratio=0.2, gamma=1 / 14, epsilon=0.0001, payment_ratio=50)
+	utility_plotter_sigma(beta=2 / 14, beta_ratio=0.3, gamma=1 / 14, epsilon=0.0001,
+						  payment_ratio=1.045, sigma=0.9)
+	# POA_final_size(beta=10 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001, payment_ratio=20000, sigma=0.98)
+	# bad_POA_final_size(beta=15 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001, plot=False)
 	# final_size_function_plotter(0.5, 0.5, 0.5, 1 / 14, 0.0001)
 	# final_size_searcher_scipy(2, 0.5, 1 / 14, 0.0001)
 	# final_size_plotter(beta=0.5, beta_ratio=0.7, gamma=1 / 14, epsilon=0.0001, payment_ratio=1)
