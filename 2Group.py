@@ -216,8 +216,8 @@ def utility_plotter_sigma(beta, beta_ratio, gamma, epsilon, payment_ratio, sigma
 	# ax1.plot(phi1_range,
 	# 		 [min(phi1_range[i], gamma / beta) * payment_ratio + (1 - phi1_range[i]) for i in range(len(phi1_range))],
 	# 		 label='UB social', c='grey', linestyle=':')
-	ax1.plot(phi1_range, group_utility1, label='Group 1')
-	ax1.plot(phi1_range, group_utility2, label='Group 2')
+	# ax1.plot(phi1_range, group_utility1, label='Group 1')
+	# ax1.plot(phi1_range, group_utility2, label='Group 2')
 	ax1.plot(phi1_range, [group_utility1[i] + group_utility2[i] for i in range(len(group_utility1))], label='Social')
 	ax2.plot(phi1_range, individual_utility1, label='Group 1')
 	ax2.plot(phi1_range, individual_utility2, label='Group 2')
@@ -1002,11 +1002,11 @@ def main():
 	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
 	# utility_plotter(beta=5 / 14, beta_ratio=0.2, gamma=1 / 14, epsilon=0.0001, T=100, payment_ratio=3)
 	# utility_plotter_final_size(beta=2 / 14, beta_ratio=0.0001, gamma=1 / 14, epsilon=0.0001, payment_ratio=1.5)
-	utility_plotter_sigma(beta=2 / 14, beta_ratio=0.3, gamma=1 / 14, epsilon=0.0001,
-						  payment_ratio=1.045, sigma=0.9)
+	# utility_plotter_sigma(beta=5 / 14, beta_ratio=1, gamma=1 / 14, epsilon=0.0001,
+	# 					  payment_ratio=1.1, sigma=0.7)
 	# POA_final_size(beta=10 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001, payment_ratio=20000, sigma=0.98)
 	# bad_POA_final_size(beta=15 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001, plot=False)
-	# final_size_function_plotter(0.5, 0.5, 0.5, 1 / 14, 0.0001)
+	final_size_function_plotter(phi1=0.5, beta=1 / 14, beta_ratio=1, gamma=1 / 14, epsilon=0.0001)
 	# final_size_searcher_scipy(2, 0.5, 1 / 14, 0.0001)
 	# final_size_plotter(beta=0.5, beta_ratio=0.7, gamma=1 / 14, epsilon=0.0001, payment_ratio=1)
 	# final_size_approximation_comparison(beta=0.5, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
