@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-binary_iterations = 100
+binary_iterations = 200
 OPT_iterations = 30
 NE_iterations = 50
 
@@ -65,6 +65,29 @@ def S1_final_searcher(S2, beta, beta_ratio, gamma, epsilon, phi1):
 	return S1_m
 
 
+def S2_final_searcher(S1, beta, beta_ratio, gamma, epsilon, phi1):
+	S_trace = []
+	f_trace = []
+	S2_l = 0
+	S2_r = phi1 * (1 - epsilon)
+	for _ in range(binary_iterations):
+		S2_m = (S2_l + S2_r) / 2
+		f = f2([S1, S2_m], phi1, beta, beta_ratio, gamma, epsilon)
+		S_trace.append(S2_m)
+		f_trace.append(f)
+		if f > 0:
+			S2_r = S2_m
+		else:
+			S2_l = S2_m
+	# print(S_trace)
+	# print(f_trace)
+	# fig = plt.figure()
+	# ax1 = fig.add_subplot()
+	# ax1.plot(S_trace, f_trace)
+	# plt.show()
+	return S2_m
+
+
 def f1(point, phi1, beta, beta_ratio, gamma, epsilon):
 	[S1, S2] = point
 	phi2 = 1 - phi1
@@ -89,34 +112,75 @@ def f2(point, phi1, beta, beta_ratio, gamma, epsilon):
 	return ret
 
 
-def final_size_test(phi1, beta, beta_ratio, gamma, epsilon, plot=False):
-	S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon, plot)
-	return
-
-
-def final_size_plotter(phi1, beta, beta_ratio, gamma, epsilon, plot):
+def f2_final_size_plotter(phi1, beta, beta_ratio, gamma, epsilon, plot):
 	phi2 = 1 - phi1
 	S2_step = 0.001
 	S2_range = np.arange(0, phi2 + S2_step, S2_step)
 	S1s = []
 	for S2 in S2_range:
 		S1s.append(S1_final_searcher(S2, beta, beta_ratio, gamma, epsilon, phi1))
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	ax1.plot(S2_range, S1s)
+	plt.show()
+	plt.close(fig)
 
 	f2s = []
 	for S1, S2 in zip(S1s, S2_range):
+		f2s.append(f2([S1, S2], phi1, beta, beta_ratio, gamma, epsilon))
 
-		f2s.append(f2([S1, S2], phi1, beta, beta_ratio, gamma,epsilon))
+	S2_range_final = np.arange(0, 2 + S2_step, S2_step)
+	S1_final, S2_final = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon, False)
+	f2s_final = []
+	for S2 in S2_range_final:
+		f2s_final.append(f2([S1_final, S2], phi1, beta, beta_ratio, gamma, epsilon))
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
-	ax1.plot(S2_range, f2s)
-	ax1.axhline(0, c='grey')
+	ax1.set_title('f2 comparison')
+	ax1.plot(S2_range, f2s, label='S1(S2)')
+	ax1.plot(S2_range_final, f2s_final, label='final S1')
+	ax1.axhline(0, c='grey', linestyle=':')
+	ax1.legend()
+	plt.show()
+	return
+
+
+def f1_final_size_plotter(phi1, beta, beta_ratio, gamma, epsilon, plot):
+	phi2 = 1 - phi1
+	S1_step = 0.001
+	S1_range = np.arange(0, phi2 + S1_step, S1_step)
+	S2s = []
+	for S1 in S1_range:
+		S2s.append(S2_final_searcher(S1, beta, beta_ratio, gamma, epsilon, phi1))
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	ax1.plot(S1_range, S2s)
+	plt.show()
+	plt.close(fig)
+
+	f1s = []
+	for S1, S2 in zip(S1_range, S2s):
+		f1s.append(f1([S1, S2], phi1, beta, beta_ratio, gamma, epsilon))
+
+	S1_range_final = np.arange(0, 2 + S1_step, S1_step)
+	S1_final, S2_final = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon, False)
+	f1s_final = []
+	for S1 in S1_range_final:
+		f1s_final.append(f1([S1, S2_final], phi1, beta, beta_ratio, gamma, epsilon))
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	ax1.set_title('f1 comparison')
+	ax1.plot(S1_range, f1s, label='S2(S1)')
+	ax1.plot(S1_range_final, f1s_final, label='final S2')
+	ax1.axhline(0, c='grey', linestyle=':')
+	ax1.legend()
 	plt.show()
 	return
 
 
 def main():
-	final_size_plotter(phi1=0.5, beta=1.5 / 14, beta_ratio=0.9, gamma=1 / 14, epsilon=0.0001, plot=True)
-	# final_size_test(phi1=0.5, beta=1.5 / 14, beta_ratio=0.9, gamma=1 / 14, epsilon=0.0001, plot=True)
+	f2_final_size_plotter(phi1=0.5, beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001, plot=True)
+	# f1_final_size_plotter(phi1=0.5, beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001, plot=True)
 	return
 
 

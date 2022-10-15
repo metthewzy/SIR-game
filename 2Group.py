@@ -1001,12 +1001,12 @@ def tmp3(beta_ratio, gamma, epsilon):
 def main():
 	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
 	# utility_plotter(beta=5 / 14, beta_ratio=0.2, gamma=1 / 14, epsilon=0.0001, T=100, payment_ratio=3)
-	# utility_plotter_final_size(beta=2 / 14, beta_ratio=0.0001, gamma=1 / 14, epsilon=0.0001, payment_ratio=1.5)
+	# utility_plotter_final_size(beta=2 / 14, beta_ratio=0.999, gamma=1 / 14, epsilon=0.0001, payment_ratio=1.5)
 	# utility_plotter_sigma(beta=5 / 14, beta_ratio=1, gamma=1 / 14, epsilon=0.0001,
 	# 					  payment_ratio=1.1, sigma=0.7)
 	# POA_final_size(beta=10 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001, payment_ratio=20000, sigma=0.98)
 	# bad_POA_final_size(beta=15 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001, plot=False)
-	final_size_function_plotter(phi1=0.5, beta=1 / 14, beta_ratio=1, gamma=1 / 14, epsilon=0.0001)
+	# final_size_function_plotter(phi1=0.5, beta=1 / 14, beta_ratio=1, gamma=1 / 14, epsilon=0.0001)
 	# final_size_searcher_scipy(2, 0.5, 1 / 14, 0.0001)
 	# final_size_plotter(beta=0.5, beta_ratio=0.7, gamma=1 / 14, epsilon=0.0001, payment_ratio=1)
 	# final_size_approximation_comparison(beta=0.5, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
@@ -1015,6 +1015,51 @@ def main():
 	# tmp(beta=20 / 14, beta_ratio=0.1, gamma=1 / 14, epsilon=0.0001)
 	# tmp2(beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
 	# tmp3(0.9, 1 / 14, 0.0001)
+	tmp4(beta=4 / 14, beta_ratio=0.1, gamma=1 / 14, epsilon=0.0001)
+	return
+
+
+def tmp4(beta, beta_ratio, gamma, epsilon):
+	phi1_step = 0.01
+	phi1_range = np.arange(phi1_step, 1, phi1_step)
+	b11 = beta
+	b12 = b21 = beta * beta_ratio
+	b22 = beta * beta_ratio * beta_ratio
+	k = beta_ratio
+	rets = []
+	numerators = []
+	denominators = []
+	formulae = []
+	ratios = []
+	total_final = []
+	for phi1 in phi1_range:
+		phi2 = 1 - phi1
+		S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon)
+		X = (b11 * (S1 - phi1) + b12 * (S2 - phi2)) / gamma
+		Y = (b21 * (S1 - phi1) + b22 * (S2 - phi2)) / gamma
+		EX = np.exp(X)
+		EY = np.exp(Y)
+		total_final.append(S1 + S2)
+		ret = (EX * (EX + k - 1 - k * EY)) / \
+			  (gamma / beta - phi1 * (EX + k * k * EY))
+		rets.append(ret)
+		numerators.append(EX * (EX + k - 1 - k * EY))
+		denominators.append(gamma / beta - phi1 * (EX + k * k * EY))
+		formulae.append(gamma / beta / phi1 - np.exp(X) * (1 + k * k))
+		ratios.append(np.exp(X) / k / k / np.exp(k * X))
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	# ax1.plot(phi1_range, rets, label='value')
+	# ax1.plot(phi1_range, numerators, label='numerator')
+	# ax1.plot(phi1_range, denominators, label='denominator')
+	# ax1.plot(phi1_range, ratios, label='ratio')
+	# ax1.plot(phi1_range, formulae, label='formulae')
+	# ax1.axhline(0, c='grey', linestyle=':')
+	ax1.plot(phi1_range, total_final, label='total')
+	ax1.axhline(gamma / beta, c='grey', linestyle=':')
+	ax1.legend()
+	plt.show()
 	return
 
 
