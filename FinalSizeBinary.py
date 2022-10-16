@@ -114,31 +114,51 @@ def f2(point, phi1, beta, beta_ratio, gamma, epsilon):
 
 def f2_final_size_plotter(phi1, beta, beta_ratio, gamma, epsilon, plot):
 	phi2 = 1 - phi1
+	b11 = beta
+	b12 = b21 = beta * beta_ratio
+	b22 = beta * beta_ratio * beta_ratio
 	S2_step = 0.001
 	S2_range = np.arange(0, phi2 + S2_step, S2_step)
 	S1s = []
 	for S2 in S2_range:
 		S1s.append(S1_final_searcher(S2, beta, beta_ratio, gamma, epsilon, phi1))
-	fig = plt.figure()
-	ax1 = fig.add_subplot()
-	ax1.plot(S2_range, S1s)
-	plt.show()
-	plt.close(fig)
+	# fig = plt.figure()
+	# ax1 = fig.add_subplot()
+	# ax1.plot(S2_range, S1s)
+	# ax1.set_xlabel('S2')
+	# ax1.set_ylabel('S1(S2)')
+	# plt.show()
+	# plt.close(fig)
 
+	df2s = []
 	f2s = []
 	for S1, S2 in zip(S1s, S2_range):
+		X = (b11 * (S1 - phi1) + b12 * (S2 - phi2)) / gamma
+		Y = (b21 * (S1 - phi1) + b22 * (S2 - phi2)) / gamma
+		df2s.append(1-phi2 * np.exp(Y) * (b21 / gamma * S1 * b12 / gamma / (1 - S1 * b11 / gamma) + b22 / gamma))
 		f2s.append(f2([S1, S2], phi1, beta, beta_ratio, gamma, epsilon))
 
-	S2_range_final = np.arange(0, 2 + S2_step, S2_step)
+	# fig = plt.figure()
+	# ax1 = fig.add_subplot()
+	# ax1.plot(S2_range, df2s)
+	# ax1.set_xlabel('S2')
+	# ax1.set_ylabel('dfs/dS2')
+	# plt.show()
+	# plt.close(fig)
+
+	S2_range_final = np.arange(0, phi2 + S2_step, S2_step)
 	S1_final, S2_final = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon, False)
 	f2s_final = []
 	for S2 in S2_range_final:
 		f2s_final.append(f2([S1_final, S2], phi1, beta, beta_ratio, gamma, epsilon))
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
-	ax1.set_title('f2 comparison')
-	ax1.plot(S2_range, f2s, label='S1(S2)')
-	ax1.plot(S2_range_final, f2s_final, label='final S1')
+	ax2 = ax1.twinx()
+	ax1.set_title(rf'f2 comparison $\phi_1$={phi1}')
+	ax1.set_xlabel('S2')
+	l1 = ax1.plot(S2_range, f2s, label='S1(S2)')
+	l2 = ax1.plot(S2_range_final, f2s_final, label='final S1')
+	ax2.plot(S2_range, df2s, label='df2', c='red')
 	ax1.axhline(0, c='grey', linestyle=':')
 	ax1.legend()
 	plt.show()
@@ -179,7 +199,7 @@ def f1_final_size_plotter(phi1, beta, beta_ratio, gamma, epsilon, plot):
 
 
 def main():
-	f2_final_size_plotter(phi1=0.5, beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001, plot=True)
+	f2_final_size_plotter(phi1=0.2, beta=2 / 14, beta_ratio=0.7, gamma=1 / 14, epsilon=0.0001, plot=True)
 	# f1_final_size_plotter(phi1=0.5, beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001, plot=True)
 	return
 
