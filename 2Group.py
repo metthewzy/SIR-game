@@ -150,8 +150,8 @@ def utility_plotter_final_size(beta, beta_ratio, gamma, epsilon, payment_ratio):
 	ax1 = fig.add_subplot(121)
 	ax2 = fig.add_subplot(122)
 	ax1.plot(phi1_range,
-			 [min(phi1_range[i], gamma / beta) * payment_ratio + (1 - phi1_range[i]) for i in range(len(phi1_range))],
-			 label='UB social', c='grey', linestyle=':')
+	         [min(phi1_range[i], gamma / beta) * payment_ratio + (1 - phi1_range[i]) for i in range(len(phi1_range))],
+	         label='UB social', c='grey', linestyle=':')
 	ax1.plot(phi1_range, group_utility1, label='Group 1')
 	ax1.plot(phi1_range, group_utility2, label='Group 2')
 	ax1.plot(phi1_range, [group_utility1[i] + group_utility2[i] for i in range(len(group_utility1))], label='Social')
@@ -267,8 +267,8 @@ def POA_final_size(beta, beta_ratio, gamma, epsilon, payment_ratio):
 	social_max_idx = np.argmax(social_utility)
 	if 0 < social_max_idx < len(phi1_range) - 1:
 		social_phi1, social_OPT = social_peak_binary_search(phi1_range[social_max_idx - 1],
-															phi1_range[social_max_idx + 1],
-															beta, beta_ratio, gamma, epsilon, payment_ratio)
+		                                                    phi1_range[social_max_idx + 1],
+		                                                    beta, beta_ratio, gamma, epsilon, payment_ratio)
 	else:
 		social_OPT = social_utility[social_max_idx]
 		social_phi1 = phi1_range[social_max_idx]
@@ -283,7 +283,7 @@ def POA_final_size(beta, beta_ratio, gamma, epsilon, payment_ratio):
 	else:
 		NE_idx = next(i for i in range(len(phi1_range)) if individual_utility2[i] >= individual_utility1[i]) - 1
 		NE_phi1, NE_utility = NE_binary_search(phi1_range[NE_idx], phi1_range[NE_idx + 1],
-											   beta, beta_ratio, gamma, epsilon, payment_ratio)
+		                                       beta, beta_ratio, gamma, epsilon, payment_ratio)
 
 	# POA = NE_utility / social_OPT
 	POA = social_OPT / NE_utility
@@ -305,8 +305,8 @@ def POA_final_size(beta, beta_ratio, gamma, epsilon, payment_ratio):
 	ax1 = fig.add_subplot(121)
 	ax2 = fig.add_subplot(122)
 	ax1.plot(phi1_range,
-			 [min(phi1_range[i], gamma / beta) * payment_ratio + (1 - phi1_range[i]) for i in range(len(phi1_range))],
-			 label='Social upper bound', c='red', linestyle=':')
+	         [min(phi1_range[i], gamma / beta) * payment_ratio + (1 - phi1_range[i]) for i in range(len(phi1_range))],
+	         label='Social upper bound', c='red', linestyle=':')
 	ax1.axvline(social_phi1, c='grey', linestyle=':')
 	ax2.axvline(NE_phi1, c='grey', linestyle=':')
 	ax1.plot(phi1_range, group_utility1, label='Group 1')
@@ -352,8 +352,8 @@ def bad_POA_final_size(beta, beta_ratio, gamma, epsilon, plot):
 
 	# search for social OPT
 	social_phi1, social_OPT = social_peak_binary_search(phi1_step / 100000,
-														1 - phi1_step / 100000,
-														beta, beta_ratio, gamma, epsilon, payment_ratio, plot=plot)
+	                                                    1 - phi1_step / 100000,
+	                                                    beta, beta_ratio, gamma, epsilon, payment_ratio, plot=plot)
 
 	# POA = NE_utility / social_OPT
 	POA = social_OPT / NE_utility
@@ -535,19 +535,19 @@ def final_size_searcher_scipy(beta, beta_ratio, gamma, epsilon):
 	for phi1 in phi1_range:
 		phi2 = 1 - phi1
 		optimal = minimize(two_group_loss, [phi1 / 2, phi2 / 2],
-						   args=(phi1, beta, beta_ratio, gamma, epsilon),
-						   method='L-BFGS-B',
-						   bounds=[(0, phi1), (0, phi2)])
+		                   args=(phi1, beta, beta_ratio, gamma, epsilon),
+		                   method='L-BFGS-B',
+		                   bounds=[(0, phi1), (0, phi2)])
 		# print(optimal.fun)
 		S1, S2 = optimal.x
 		S1_infs.append(S1)
 		S2_infs.append(S2)
 		S1_approx.append((1 - epsilon) * phi1 *
-						 (gamma - beta * (phi1 + beta_ratio * (beta_ratio + epsilon - beta_ratio * epsilon) * phi2)) /
-						 (gamma + beta * (epsilon - 1) * (phi1 + beta_ratio ** 2 * phi2)))
+		                 (gamma - beta * (phi1 + beta_ratio * (beta_ratio + epsilon - beta_ratio * epsilon) * phi2)) /
+		                 (gamma + beta * (epsilon - 1) * (phi1 + beta_ratio ** 2 * phi2)))
 		S2_approx.append((1 - epsilon) * phi2 *
-						 (gamma - beta * (phi1 + (beta_ratio - 1) * epsilon * phi1 + beta_ratio ** 2 * phi2)) /
-						 (gamma + beta * (epsilon - 1) * (phi1 + beta_ratio ** 2 * phi2)))
+		                 (gamma - beta * (phi1 + (beta_ratio - 1) * epsilon * phi1 + beta_ratio ** 2 * phi2)) /
+		                 (gamma + beta * (epsilon - 1) * (phi1 + beta_ratio ** 2 * phi2)))
 	# print([(S1, S2) for (S1, S2) in zip(S1_infs, S2_infs)])
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
@@ -583,15 +583,15 @@ def final_size_plotter(beta, beta_ratio, gamma, epsilon, payment_ratio=1):
 	ax1.set_xlabel('S1')
 	ax1.set_ylabel('S2')
 	ax1.set_title('Scatter color becomes lighter as phi_1 increase in cycles\n'
-				  f'beta={round(beta, 3)},  beta ratio={round(beta_ratio, 3)},  gamma={round(gamma, 3)}')
+	              f'beta={round(beta, 3)},  beta ratio={round(beta_ratio, 3)},  gamma={round(gamma, 3)}')
 	ax1.plot(S1_final, S2_final, color='gray')
 	# cs = [np.exp(i - l) / np.exp(l) for i in range(l)]
 	# ax1.scatter(S1_final, S2_final, c=cs, cmap='binary_r')
 	for i in range(20):
 		ax1.scatter(S1_final[round(i * l / 20):round((i + 1) * l / 20)],
-					S2_final[round(i * l / 20):round((i + 1) * l / 20)],
-					c=range(round(i * l / 20), round((i + 1) * l / 20)),
-					edgecolors='black', cmap='binary_r', s=20, zorder=2)
+		            S2_final[round(i * l / 20):round((i + 1) * l / 20)],
+		            c=range(round(i * l / 20), round((i + 1) * l / 20)),
+		            edgecolors='black', cmap='binary_r', s=20, zorder=2)
 
 	ax2.plot(phi1_range, [S1 * payment_ratio for S1 in S1_final], label='S1')
 	ax2.set_xlabel(r'$\phi_1$')
@@ -829,9 +829,9 @@ def final_size_approximation(phi1, beta, beta_ratio, gamma, epsilon):
 	c1 = (1 - epsilon) * phi1 / np.exp((b11 * phi1 + b12 * phi2) / gamma)
 	c2 = (1 - epsilon) * phi2 / np.exp((b21 * phi1 + b22 * phi2) / gamma)
 	S1 = c1 * gamma * (c2 * (b12 - b22) + gamma) / \
-		 (gamma * (gamma - c2 * b22) - c1 * (c2 * b12 * b21 - c2 * b11 * b22 + b11 * gamma))
+	     (gamma * (gamma - c2 * b22) - c1 * (c2 * b12 * b21 - c2 * b11 * b22 + b11 * gamma))
 	S2 = c2 * gamma * (c1 * (b21 - b11) + gamma) / \
-		 (gamma * (gamma - c2 * b22) - c1 * (c2 * b12 * b21 - c2 * b11 * b22 + b11 * gamma))
+	     (gamma * (gamma - c2 * b22) - c1 * (c2 * b12 * b21 - c2 * b11 * b22 + b11 * gamma))
 	return S1, S2
 
 
@@ -848,9 +848,9 @@ def final_size_approximation2(phi1, beta, beta_ratio, gamma, epsilon):
 	c2 = (1 - epsilon) * phi2 / np.exp(b21 * phi1 / gamma + b22 * phi2 / gamma)
 	e = np.exp(1)
 	S1 = (c1 * (e - 1) * gamma * (c2 * (b12 - b22) + gamma)) / \
-		 (gamma * (- c2 * b22 + gamma) - c1 * (c2 * b12 * b21 - c2 * b11 * b22 + b11 * gamma))
+	     (gamma * (- c2 * b22 + gamma) - c1 * (c2 * b12 * b21 - c2 * b11 * b22 + b11 * gamma))
 	S2 = -(c2 * (e - 1) * gamma * (c1 * (b11 - b21) - gamma)) / \
-		 (gamma * (- c2 * b22 + gamma) - c1 * (c2 * b12 * b21 - c2 * b11 * b22 + b11 * gamma))
+	     (gamma * (- c2 * b22 + gamma) - c1 * (c2 * b12 * b21 - c2 * b11 * b22 + b11 * gamma))
 	return S1, S2
 
 
@@ -872,7 +872,7 @@ def final_size_approximation3(phi1, beta, beta_ratio, gamma, epsilon):
 	# 	 (1 - 1 / e - 1 / e / e / (1 - 1 / e))
 
 	S1 = ((e - 1) * (c1 + c2 * (b12 * c1 / gamma) / (1 - 1 / e))) / \
-		 (1 - 1 / e - 1 / e / e / (1 - 1 / e))
+	     (1 - 1 / e - 1 / e / e / (1 - 1 / e))
 	return S1
 
 
@@ -1054,19 +1054,21 @@ def tmp4(beta, beta_ratio, gamma, epsilon):
 		# numerators.append(EX * (epsilon * gamma + beta * (epsilon - 1) *
 		# 						(-1 + EX + k - k * EY + epsilon * k * EY + epsilon * k * k * EY) * phi1))
 		# denominators.append(phi1 * (gamma + beta * (EX + k * k * EY) * (-1 + epsilon) * phi1))
-		numerators.append(- beta * EX * (-1 + k + (S1/phi1) - k * (S2/phi2)) * (-1 + epsilon) * gamma)
-		denominators.append(gamma * gamma + beta * gamma * (-1 + epsilon) * (EX * phi1 * EY * k * k * phi2))
+		EX2 = np.exp(beta * phi1 * (-1 + S1 / phi1) / gamma + k * beta * phi2 * (-1 + S2 / phi2) / gamma)
+		EY2 = np.exp(k * beta * phi1 * (-1 + S1) / gamma + k * k * beta * phi2 * (-1 + S2) / gamma)
+		numerators.append(- beta * EX2 * (1 - S1 / phi1 + k * (-1 + S2 / phi2)))
+		denominators.append(gamma - beta * (EX2 * phi1 * EY2 * k * k * phi2))
 		rets.append(numerators[-1] / denominators[-1])
 		# denominators.append(1 - phi1 * (EX + k * k * EY) * beta / gamma)
 		formulae.append(gamma / beta / phi1 - np.exp(X) * (1 + k * k))
 		ratios.append(np.exp(X) / k / k / np.exp(k * X))
 	d_individual_utility = [individual_utility[i] - individual_utility[i - 1] for i in
-							range(1, len(individual_utility))]
+	                        range(1, len(individual_utility))]
 
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
-	ax1.plot(phi1_range[1:], d_individual_utility, label='dIU')
-	ax1.plot(phi1_range, rets, label='value')
+	ax1.plot(phi1_range[1:], d_individual_utility, label='calculation')
+	ax1.plot(phi1_range, rets, label='derivation')
 	# ax1.plot(phi1_range, D1_numerator, label='n')
 	# ax1.plot(phi1_range, D1_denominator, label='d')
 	# ax1.plot(phi1_range, D1, label='D1')
