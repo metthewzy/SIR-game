@@ -1001,7 +1001,7 @@ def tmp3(beta_ratio, gamma, epsilon):
 def main():
 	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
 	# utility_plotter(beta=5 / 14, beta_ratio=0.2, gamma=1 / 14, epsilon=0.0001, T=100, payment_ratio=3)
-	# utility_plotter_final_size(beta=1.2 / 14, beta_ratio=0.9, gamma=1 / 14, epsilon=0.0001, payment_ratio=1)
+	# utility_plotter_final_size(beta=0.4 / 14, beta_ratio=1, gamma=1 / 14, epsilon=0.0001, payment_ratio=1)
 	# utility_plotter_sigma(beta=5 / 14, beta_ratio=1, gamma=1 / 14, epsilon=0.0001,
 	# 					  payment_ratio=1.1, sigma=0.7)
 	# POA_final_size(beta=10 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001, payment_ratio=20000, sigma=0.98)
@@ -1015,7 +1015,7 @@ def main():
 	# tmp(beta=20 / 14, beta_ratio=0.1, gamma=1 / 14, epsilon=0.0001)
 	# tmp2(beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
 	# tmp3(0.9, 1 / 14, 0.0001)
-	tmp4(beta=1.2 / 14, beta_ratio=0.9, gamma=1 / 14, epsilon=0.0001)
+	tmp4(beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
 	return
 
 
@@ -1029,13 +1029,10 @@ def tmp4(beta, beta_ratio, gamma, epsilon):
 	rets = []
 	numerators = []
 	denominators = []
-	formulae = []
-	ratios = []
 	total_final = []
 	individual_utility = []
-	D1_numerator = []
-	D1_denominator = []
-	D1 = []
+	statement1 = []
+	statement2 = []
 	for phi1 in phi1_range:
 		phi2 = 1 - phi1
 		S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon)
@@ -1044,54 +1041,55 @@ def tmp4(beta, beta_ratio, gamma, epsilon):
 		Y = (b21 * (S1 - phi1) + b22 * (S2 - phi2)) / gamma
 		EX = np.exp(X)
 		EY = np.exp(Y)
-		# D1_numerator.append(EX * (gamma - beta * phi1 * (1 + k * (EY - 1) + EY * k * k)))
-		# D1_denominator.append(gamma - beta * phi1 * (EX + EY * k * k))
-		# D1.append(D1_numerator[-1] / D1_denominator[-1])
 		total_final.append(S1 + S2)
-		# ret = (EX * (EX + k - 1 - k * EY)) / \
-		# 	  (gamma / beta - phi1 * (EX + k * k * EY))
-		# rets.append(ret)
-		# numerators.append(EX * (epsilon * gamma + beta * (epsilon - 1) *
-		# 						(-1 + EX + k - k * EY + epsilon * k * EY + epsilon * k * k * EY) * phi1))
-		# denominators.append(phi1 * (gamma + beta * (EX + k * k * EY) * (-1 + epsilon) * phi1))
 		EX2 = np.exp(beta * phi1 * (-1 + S1 / phi1) / gamma + k * beta * phi2 * (-1 + S2 / phi2) / gamma)
 		EY2 = np.exp(k * beta * phi1 * (-1 + S1 / phi1) / gamma + k * k * beta * phi2 * (-1 + S2 / phi2) / gamma)
-		# print(EX - EX2, EY - EY2)
-		# numerators.append(- beta * EX2 * (1 - S1 / phi1 + k * (-1 + S2 / phi2)))
-		# denominators.append(gamma - beta * (EX2 * phi1 + EY2 * k * k * phi2))
+
+		# # with epsilon
+		# numerators.append(
+		# 	beta * EX2 * (-1 + k + S1 / phi1 - k * S2 / phi2) * (-1 + epsilon)
+		# )
+		# denominators.append(
+		# 	-gamma + beta * (-1 + epsilon) * (-EX * phi1 - k ** 2 * EY * phi2)
+		# )
+
+		# without epsilon
 		numerators.append(
 			beta * EX2 * (-1 + k + S1 / phi1 - k * S2 / phi2)
 		)
 		denominators.append(
 			gamma - beta * EX2 * phi1 - beta * EY2 * (k ** 2) * phi2
 		)
+
 		rets.append(numerators[-1] / denominators[-1])
-		# denominators.append(1 - phi1 * (EX + k * k * EY) * beta / gamma)
-		formulae.append(gamma / beta / phi1 - np.exp(X) * (1 + k * k))
-		ratios.append(np.exp(X) / k / k / np.exp(k * X))
-	d_individual_utility = [individual_utility[i] - individual_utility[i - 1] for i in
+		statement1.append(
+			1 - (
+					np.exp(beta / gamma * (S1 + k * S2)) /
+					np.exp(1 + k * beta / gamma * phi2) +
+					np.exp(k * beta / gamma * (S1 + k * S2)) /
+					np.exp(1 + k * beta / gamma * phi1)
+			)
+		)
+		statement2.append(S2 - S1 / k * phi2 / phi1)
+	d_individual_utility = [(individual_utility[i] - individual_utility[i - 1]) / phi1_step for i in
 							range(1, len(individual_utility))]
 
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
+
 	# ax1.plot(phi1_range, individual_utility, label='utility')
-	l1 = ax1.plot(phi1_range[:-1], d_individual_utility, label='calculation')
-	ax2 = ax1.twinx()
-	l2 = ax2.plot(phi1_range, rets, label='derivation', c='orange')
-	lns = l1 + l2
-	labs = [l.get_label() for l in lns]
-	# ax1.plot(phi1_range, D1_numerator, label='n')
-	# ax1.plot(phi1_range, D1_denominator, label='d')
-	# ax1.plot(phi1_range, D1, label='D1')
-	# ax1.plot(phi1_range, numerators, label='numerator')
-	# ax1.plot(phi1_range, denominators, label='denominator')
-	# ax1.plot(phi1_range, ratios, label='ratio')
-	# ax1.plot(phi1_range, formulae, label='formulae')
+	# ax1.plot([phi1 + phi1_step / 2 for phi1 in phi1_range[:-1]], d_individual_utility, label='calculation')
+	# ax1.plot(phi1_range, rets, label='derivation', c='orange')
+
+	ax1.plot(phi1_range, numerators, label='numerator')
+	ax1.plot(phi1_range, denominators, label='denominator')
+	# ax1.plot(phi1_range, statement1, label='S1')
+	# ax1.plot(phi1_range, statement2, label='S2')
 	ax1.axhline(0, c='grey', linestyle=':')
-	ax2.axhline(0, c='grey', linestyle=':')
+	# ax2.axhline(0, c='grey', linestyle=':')
 	# ax1.plot(phi1_range, total_final, label='total')
 	# ax1.axvline(gamma / beta, c='grey', linestyle=':')
-	ax1.legend(lns, labs, loc=0)
+	ax1.legend()
 	plt.show()
 	return
 
