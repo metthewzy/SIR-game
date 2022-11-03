@@ -1098,6 +1098,9 @@ def tmp4(beta, beta_ratio, gamma, epsilon):
 
 
 def convex_plotter(phi1, beta, beta_ratio, gamma, epsilon):
+	"""
+	plot the feasible region of the convex program
+	"""
 	k = beta_ratio
 	phi2 = 1 - phi1
 	low, high = 0.8, 1.2
@@ -1133,20 +1136,23 @@ def convex_plotter(phi1, beta, beta_ratio, gamma, epsilon):
 	T1 = [1 / V1_len, t1 / V1_len]
 	T2 = [1 / V2_len, t2 / V2_len]
 
-	fig = plt.figure(figsize=(6.5, 4.5))
+	plt.rcParams.update({'font.size': 18})
+	f1_color = 'tab:blue'
+	f2_color = 'tab:orange'
+	fig = plt.figure(figsize=(12, 8.5))
 	ax1 = fig.add_subplot()
-	ax1.fill_between([p[0] for p in f1s], [p[1] for p in f1s], color='lightskyblue', alpha=0.4)
-	ax1.fill_between([p[0] for p in f2s], [p[1] for p in f2s], [phi2] * len(f2s), color='orange', alpha=0.4)
-	ax1.quiver(S1, S2, V1[0], V1[1], units='inches', scale=1.25, color='lightskyblue')
-	ax1.quiver(S1, S2, V2[0], V2[1], units='inches', scale=1.25, color='orange')
-	ax1.quiver(S1, S2, T1[0], T1[1], units='inches', scale=0.65, color='lightskyblue')
-	ax1.quiver(S1, S2, T2[0], T2[1], units='inches', scale=0.65, color='orange')
-	ax1.plot([p[0] for p in f1s], [p[1] for p in f1s], c='lightskyblue')
-	ax1.plot([p[0] for p in f2s], [p[1] for p in f2s], c='orange')
+	ax1.fill_between([p[0] for p in f1s], [p[1] for p in f1s], color=f1_color, alpha=0.5)
+	ax1.fill_between([p[0] for p in f2s], [p[1] for p in f2s], [phi2] * len(f2s), color=f2_color, alpha=0.5)
+	ax1.quiver(S1, S2, V1[0], V1[1], units='inches', scale=0.7, color=f1_color)
+	ax1.quiver(S1, S2, V2[0], V2[1], units='inches', scale=0.7, color=f2_color)
+	ax1.quiver(S1, S2, T1[0], T1[1], units='inches', scale=0.35, color=f1_color)
+	ax1.quiver(S1, S2, T2[0], T2[1], units='inches', scale=0.35, color=f2_color)
+	ax1.plot([p[0] for p in f1s], [p[1] for p in f1s], c=f1_color)
+	ax1.plot([p[0] for p in f2s], [p[1] for p in f2s], c=f2_color)
 	ax1.axline((S1, S2), slope=-1, linestyle='--', c='black')
-	ax1.axline((S1, S2), slope=t1, linestyle='--', c='lightskyblue')
-	ax1.axline((S1, S2), slope=t2, linestyle='--', c='orange')
-	ax1.plot(S1, S2, marker="o", markersize=10, c='red')
+	ax1.axline((S1, S2), slope=t1, linestyle='--', c=f1_color)
+	ax1.axline((S1, S2), slope=t2, linestyle='--', c=f2_color)
+	ax1.plot(S1, S2, marker="o", markersize=15, c='red')
 	ax1.text(0.4 * phi1, 0.95 * phi2, r'$l_1$')
 	ax1.text(0.95 * phi1, 0.6 * phi2, r'$l_2$')
 	ax1.text(0.34 * phi1, 0.75 * phi2, r'$\vec{t_1}$')
@@ -1164,7 +1170,7 @@ def convex_plotter(phi1, beta, beta_ratio, gamma, epsilon):
 	ax1.set_xlabel(r'$s_1$')
 	ax1.set_ylabel(r'$s_2$')
 	ax1.set_aspect('equal', 'box')
-	fig.savefig('convex.png')
+	fig.savefig('convex.png', bbox_inches='tight')
 	# plt.show()
 	return
 
