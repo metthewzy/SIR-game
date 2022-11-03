@@ -149,9 +149,9 @@ def utility_plotter_final_size(beta, beta_ratio, gamma, epsilon, payment_ratio):
 	fig = plt.figure()
 	ax1 = fig.add_subplot(121)
 	ax2 = fig.add_subplot(122)
-	ax1.plot(phi1_range,
-			 [min(phi1_range[i], gamma / beta) * payment_ratio + (1 - phi1_range[i]) for i in range(len(phi1_range))],
-			 label='UB social', c='grey', linestyle=':')
+	# ax1.plot(phi1_range,
+	# 		 [min(phi1_range[i], gamma / beta) * payment_ratio + (1 - phi1_range[i]) for i in range(len(phi1_range))],
+	# 		 label='UB social', c='grey', linestyle=':')
 	ax1.plot(phi1_range, group_utility1, label='Group 1')
 	ax1.plot(phi1_range, group_utility2, label='Group 2')
 	ax1.plot(phi1_range, [group_utility1[i] + group_utility2[i] for i in range(len(group_utility1))], label='Social')
@@ -660,6 +660,30 @@ def S1_final_searcher(S2, beta, beta_ratio, gamma, epsilon, phi1):
 	return S1_m
 
 
+def S2_final_searcher(S1, beta, beta_ratio, gamma, epsilon, phi1):
+	S_trace = []
+	f_trace = []
+	phi2 = 1 - phi1
+	S2_l = 0
+	S2_r = phi2 * (1 - epsilon)
+	for _ in range(binary_iterations):
+		S2_m = (S2_l + S2_r) / 2
+		f = f2([S1, S2_m], phi1, beta, beta_ratio, gamma, epsilon)
+		S_trace.append(S2_m)
+		f_trace.append(f)
+		if f > 0:
+			S2_r = S2_m
+		else:
+			S2_l = S2_m
+	# print(S_trace)
+	# print(f_trace)
+	# fig = plt.figure()
+	# ax1 = fig.add_subplot()
+	# ax1.plot(S_trace, f_trace)
+	# plt.show()
+	return S2_m
+
+
 def two_group_loss(point, phi1, beta, beta_ratio, gamma, epsilon):
 	loss = f1(point, phi1, beta, beta_ratio, gamma, epsilon) ** 2
 	loss += f2(point, phi1, beta, beta_ratio, gamma, epsilon) ** 2
@@ -998,27 +1022,6 @@ def tmp3(beta_ratio, gamma, epsilon):
 	return
 
 
-def main():
-	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
-	# utility_plotter(beta=5 / 14, beta_ratio=0.2, gamma=1 / 14, epsilon=0.0001, T=100, payment_ratio=3)
-	# utility_plotter_final_size(beta=0.4 / 14, beta_ratio=1, gamma=1 / 14, epsilon=0.0001, payment_ratio=1)
-	# utility_plotter_sigma(beta=5 / 14, beta_ratio=1, gamma=1 / 14, epsilon=0.0001,
-	# 					  payment_ratio=1.1, sigma=0.7)
-	# POA_final_size(beta=10 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001, payment_ratio=20000, sigma=0.98)
-	# bad_POA_final_size(beta=15 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001, plot=False)
-	# final_size_function_plotter(phi1=0.5, beta=1 / 14, beta_ratio=1, gamma=1 / 14, epsilon=0.0001)
-	# final_size_searcher_scipy(2, 0.5, 1 / 14, 0.0001)
-	# final_size_plotter(beta=0.5, beta_ratio=0.7, gamma=1 / 14, epsilon=0.0001, payment_ratio=1)
-	# final_size_approximation_comparison(beta=0.5, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
-	# final_size_approximation_comparison2(beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
-	# f1_plotter(0.5, 0.5, 1 / 14, 0.0001)
-	# tmp(beta=20 / 14, beta_ratio=0.1, gamma=1 / 14, epsilon=0.0001)
-	# tmp2(beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
-	# tmp3(0.9, 1 / 14, 0.0001)
-	tmp4(beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
-	return
-
-
 def tmp4(beta, beta_ratio, gamma, epsilon):
 	phi1_step = 0.01
 	phi1_range = np.arange(phi1_step, 1, phi1_step)
@@ -1091,6 +1094,101 @@ def tmp4(beta, beta_ratio, gamma, epsilon):
 	# ax1.axvline(gamma / beta, c='grey', linestyle=':')
 	ax1.legend()
 	plt.show()
+	return
+
+
+def convex_plotter(phi1, beta, beta_ratio, gamma, epsilon):
+	k = beta_ratio
+	phi2 = 1 - phi1
+	low, high = 0.8, 1.2
+	S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon)
+
+	# S1_low, S1_high = S1_final * low, S1_final * high
+	S1_low, S1_high = 0, phi1 * (1 - epsilon)
+	# S2_low, S2_high = S2_final * low, S2_final * high
+	S2_low, S2_high = 0, phi2 * (1 - epsilon)
+	S1_step = (S1_high - S1_low) / 100
+	S2_step = (S2_high - S2_low) / 100
+
+	S1_range = np.arange(S1_low, S1_high + S1_step, S1_step)
+	S2_range = np.arange(S2_low, S2_high + S2_step, S2_step)
+
+	f1s = []
+	for s2 in S2_range:
+		s1 = S1_final_searcher(s2, beta, beta_ratio, gamma, epsilon, phi1)
+		f1s.append([s1, s2])
+
+	f2s = []
+	for s1 in S1_range:
+		s2 = S2_final_searcher(s1, beta, beta_ratio, gamma, epsilon, phi1)
+		f2s.append([s1, s2])
+
+	f1s.append([phi1, phi2])
+	t1 = (1 - beta / gamma * S1) / (k * beta / gamma * S1)
+	t2 = (k * beta / gamma * S2) / (1 - k ** 2 * beta / gamma * S2)
+	V1_len = np.sqrt(t1 * t1 + 1)
+	V2_len = np.sqrt(t2 * t2 + 1)
+	V1 = [-t1 / V1_len, 1 / V1_len]
+	V2 = [t2 / V2_len, -1 / V2_len]
+	T1 = [1 / V1_len, t1 / V1_len]
+	T2 = [1 / V2_len, t2 / V2_len]
+
+	fig = plt.figure(figsize=(6.5, 4.5))
+	ax1 = fig.add_subplot()
+	ax1.fill_between([p[0] for p in f1s], [p[1] for p in f1s], color='lightskyblue', alpha=0.4)
+	ax1.fill_between([p[0] for p in f2s], [p[1] for p in f2s], [phi2] * len(f2s), color='orange', alpha=0.4)
+	ax1.quiver(S1, S2, V1[0], V1[1], units='inches', scale=1.25, color='lightskyblue')
+	ax1.quiver(S1, S2, V2[0], V2[1], units='inches', scale=1.25, color='orange')
+	ax1.quiver(S1, S2, T1[0], T1[1], units='inches', scale=0.65, color='lightskyblue')
+	ax1.quiver(S1, S2, T2[0], T2[1], units='inches', scale=0.65, color='orange')
+	ax1.plot([p[0] for p in f1s], [p[1] for p in f1s], c='lightskyblue')
+	ax1.plot([p[0] for p in f2s], [p[1] for p in f2s], c='orange')
+	ax1.axline((S1, S2), slope=-1, linestyle='--', c='black')
+	ax1.axline((S1, S2), slope=t1, linestyle='--', c='lightskyblue')
+	ax1.axline((S1, S2), slope=t2, linestyle='--', c='orange')
+	ax1.plot(S1, S2, marker="o", markersize=10, c='red')
+	ax1.text(0.4 * phi1, 0.95 * phi2, r'$l_1$')
+	ax1.text(0.95 * phi1, 0.6 * phi2, r'$l_2$')
+	ax1.text(0.34 * phi1, 0.75 * phi2, r'$\vec{t_1}$')
+	ax1.text(0.55 * phi1, 0.41 * phi2, r'$\vec{t_2}$')
+	ax1.text(0.1 * phi1, 0.42 * phi2, r'$\vec{V_1}$')
+	ax1.text(0.31 * phi1, 0.08 * phi2, r'$\vec{V_2}$')
+	ax1.text(0.31 * phi1, 0.33 * phi2, r'$p^*$')
+	ax1.text(0.08 * phi1, 0.68 * phi2, 'Objective\nfunction')
+	ax1.text(0.8 * phi1, 0.1 * phi2, r'$f_1$-feasible')
+	ax1.text(0.1 * phi1, 0.9 * phi2, r'$f_2$-feasible')
+	ax1.text(0.53 * phi1, 0.85 * phi2, r'$f_1=0$')
+	ax1.text(0.65 * phi1, 0.65 * phi2, r'$f_2=0$')
+	ax1.set_xlim(S1_low, S1_high)
+	ax1.set_ylim(S2_low, S2_high)
+	ax1.set_xlabel(r'$s_1$')
+	ax1.set_ylabel(r'$s_2$')
+	ax1.set_aspect('equal', 'box')
+	fig.savefig('convex.png')
+	# plt.show()
+	return
+
+
+def main():
+	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
+	# utility_plotter(beta=5 / 14, beta_ratio=0.2, gamma=1 / 14, epsilon=0.0001, T=100, payment_ratio=3)
+	# utility_plotter_final_size(beta=1.1 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001, payment_ratio=1.5)
+	# utility_plotter_sigma(beta=5 / 14, beta_ratio=1, gamma=1 / 14, epsilon=0.0001,
+	# 					  payment_ratio=1.1, sigma=0.7)
+	# POA_final_size(beta=10 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001, payment_ratio=20000, sigma=0.98)
+	# bad_POA_final_size(beta=15 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001, plot=False)
+	# final_size_function_plotter(phi1=0.5, beta=1 / 14, beta_ratio=1, gamma=1 / 14, epsilon=0.0001)
+	# final_size_searcher_scipy(2, 0.5, 1 / 14, 0.0001)
+	# final_size_plotter(beta=0.5, beta_ratio=0.7, gamma=1 / 14, epsilon=0.0001, payment_ratio=1)
+	# final_size_approximation_comparison(beta=0.5, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
+	# final_size_approximation_comparison2(beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
+	# f1_plotter(0.5, 0.5, 1 / 14, 0.0001)
+	# tmp(beta=20 / 14, beta_ratio=0.1, gamma=1 / 14, epsilon=0.0001)
+	# tmp2(beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
+	# tmp3(0.9, 1 / 14, 0.0001)
+	# tmp4(beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
+
+	convex_plotter(phi1=0.6, beta=2 / 14, beta_ratio=0.8, gamma=1 / 14, epsilon=0.0001)
 	return
 
 
