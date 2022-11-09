@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
-binary_iterations = 200
+binary_iterations = 100
 OPT_iterations = 30
 NE_iterations = 50
 
@@ -1155,8 +1155,8 @@ def convex_plotter(phi1, beta, beta_ratio, gamma, epsilon):
 	ax1.plot(S1, S2, marker="o", markersize=15, c='red')
 	ax1.text(0.4 * phi1, 0.95 * phi2, r'$l_1$')
 	ax1.text(0.95 * phi1, 0.6 * phi2, r'$l_2$')
-	ax1.text(0.34 * phi1, 0.75 * phi2, r'$\vec{t_1}$')
-	ax1.text(0.55 * phi1, 0.41 * phi2, r'$\vec{t_2}$')
+	ax1.text(0.34 * phi1, 0.75 * phi2, r'$\vec{T_1}$')
+	ax1.text(0.55 * phi1, 0.41 * phi2, r'$\vec{T_2}$')
 	ax1.text(0.1 * phi1, 0.42 * phi2, r'$\vec{V_1}$')
 	ax1.text(0.31 * phi1, 0.08 * phi2, r'$\vec{V_2}$')
 	ax1.text(0.31 * phi1, 0.33 * phi2, r'$p^*$')
@@ -1172,6 +1172,27 @@ def convex_plotter(phi1, beta, beta_ratio, gamma, epsilon):
 	ax1.set_aspect('equal', 'box')
 	fig.savefig('convex.png', bbox_inches='tight')
 	# plt.show()
+	return
+
+
+def normal_vector_test(beta, beta_ratio, gamma, epsilon):
+	phi1_step = 0.005
+	phi1_range = np.arange(0, 1 + phi1_step, phi1_step)
+	S1_final = []
+	S2_final = []
+	for phi1 in phi1_range:
+		S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon)
+		S1_final.append(S1)
+		S2_final.append(S2)
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	ax1.plot(phi1_range, [S1 * (beta + beta * beta_ratio) / gamma for S1 in S1_final], label='f1')
+	ax1.plot(phi1_range, [S2 * (beta + beta * beta_ratio) * beta_ratio / gamma for S2 in S2_final], label='f2')
+	ax1.axhline(1, linestyle=':')
+	ax1.set_xlabel(r'$\varphi_1$')
+	ax1.legend()
+	plt.show()
 	return
 
 
@@ -1194,7 +1215,8 @@ def main():
 	# tmp3(0.9, 1 / 14, 0.0001)
 	# tmp4(beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
 
-	convex_plotter(phi1=0.6, beta=2 / 14, beta_ratio=0.8, gamma=1 / 14, epsilon=0.0001)
+	# convex_plotter(phi1=0.6, beta=2 / 14, beta_ratio=0.8, gamma=1 / 14, epsilon=0.0001)
+	normal_vector_test(beta=2 / 14, beta_ratio=0.8, gamma=1 / 14, epsilon=0.0001)
 	return
 
 
