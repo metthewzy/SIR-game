@@ -1029,69 +1029,25 @@ def tmp4(beta, beta_ratio, gamma, epsilon):
 	b12 = b21 = beta * beta_ratio
 	b22 = beta * beta_ratio * beta_ratio
 	k = beta_ratio
-	rets = []
-	numerators = []
-	denominators = []
-	total_final = []
-	individual_utility = []
-	statement1 = []
-	statement2 = []
+	As = []
+	Bs = []
+	LHS = []
+
 	for phi1 in phi1_range:
 		phi2 = 1 - phi1
 		S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon)
-		individual_utility.append(S1 / phi1)
-		X = (b11 * (S1 - phi1) + b12 * (S2 - phi2)) / gamma
-		Y = (b21 * (S1 - phi1) + b22 * (S2 - phi2)) / gamma
-		EX = np.exp(X)
-		EY = np.exp(Y)
-		total_final.append(S1 + S2)
-		EX2 = np.exp(beta * phi1 * (-1 + S1 / phi1) / gamma + k * beta * phi2 * (-1 + S2 / phi2) / gamma)
-		EY2 = np.exp(k * beta * phi1 * (-1 + S1 / phi1) / gamma + k * k * beta * phi2 * (-1 + S2 / phi2) / gamma)
-
-		# # with epsilon
-		# numerators.append(
-		# 	beta * EX2 * (-1 + k + S1 / phi1 - k * S2 / phi2) * (-1 + epsilon)
-		# )
-		# denominators.append(
-		# 	-gamma + beta * (-1 + epsilon) * (-EX * phi1 - k ** 2 * EY * phi2)
-		# )
-
-		# without epsilon
-		numerators.append(
-			beta * EX2 * (-1 + k + S1 / phi1 - k * S2 / phi2)
-		)
-		denominators.append(
-			gamma - beta * EX2 * phi1 - beta * EY2 * (k ** 2) * phi2
-		)
-
-		rets.append(numerators[-1] / denominators[-1])
-		statement1.append(
-			1 - (
-					np.exp(beta / gamma * (S1 + k * S2)) /
-					np.exp(1 + k * beta / gamma * phi2) +
-					np.exp(k * beta / gamma * (S1 + k * S2)) /
-					np.exp(1 + k * beta / gamma * phi1)
-			)
-		)
-		statement2.append(S2 - S1 / k * phi2 / phi1)
-	d_individual_utility = [(individual_utility[i] - individual_utility[i - 1]) / phi1_step for i in
-							range(1, len(individual_utility))]
+		A = b11 / gamma * S1 + b22 / gamma * S2
+		B = b11 / gamma * S1 * phi1 / phi1 + b12 / gamma * S2 * phi1 / phi2
+		As.append(A)
+		Bs.append(B)
+		LHS.append(1 + A)
 
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
-
-	# ax1.plot(phi1_range, individual_utility, label='utility')
-	# ax1.plot([phi1 + phi1_step / 2 for phi1 in phi1_range[:-1]], d_individual_utility, label='calculation')
-	# ax1.plot(phi1_range, rets, label='derivation', c='orange')
-
-	ax1.plot(phi1_range, numerators, label='numerator')
-	ax1.plot(phi1_range, denominators, label='denominator')
-	# ax1.plot(phi1_range, statement1, label='S1')
-	# ax1.plot(phi1_range, statement2, label='S2')
+	ax1.plot(phi1_range, As, label='A')
+	ax1.plot(phi1_range, Bs, label='B')
+	ax1.plot(phi1_range, LHS, label='LHS')
 	ax1.axhline(0, c='grey', linestyle=':')
-	# ax2.axhline(0, c='grey', linestyle=':')
-	# ax1.plot(phi1_range, total_final, label='total')
-	# ax1.axvline(gamma / beta, c='grey', linestyle=':')
 	ax1.legend()
 	plt.show()
 	return
@@ -1215,9 +1171,9 @@ def main():
 	# tmp(beta=20 / 14, beta_ratio=0.1, gamma=1 / 14, epsilon=0.0001)
 	# tmp2(beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
 	# tmp3(0.9, 1 / 14, 0.0001)
-	# tmp4(beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
+	tmp4(beta=1.1 / 14, beta_ratio=0.99, gamma=1 / 14, epsilon=0.0001)
 
-	convex_plotter(phi1=0.2, beta=2 / 14, beta_ratio=0.8, gamma=1 / 14, epsilon=0.0001)
+	# convex_plotter(phi1=0.2, beta=2 / 14, beta_ratio=0.8, gamma=1 / 14, epsilon=0.0001)
 	# normal_vector_test(beta=2 / 14, beta_ratio=0.8, gamma=1 / 14, epsilon=0.0001)
 	return
 
