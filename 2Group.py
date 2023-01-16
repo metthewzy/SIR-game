@@ -1171,9 +1171,9 @@ def main():
 	# tmp(beta=20 / 14, beta_ratio=0.1, gamma=1 / 14, epsilon=0.0001)
 	# tmp2(beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
 	# tmp3(0.9, 1 / 14, 0.0001)
-	tmp4(beta=1.1 / 14, beta_ratio=0.99, gamma=1 / 14, epsilon=0.0001)
+	# tmp4(beta=1.1 / 14, beta_ratio=0.99, gamma=1 / 14, epsilon=0.0001)
 
-	convex_plotter(phi1=0.45, beta=1.1 / 14, beta_ratio=0.9, gamma=1 / 14, epsilon=0.0001)
+	convex_plotter(phi1=0.45, beta=2 / 14, beta_ratio=0.9, gamma=1 / 14, epsilon=0.0001)
 	# normal_vector_test(beta=2 / 14, beta_ratio=0.8, gamma=1 / 14, epsilon=0.0001)
 	return
 
