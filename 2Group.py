@@ -1106,10 +1106,10 @@ def convex_plotter(phi1, beta, beta_ratio, gamma, epsilon):
 	low, high = 0.99, 1.01
 	S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon)
 
-	S1_low, S1_high = S1 * low, S1 * high
-	# S1_low, S1_high = 0, phi1 * (1 - epsilon)
-	S2_low, S2_high = S2 * low, S2 * high
-	# S2_low, S2_high = 0, phi2 * (1 - epsilon)
+	# S1_low, S1_high = S1 * low, S1 * high
+	S1_low, S1_high = 0, phi1 * (1 - epsilon)
+	# S2_low, S2_high = S2 * low, S2 * high
+	S2_low, S2_high = 0, phi2 * (1 - epsilon)
 	S1_step = (S1_high - S1_low) / 100
 	S2_step = (S2_high - S2_low) / 100
 
@@ -1217,7 +1217,7 @@ def main():
 	# tmp3(0.9, 1 / 14, 0.0001)
 	# tmp4(beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
 
-	convex_plotter(phi1=0.45, beta=1.1 / 14, beta_ratio=0.9, gamma=1 / 14, epsilon=0.0001)
+	convex_plotter(phi1=0.6, beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001)
 	# normal_vector_test(beta=2 / 14, beta_ratio=0.8, gamma=1 / 14, epsilon=0.0001)
 	return
 
