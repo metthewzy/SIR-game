@@ -1095,19 +1095,19 @@ def convex_plotter(phi1, beta, beta_ratio, gamma, epsilon):
 	plt.rcParams.update({'font.size': 18})
 	f1_color = 'tab:blue'
 	f2_color = 'tab:orange'
-	fig = plt.figure()
-	# fig = plt.figure(figsize=(12, 8.5))
+	# fig = plt.figure()
+	fig = plt.figure(figsize=(12, 8.5))
 	ax1 = fig.add_subplot()
 	ax1.fill_between([p[0] for p in f1s], [p[1] for p in f1s], color=f1_color, alpha=0.5)
 	ax1.fill_between([p[0] for p in f2s], [p[1] for p in f2s], [phi2] * len(f2s), color=f2_color, alpha=0.5)
-	ax1.quiver(S1, S2, V1[0], V1[1], units='inches', scale=0.7, color=f1_color)
-	ax1.quiver(S1, S2, V2[0], V2[1], units='inches', scale=0.7, color=f2_color)
-	ax1.quiver(S1, S2, T1[0], T1[1], units='inches', scale=0.35, color=f1_color)
-	ax1.quiver(S1, S2, -1, -1, units='inches', scale=0.35, color='black')
-	ax1.quiver(S1, S2, T2[0], T2[1], units='inches', scale=0.35, color=f2_color)
+	# ax1.quiver(S1, S2, V1[0], V1[1], units='inches', scale=0.7, color=f1_color)
+	# ax1.quiver(S1, S2, V2[0], V2[1], units='inches', scale=0.7, color=f2_color)
+	# ax1.quiver(S1, S2, T1[0], T1[1], units='inches', scale=0.35, color=f1_color)
+	ax1.quiver(S1, S2, -1, -1, units='inches', scale=1, color='black')
+	# ax1.quiver(S1, S2, T2[0], T2[1], units='inches', scale=0.35, color=f2_color)
 	ax1.plot([p[0] for p in f1s], [p[1] for p in f1s], c=f1_color)
 	ax1.plot([p[0] for p in f2s], [p[1] for p in f2s], c=f2_color)
-	ax1.axline((S1, S2), slope=-1, linestyle='--', c='black')
+	ax1.axline((S1, S2), slope=-1, linestyle='-', c='black', linewidth=5)
 	ax1.axline((S1, S2), slope=t1, linestyle='--', c=f1_color)
 	ax1.axline((S1, S2), slope=t2, linestyle='--', c=f2_color)
 	ax1.plot(S1, S2, marker="o", markersize=15, c='red')
@@ -1118,9 +1118,9 @@ def convex_plotter(phi1, beta, beta_ratio, gamma, epsilon):
 	# ax1.text(0.1 * phi1, 0.42 * phi2, r'$\vec{V_1}$')
 	# ax1.text(0.31 * phi1, 0.08 * phi2, r'$\vec{V_2}$')
 	# ax1.text(0.31 * phi1, 0.33 * phi2, r'$p^*$')
-	# ax1.text(0.08 * phi1, 0.68 * phi2, 'Objective\nfunction')
-	# ax1.text(0.8 * phi1, 0.1 * phi2, r'$f_1$-feasible')
-	# ax1.text(0.1 * phi1, 0.9 * phi2, r'$f_2$-feasible')
+	ax1.text(0.08 * phi1, 0.55 * phi2, 'Objective\nfunction')
+	ax1.text(0.8 * phi1, 0.1 * phi2, r'$f_1$-feasible'+'\n region')
+	ax1.text(0.1 * phi1, 0.9 * phi2, r'$f_2$-feasible'+'\n region')
 	# ax1.text(0.53 * phi1, 0.85 * phi2, r'$f_1=0$')
 	# ax1.text(0.65 * phi1, 0.65 * phi2, r'$f_2=0$')
 	ax1.set_xlim(S1_low, S1_high)
@@ -1128,8 +1128,11 @@ def convex_plotter(phi1, beta, beta_ratio, gamma, epsilon):
 	ax1.set_xlabel(r'$s_1$')
 	ax1.set_ylabel(r'$s_2$')
 	ax1.set_aspect('equal', 'box')
-	# fig.savefig('convex.png', bbox_inches='tight')
-	plt.show()
+	# ax1.set_xticks([])
+	# ax1.set_yticks([])
+	fig.savefig('convex.png', bbox_inches='tight')
+	# fig.savefig('convex.png')
+	# plt.show()
 	return
 
 
@@ -1157,7 +1160,7 @@ def normal_vector_test(beta, beta_ratio, gamma, epsilon):
 def main():
 	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
 	# utility_plotter(beta=5 / 14, beta_ratio=0.2, gamma=1 / 14, epsilon=0.0001, T=100, payment_ratio=3)
-	# utility_plotter_final_size(beta=1.1 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001, payment_ratio=1.5)
+	utility_plotter_final_size(beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001, payment_ratio=1.5)
 	# utility_plotter_sigma(beta=5 / 14, beta_ratio=1, gamma=1 / 14, epsilon=0.0001,
 	# 					  payment_ratio=1.1, sigma=0.7)
 	# POA_final_size(beta=10 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001, payment_ratio=20000, sigma=0.98)
@@ -1173,7 +1176,7 @@ def main():
 	# tmp3(0.9, 1 / 14, 0.0001)
 	# tmp4(beta=1.1 / 14, beta_ratio=0.99, gamma=1 / 14, epsilon=0.0001)
 
-	convex_plotter(phi1=0.6, beta=2 / 14, beta_ratio=0.9, gamma=1 / 14, epsilon=0.0001)
+	# convex_plotter(phi1=0.6, beta=2 / 14, beta_ratio=0.9, gamma=1 / 14, epsilon=0.0001)
 	# normal_vector_test(beta=2 / 14, beta_ratio=0.8, gamma=1 / 14, epsilon=0.0001)
 	return
 
