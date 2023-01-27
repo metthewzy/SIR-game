@@ -168,6 +168,85 @@ def utility_plotter_final_size(beta, beta_ratio, gamma, epsilon, payment_ratio):
 	return
 
 
+def utility_plotter_final_size_aligned(beta, beta_ratio, gamma, epsilon):
+	"""
+	plot the group and individual utility of 2 groups interacting over phi based on final sizes,
+	aligning the payment ratio to get bad POA
+	"""
+	b11 = beta
+	b12 = b21 = beta * beta_ratio
+	b22 = beta * beta_ratio * beta_ratio
+	phi1_step = 0.01
+	phi1_range = np.arange(phi1_step, 1, phi1_step)
+	# print(phi1_range, phi1_range[1:-1])
+	group_utility1 = []
+	group_utility2 = []
+	individual_utility1 = []
+	individual_utility2 = []
+	social_utility = []
+	S1s = []
+	S2s = []
+
+	# # phi1 = 0
+	# phi1 = 0
+	# phi2 = 1 - phi1
+	# t_range, S1, S2 = two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, plot=False)
+	# group_utility1.append(np.mean(S1) * T * payment_ratio)
+	# group_utility2.append(np.mean(S2) * T)
+	# individual_utility1.append(payment_ratio)
+	# individual_utility2.append(group_utility2[-1] / phi2)
+
+	for phi1 in phi1_range:
+		phi2 = 1 - phi1
+		S1, S2 = final_size_searcher_binary(phi1, beta, beta_ratio, gamma, epsilon)
+		S1s.append(S1)
+		S2s.append(S2)
+		# t_range, S1, S2 = two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, plot=False)
+		# group_utility1.append(S1 * payment_ratio)
+		# group_utility2.append(S2)
+		# individual_utility1.append(group_utility1[-1] / phi1)
+		# individual_utility2.append(group_utility2[-1] / phi2)
+
+	payment_ratio = (S2 / phi2) / (S1 / phi1)
+	for phi1, S1, S2 in zip(phi1_range, S1s, S2s):
+		phi2 = 1 - phi1
+		group_utility1.append(S1 * payment_ratio)
+		group_utility2.append(S2)
+		individual_utility1.append(group_utility1[-1] / phi1)
+		individual_utility2.append(group_utility2[-1] / phi2)
+		social_utility.append(individual_utility1[-1] + individual_utility2[-1])
+	# # phi1 = 1
+	# phi1 = 1
+	# phi2 = 1 - phi1
+	# t_range, S1, S2 = two_group_simulate(phi1, phi2, beta, beta_ratio, gamma, epsilon, T, plot=False)
+	# group_utility1.append(np.mean(S1) * T * payment_ratio)
+	# group_utility2.append(np.mean(S2) * T)
+	# individual_utility1.append(group_utility1[-1] / phi1)
+	# individual_utility2.append(1)
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot(121)
+	ax2 = fig.add_subplot(122)
+	# ax1.plot(phi1_range,
+	# 		 [min(phi1_range[i], gamma / beta) * payment_ratio + (1 - phi1_range[i]) for i in range(len(phi1_range))],
+	# 		 label='UB social', c='grey', linestyle=':')
+	ax1.plot(phi1_range, group_utility1, label='Group 1')
+	ax1.plot(phi1_range, group_utility2, label='Group 2')
+	ax1.plot(phi1_range, social_utility, label='Social')
+	ax2.plot(phi1_range, individual_utility1, label='Group 1')
+	ax2.plot(phi1_range, individual_utility2, label='Group 2')
+	fig.suptitle(f'POA={round(social_utility[-1] / max(social_utility), 3)}')
+
+	ax1.set_xlabel(r'$\phi_1$')
+	ax2.set_xlabel(r'$\phi_1$')
+	ax1.set_title('Group utility')
+	ax2.set_title('Individual utility')
+	ax1.legend()
+	ax2.legend()
+	plt.show()
+	return
+
+
 def utility_plotter_sigma(beta, beta_ratio, gamma, epsilon, payment_ratio, sigma):
 	"""
 	plot the group and individual utility of 2 groups interacting over phi based on final sizes and survival rate
@@ -1160,7 +1239,10 @@ def normal_vector_test(beta, beta_ratio, gamma, epsilon):
 def main():
 	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
 	# utility_plotter(beta=5 / 14, beta_ratio=0.2, gamma=1 / 14, epsilon=0.0001, T=100, payment_ratio=3)
-	utility_plotter_final_size(beta=2 / 14, beta_ratio=0.5, gamma=1 / 14, epsilon=0.0001, payment_ratio=1.5)
+
+	# utility_plotter_final_size(beta=2 / 14, beta_ratio=0.6, gamma=1 / 14, epsilon=0.0001, payment_ratio=1)
+	utility_plotter_final_size_aligned(beta=20 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001)
+
 	# utility_plotter_sigma(beta=5 / 14, beta_ratio=1, gamma=1 / 14, epsilon=0.0001,
 	# 					  payment_ratio=1.1, sigma=0.7)
 	# POA_final_size(beta=10 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001, payment_ratio=20000, sigma=0.98)
