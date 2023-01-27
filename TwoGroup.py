@@ -214,7 +214,7 @@ def utility_plotter_final_size_aligned(beta, beta_ratio, gamma, epsilon):
 		group_utility2.append(S2)
 		individual_utility1.append(group_utility1[-1] / phi1)
 		individual_utility2.append(group_utility2[-1] / phi2)
-		social_utility.append(individual_utility1[-1] + individual_utility2[-1])
+		social_utility.append(group_utility1[-1] + group_utility2[-1])
 	# # phi1 = 1
 	# phi1 = 1
 	# phi2 = 1 - phi1
@@ -1240,8 +1240,8 @@ def main():
 	# two_group_simulate(0.1, 0.9, 1, 0.5, 1/14, 0.0001, 1000, 10000, True)
 	# utility_plotter(beta=5 / 14, beta_ratio=0.2, gamma=1 / 14, epsilon=0.0001, T=100, payment_ratio=3)
 
-	# utility_plotter_final_size(beta=2 / 14, beta_ratio=0.6, gamma=1 / 14, epsilon=0.0001, payment_ratio=1)
-	utility_plotter_final_size_aligned(beta=20 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001)
+	utility_plotter_final_size(beta=2 / 14, beta_ratio=0.6, gamma=1 / 14, epsilon=0.0001, payment_ratio=1)
+	# utility_plotter_final_size_aligned(beta=20 / 14, beta_ratio=0.01, gamma=1 / 14, epsilon=0.0001)
 
 	# utility_plotter_sigma(beta=5 / 14, beta_ratio=1, gamma=1 / 14, epsilon=0.0001,
 	# 					  payment_ratio=1.1, sigma=0.7)
