@@ -122,7 +122,7 @@ def comparison_figure(beta, beta_ratio, gamma, epsilon, payment_ratio):
 
 
 def main():
-	comparison_figure(beta=2 / 14, beta_ratio=0.6, gamma=1 / 14, epsilon=0.0001, payment_ratio=1.5)
+	comparison_figure(beta=2 / 14, beta_ratio=0.6, gamma=1 / 14, epsilon=0.0001, payment_ratio=1.7)
 	return
 
 
