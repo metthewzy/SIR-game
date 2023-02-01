@@ -13,10 +13,7 @@ def zero_searcher(f, left, right):
 	return mid
 
 
-def g_plotter():
-	beta = 0.25
-	gamma = 1 / 14
-	phi = 0.5
+def g_plotter(beta=2 / 14, gamma=1 / 14, phi=0.5):
 	S_step = 0.001
 	S_range = np.arange(0, 1 + S_step, S_step)
 
@@ -61,13 +58,13 @@ def g_plotter():
 	ax1.set_xlabel(r'$\overline{S}$')
 	# ax1.set_title(r'$g(\overline{S})$')
 	ax1.legend()
-	fig.savefig('g(S).png', bbox_inches='tight')
-	# plt.show()
+	# fig.savefig('g(S).png', bbox_inches='tight')
+	plt.show()
 	return
 
 
 def main():
-	g_plotter()
+	g_plotter(beta=3 / 14, gamma=1 / 14, phi=0.5)
 	return
 
 
