@@ -248,10 +248,16 @@ def two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9, 
 	# b12 = b21 = kappa * beta
 	# b22 = kappa * kappa * beta
 
-	# interaction heavy betas
-	b11 = kappa * beta
-	b12 = b21 = beta
-	b22 = kappa * beta
+	# # interaction heavy betas
+	# b11 = kappa * beta
+	# b12 = b21 = beta
+	# b22 = kappa * beta
+
+	b11, b12, b21, b22 = np.random.normal(beta, 0.2, 4)
+	b11 = max(b11, 0.05)
+	b12 = max(b12, 0.05)
+	b21 = max(b21, 0.05)
+	b22 = max(b22, 0.05)
 
 	phi2 = 1 - phi1
 	S_step = 0.002
@@ -275,15 +281,24 @@ def two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9, 
 		if 0 <= S1 <= phi1 or 0 <= S2 <= phi2:
 			f2_S1.append(S1)
 			f2_S2.append(S2)
+
+	S1, S2 = two_group_cvxpy(b11, b12, b21, b22, gamma, epsilon, phi1)
+
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
 	ax1.plot(f1_S1, f1_S2, label='f1')
 	ax1.plot(f2_S1, f2_S2, label='f2')
 	# ax1.plot([0, phi1], [0, phi2])
-	ax1.set_xlim(0, phi1)
-	ax1.set_ylim(0, phi2)
+	ax1.axhline(S2, linestyle=':', color='grey')
+	ax1.axvline(S1, linestyle=':', color='grey')
+	ax1.plot(S1, S2, marker="o", markersize=5, c='red')
+	width = min(phi1 - S1, S1)
+	height = min(phi2 - S2, S2)
+	ax1.set_xlim(S1 - width, S1 + width)
+	ax1.set_ylim(S2 - height, S2 + height)
 	ax1.legend()
-	ax1.set_aspect(phi1 / phi2)
+	ax1.set_aspect(width / height)
+	ax1.set_title(f'betas=[{round(b11, 3), round(b12, 3), round(b21, 3), round(b22, 3)}]')
 	plt.show()
 	return
 
@@ -293,7 +308,7 @@ def main():
 	# two_group_comparison(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3)
 	# two_group_plot_cvxpy(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3)
 
-	two_group_feasibility(beta=1.5 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.5)
+	two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.5)
 	return
 
 
