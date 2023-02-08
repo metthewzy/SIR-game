@@ -1,11 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import cm
 from scipy.optimize import minimize
 import cvxpy as cp
 from TwoGroup import final_size_searcher_binary
 
 binary_iter = 40
 phi_step = 0.005
+phi_steps_3D = 50
 
 
 def f(s, phi, betas, gamma, s_vec):
@@ -18,6 +20,36 @@ def two_group():
 	s1 = cp.Variable()
 	s2 = cp.Variable()
 	return
+
+
+def h1(paras):
+	"""
+	constraint 1 for three-group
+	"""
+	S1, S2, S3, beta1, beta2, beta3, gamma, epsilon, phi1, phi2, phi3 = paras
+	X = beta1 / gamma * (S1 - phi1) + beta2 / gamma * (S2 - phi2) + beta3 / gamma * (S3 - phi3)
+	ret = S1 - (1 - epsilon) * phi1 * np.exp(X)
+	return ret
+
+
+def h2(paras):
+	"""
+	constraint 2 for three-group
+	"""
+	S2, S1, S3, beta1, beta2, beta3, gamma, epsilon, phi1, phi2, phi3 = paras
+	X = beta1 / gamma * (S1 - phi1) + beta2 / gamma * (S2 - phi2) + beta3 / gamma * (S3 - phi3)
+	ret = S2 - (1 - epsilon) * phi2 * np.exp(X)
+	return ret
+
+
+def h3(paras):
+	"""
+	constraint 3 for three-group
+	"""
+	S3, S1, S2, beta1, beta2, beta3, gamma, epsilon, phi1, phi2, phi3 = paras
+	X = beta1 / gamma * (S1 - phi1) + beta2 / gamma * (S2 - phi2) + beta3 / gamma * (S3 - phi3)
+	ret = S3 - (1 - epsilon) * phi3 * np.exp(X)
+	return ret
 
 
 def g(paras):
@@ -112,10 +144,12 @@ def one_group_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, phi=0.5):
 	return S_inf
 
 
-def two_group_cvxpy(b11, b12, b21, b22, gamma=1 / 14, epsilon=0.0001, phi1=0.5):
+def two_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.5):
 	"""
 	Solve the two-group final size using convex programming
 	"""
+	b11, b12, b21, b22 = betas
+
 	s1 = cp.Variable()
 	s2 = cp.Variable()
 	phi2 = 1 - phi1
@@ -125,11 +159,10 @@ def two_group_cvxpy(b11, b12, b21, b22, gamma=1 / 14, epsilon=0.0001, phi1=0.5):
 				   s1 <= s10,
 				   s2 >= 0,
 				   s2 <= s20,
-				   s1 - (1 - epsilon) * phi1 * cp.exp(b11 / gamma * (s1 - s10) +
-													  b12 / gamma * (s2 - s20)) >= 0,
-				   s2 - (1 - epsilon) * phi2 * cp.exp(b21 / gamma * (s1 - s10) +
-													  b22 / gamma * (s2 - s20)) >= 0
-				   ]
+				   s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
+									 b12 / gamma * (s2 - s20)) >= 0,
+				   s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
+									 b22 / gamma * (s2 - s20)) >= 0]
 	obj = cp.Minimize(s1 + s2)
 	prob = cp.Problem(obj, constraints)
 	prob.solve()
@@ -137,6 +170,41 @@ def two_group_cvxpy(b11, b12, b21, b22, gamma=1 / 14, epsilon=0.0001, phi1=0.5):
 	# print("optimal value", prob.value)
 	# print("optimal var", s1.value, s2.value)
 	return s1.value, s2.value
+
+
+def three_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.4, phi2=0.3, phi3=0.3):
+	"""
+	Solve the three-group final size using convex programming
+	"""
+	b11, b12, b13, b21, b22, b23, b31, b32, b33 = betas
+	s1 = cp.Variable()
+	s2 = cp.Variable()
+	s3 = cp.Variable()
+	s10 = (1 - epsilon) * phi1
+	s20 = (1 - epsilon) * phi2
+	s30 = (1 - epsilon) * phi3
+	constraints = [s1 >= 0,
+				   s1 <= s10,
+				   s2 >= 0,
+				   s2 <= s20,
+				   s3 >= 0,
+				   s3 <= s30,
+				   s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
+									 b12 / gamma * (s2 - s20) +
+									 b13 / gamma * (s3 - s30)) >= 0,
+				   s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
+									 b22 / gamma * (s2 - s20) +
+									 b23 / gamma * (s3 - s30)) >= 0,
+				   s3 - s30 * cp.exp(b31 / gamma * (s1 - s10) +
+									 b32 / gamma * (s2 - s20) +
+									 b33 / gamma * (s3 - s30)) >= 0]
+	obj = cp.Minimize(s1 + s2 + s3)
+	prob = cp.Problem(obj, constraints)
+	prob.solve()
+	# print("status:", prob.status)
+	# print("optimal value", prob.value)
+	# print("optimal var", s1.value, s2.value)
+	return s1.value, s2.value, s3.value
 
 
 def one_group_comparison(beta=3 / 14, gamma=1 / 14, epsilon=0.0001):
@@ -169,6 +237,7 @@ def two_group_comparison(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9):
 	b11 = beta
 	b12 = b21 = kappa * beta
 	b22 = kappa * kappa * beta
+	betas = [b11, b12, b21, b22]
 	S1_binary = []
 	S2_binary = []
 	S1_cvxpy = []
@@ -178,7 +247,7 @@ def two_group_comparison(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9):
 		S1, S2 = final_size_searcher_binary(phi1, beta, kappa, gamma, epsilon)
 		S1_binary.append(S1)
 		S2_binary.append(S2)
-		S1, S2 = two_group_cvxpy(b11, b12, b21, b22, gamma, epsilon, phi1)
+		S1, S2 = two_group_cvxpy(betas, gamma, epsilon, phi1)
 		S1_cvxpy.append(S1)
 		S2_cvxpy.append(S2)
 
@@ -195,35 +264,41 @@ def two_group_comparison(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9):
 	return
 
 
-def two_group_plot_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9):
+def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9, payment2=0.8):
 	"""
-	two-group plots of convex program
+	two-group utility plots of convex program
 	"""
 	phi1_range = np.arange(phi_step, 1, phi_step)
-	b11 = kappa * beta
-	b12 = b21 = beta
-	b22 = kappa * beta
 
-	S1s = []
-	S2s = []
+	# b11 = kappa * beta
+	# b12 = b21 = beta
+	# b22 = kappa * beta
+
+	b11 = beta
+	b12 = b21 = kappa * beta
+	b22 = kappa * kappa * beta
+	betas = [b11, b12, b21, b22]
+
+	UG1 = []
+	UG2 = []
 	INDIV1 = []
 	INDIV2 = []
 	social = []
 
 	for phi1 in phi1_range:
-		S1, S2 = two_group_cvxpy(b11, b12, b21, b22, gamma, epsilon, phi1)
-		S1s.append(S1)
-		S2s.append(S2)
-		social.append(S1 + S2)
+		S1, S2 = two_group_cvxpy(betas, gamma, epsilon, phi1)
+		UG1.append(S1)
+		UG2.append(S2 * payment2)
+		social.append(S1 + S2 * payment2)
 		INDIV1.append(S1 / phi1)
-		INDIV2.append(S2 / (1 - phi1))
+		INDIV2.append(S2 * payment2 / (1 - phi1))
 
 	fig = plt.figure()
 	ax1 = fig.add_subplot(121)
 	ax2 = fig.add_subplot(122)
-	ax1.plot(phi1_range, S1s, label='G1')
-	ax1.plot(phi1_range, S2s, label='G2')
-	# ax1.plot(phi1_range, social, label='Social')
+	ax1.plot(phi1_range, UG1, label='G1')
+	ax1.plot(phi1_range, UG2, label='G2')
+	ax1.plot(phi1_range, social, label='Social')
 	ax2.plot(phi1_range, INDIV1, label='G1')
 	ax2.plot(phi1_range, INDIV2, label='G2')
 	ax1.set_title('Group utility')
@@ -234,6 +309,68 @@ def two_group_plot_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9):
 	ax2.set_ylabel(r'$S(\infty)/\phi$')
 	ax1.legend()
 	ax2.legend()
+	plt.show()
+	return
+
+
+def three_group_utility_cvxpy_tri(betas, gamma=1 / 14, epsilon=0.0001, payment2=1, payment3=1):
+	"""
+	three-group utility plots of convex program
+	"""
+
+	# print(betas)
+
+	# b11, b12, b13, b21, b22, b23, b31, b32, b33 = betas
+
+	UG1 = []
+	UG2 = []
+	UG3 = []
+	INDIV1 = []
+	INDIV2 = []
+	INDIV3 = []
+	social = []
+	X = []
+	Y = []
+
+	for i in range(1, phi_steps_3D):
+		for j in range(1, phi_steps_3D):
+			k = phi_steps_3D - i - j
+			if k <= 0:
+				continue
+			phi1 = i / phi_steps_3D
+			phi2 = j / phi_steps_3D
+			phi3 = k / phi_steps_3D
+			S1, S2, S3 = three_group_cvxpy(betas, gamma, epsilon, phi1, phi2, phi3)
+			X.append(phi1)
+			Y.append(phi2)
+			UG1.append(S1)
+			UG2.append(S2 * payment2)
+			UG3.append(S3 * payment3)
+			social.append(S1 + S2 * payment2 + S3 * payment3)
+			INDIV1.append(S1 / phi1)
+			INDIV2.append(S2 * payment2 / phi2)
+			INDIV3.append(S3 * payment3 / phi3)
+		print(phi1)
+
+	# X, Y = np.meshgrid(phi1_range, phi2_range)
+	fig = plt.figure()
+	ax1 = fig.add_subplot(121, projection='3d')
+	ax2 = fig.add_subplot(122, projection='3d')
+	# ax3 = fig.add_subplot(223, projection='3d')
+	# ax4 = fig.add_subplot(224, projection='3d')
+
+	ax1.plot_trisurf(X, Y, social, cmap=cm.coolwarm)
+	ax1.set_xlabel(r'$\phi_1$')
+	ax1.set_ylabel(r'$\phi_2$')
+	ax1.set_title('social')
+
+	ax2.plot_trisurf(X, Y, INDIV1, color='red')
+	ax2.plot_trisurf(X, Y, INDIV2, color='yellow')
+	ax2.plot_trisurf(X, Y, INDIV3, color='green')
+	ax2.set_xlabel(r'$\phi_1$')
+	ax2.set_ylabel(r'$\phi_2$')
+	ax2.set_title('Individual')
+	# ax2.legend()
 	plt.show()
 	return
 
@@ -259,6 +396,8 @@ def two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9, 
 	b21 = max(b21, 0.05)
 	b22 = max(b22, 0.05)
 
+	betas = [b11, b12, b21, b22]
+
 	phi2 = 1 - phi1
 	S_step = 0.002
 	# S1_range = np.arange(S_step, phi1, S_step)
@@ -282,7 +421,7 @@ def two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9, 
 			f2_S1.append(S1)
 			f2_S2.append(S2)
 
-	S1, S2 = two_group_cvxpy(b11, b12, b21, b22, gamma, epsilon, phi1)
+	S1, S2 = two_group_cvxpy(betas, gamma, epsilon, phi1)
 
 	fig = plt.figure()
 	ax1 = fig.add_subplot()
@@ -306,9 +445,25 @@ def two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9, 
 def main():
 	# one_group_comparison()
 	# two_group_comparison(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3)
-	# two_group_plot_cvxpy(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3)
+	# two_group_utility_cvxpy(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, payment2=1.1)
 
-	two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.5)
+	# two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.5)
+
+	# three_group_feasibility_scatter(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.4, phi2=0.3)
+
+	beta = 2 / 14
+
+	betas = np.random.normal(beta, 0.2, 9)
+	betas = [max(0.05, beta) for beta in betas]
+
+	# kappa1 = 1
+	# kappa2 = 0.9
+	# kappa3 = 0.8
+	# betas = [kappa1 * kappa1 * beta, kappa1 * kappa2 * beta, kappa1 * kappa3 * beta,
+	# 		 kappa2 * kappa1 * beta, kappa2 * kappa2 * beta, kappa2 * kappa3 * beta,
+	# 		 kappa3 * kappa1 * beta, kappa3 * kappa2 * beta, kappa3 * kappa3 * beta]
+
+	three_group_utility_cvxpy_tri(betas, gamma=1 / 14, epsilon=0.0001, payment2=1, payment3=1)
 	return
 
 
