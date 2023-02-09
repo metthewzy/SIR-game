@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.random import uniform as uni
 from matplotlib import cm
 from scipy.optimize import minimize
 import cvxpy as cp
@@ -350,9 +351,19 @@ def three_group_utility_cvxpy_tri(betas, gamma=1 / 14, epsilon=0.0001, payment2=
 			INDIV1.append(S1 / phi1)
 			INDIV2.append(S2 * payment2 / phi2)
 			INDIV3.append(S3 * payment3 / phi3)
-		print(phi1)
+	# print(phi1)
 
-	# X, Y = np.meshgrid(phi1_range, phi2_range)
+	ret = True
+	# for i in range(len(X)):
+	# 	if INDIV1[i] > INDIV2[i]:
+	# 		print('Group 1 above Group 2')
+	# 		ret = False
+	# 		break
+	# 	if INDIV2[i] > INDIV3[i]:
+	# 		print('Group 2 above Group 3')
+	# 		ret = False
+	# 		break
+
 	fig = plt.figure()
 	ax1 = fig.add_subplot(121, projection='3d')
 	ax2 = fig.add_subplot(122, projection='3d')
@@ -370,9 +381,8 @@ def three_group_utility_cvxpy_tri(betas, gamma=1 / 14, epsilon=0.0001, payment2=
 	ax2.set_xlabel(r'$\phi_1$')
 	ax2.set_ylabel(r'$\phi_2$')
 	ax2.set_title('Individual')
-	# ax2.legend()
 	plt.show()
-	return
+	return ret
 
 
 def two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9, phi1=0.5):
@@ -453,17 +463,37 @@ def main():
 
 	beta = 2 / 14
 
-	betas = np.random.normal(beta, 0.2, 9)
-	betas = [max(0.05, beta) for beta in betas]
+	# betas = np.random.normal(beta, 0.2, 9)
+	# betas = [max(0.05, beta) for beta in betas]
 
-	# kappa1 = 1
-	# kappa2 = 0.9
-	# kappa3 = 0.8
-	# betas = [kappa1 * kappa1 * beta, kappa1 * kappa2 * beta, kappa1 * kappa3 * beta,
-	# 		 kappa2 * kappa1 * beta, kappa2 * kappa2 * beta, kappa2 * kappa3 * beta,
-	# 		 kappa3 * kappa1 * beta, kappa3 * kappa2 * beta, kappa3 * kappa3 * beta]
+	kappa1 = 1
+	kappa2 = 0.9
+	kappa3 = 0.8
 
+	# betas = [kappa1 * kappa1, kappa1 * kappa2, kappa1 * kappa3,
+	# 		 kappa2 * kappa1, kappa2 * kappa2, kappa2 * kappa3,
+	# 		 kappa3 * kappa1, kappa3 * kappa2, kappa3 * kappa3]
+	# betas = [i * beta for i in betas]
+
+	b1 = kappa1 * kappa1 * beta
+	b2 = kappa2 * kappa2 * beta
+	b3 = kappa3 * kappa3 * beta
+
+	# ret = True
+	# for _ in range(10):
+	# 	betas = [b1, np.random.uniform(b2, b1), np.random.uniform(b3, b1),
+	# 			 np.random.uniform(b2, b1), b2, np.random.uniform(b3, b2),
+	# 			 np.random.uniform(b3, b1), np.random.uniform(b3, b2), b3]
+	# 	print(betas)
+	# 	ret = three_group_utility_cvxpy_tri(betas, gamma=1 / 14, epsilon=0.0001, payment2=1, payment3=1)
+	# 	if not ret:
+	# 		break
+	# print('Passed' if ret else 'Failed')
+	betas = [b1, uni(0, b1), uni(0, b1),
+			 uni(0, b1), uni(0, b1), uni(0, b1),
+			 uni(0, b1), uni(0, b1), uni(0, b1)]
 	three_group_utility_cvxpy_tri(betas, gamma=1 / 14, epsilon=0.0001, payment2=1, payment3=1)
+
 	return
 
 
