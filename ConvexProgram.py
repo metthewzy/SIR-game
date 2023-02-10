@@ -8,7 +8,7 @@ from TwoGroup import final_size_searcher_binary
 
 binary_iter = 40
 phi_step = 0.005
-phi_steps_3D = 50
+phi_steps_3D = 40
 
 
 def f(s, phi, betas, gamma, s_vec):
@@ -132,8 +132,8 @@ def one_group_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, phi=0.5):
 	"""
 	s1 = cp.Variable()
 	constraints = [s1 >= 0,
-				   s1 <= 1 - epsilon,
-				   s1 - (1 - epsilon) * cp.exp(phi * beta / gamma * (s1 - 1)) >= 0]
+	               s1 <= 1 - epsilon,
+	               s1 - (1 - epsilon) * cp.exp(phi * beta / gamma * (s1 - 1)) >= 0]
 	obj = cp.Minimize(s1)
 	prob = cp.Problem(obj, constraints)
 	prob.solve()
@@ -157,13 +157,13 @@ def two_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.5):
 	s10 = (1 - epsilon) * phi1
 	s20 = (1 - epsilon) * phi2
 	constraints = [s1 >= 0,
-				   s1 <= s10,
-				   s2 >= 0,
-				   s2 <= s20,
-				   s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
-									 b12 / gamma * (s2 - s20)) >= 0,
-				   s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
-									 b22 / gamma * (s2 - s20)) >= 0]
+	               s1 <= s10,
+	               s2 >= 0,
+	               s2 <= s20,
+	               s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
+	                                 b12 / gamma * (s2 - s20)) >= 0,
+	               s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
+	                                 b22 / gamma * (s2 - s20)) >= 0]
 	obj = cp.Minimize(s1 + s2)
 	prob = cp.Problem(obj, constraints)
 	prob.solve()
@@ -185,20 +185,20 @@ def three_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.4, phi2=0.3, p
 	s20 = (1 - epsilon) * phi2
 	s30 = (1 - epsilon) * phi3
 	constraints = [s1 >= 0,
-				   s1 <= s10,
-				   s2 >= 0,
-				   s2 <= s20,
-				   s3 >= 0,
-				   s3 <= s30,
-				   s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
-									 b12 / gamma * (s2 - s20) +
-									 b13 / gamma * (s3 - s30)) >= 0,
-				   s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
-									 b22 / gamma * (s2 - s20) +
-									 b23 / gamma * (s3 - s30)) >= 0,
-				   s3 - s30 * cp.exp(b31 / gamma * (s1 - s10) +
-									 b32 / gamma * (s2 - s20) +
-									 b33 / gamma * (s3 - s30)) >= 0]
+	               s1 <= s10,
+	               s2 >= 0,
+	               s2 <= s20,
+	               s3 >= 0,
+	               s3 <= s30,
+	               s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
+	                                 b12 / gamma * (s2 - s20) +
+	                                 b13 / gamma * (s3 - s30)) >= 0,
+	               s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
+	                                 b22 / gamma * (s2 - s20) +
+	                                 b23 / gamma * (s3 - s30)) >= 0,
+	               s3 - s30 * cp.exp(b31 / gamma * (s1 - s10) +
+	                                 b32 / gamma * (s2 - s20) +
+	                                 b33 / gamma * (s3 - s30)) >= 0]
 	obj = cp.Minimize(s1 + s2 + s3)
 	prob = cp.Problem(obj, constraints)
 	prob.solve()
@@ -452,32 +452,53 @@ def two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9, 
 	return
 
 
-def main():
-	# one_group_comparison()
-	# two_group_comparison(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3)
-	# two_group_utility_cvxpy(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, payment2=1.1)
+def three_group_denominator(beta, kappas, gamma=1 / 14, epsilon=0.0001):
+	kappa1, kappa2, kappa3 = kappas
+	betas = [kappa1, kappa1 * kappa2, kappa1 * kappa3,
+	         kappa2 * kappa1, kappa2, kappa2 * kappa3,
+	         kappa3 * kappa1, kappa3 * kappa2, kappa3]
+	D = []
+	for i in range(1, phi_steps_3D):
+		for j in range(1, phi_steps_3D):
+			k = phi_steps_3D - i - j
+			if k <= 0:
+				continue
+			phi1 = i / phi_steps_3D
+			phi2 = j / phi_steps_3D
+			phi3 = k / phi_steps_3D
+			S1, S2, S3 = three_group_cvxpy(betas, gamma, epsilon, phi1, phi2, phi3)
+			S = [S1, S2, S3]
+			D.append(1 + sum([(kappas[l] ** 2 * beta * S[l]) /
+			                  (kappas[l] * (1 - kappas[l]) * beta * S[l] - gamma)
+			                  for l in range(3)]))
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	ax1.plot(range(len(D)), D)
+	plt.show()
+	return
 
-	# two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.5)
 
-	# three_group_feasibility_scatter(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.4, phi2=0.3)
-
-	beta = 2 / 14
+def three_group():
+	beta = 4 / 14
 
 	# betas = np.random.normal(beta, 0.2, 9)
 	# betas = [max(0.05, beta) for beta in betas]
 
 	kappa1 = 1
-	kappa2 = 0.9
-	kappa3 = 0.8
+	kappa2 = 0.6
+	kappa3 = 0.4
 
-	# betas = [kappa1 * kappa1, kappa1 * kappa2, kappa1 * kappa3,
-	# 		 kappa2 * kappa1, kappa2 * kappa2, kappa2 * kappa3,
-	# 		 kappa3 * kappa1, kappa3 * kappa2, kappa3 * kappa3]
-	# betas = [i * beta for i in betas]
+	kappas = [kappa1, kappa2, kappa3]
 
-	b1 = kappa1 * kappa1 * beta
-	b2 = kappa2 * kappa2 * beta
-	b3 = kappa3 * kappa3 * beta
+	betas = [kappa1, kappa1 * kappa2, kappa1 * kappa3,
+	         kappa2 * kappa1, kappa2, kappa2 * kappa3,
+	         kappa3 * kappa1, kappa3 * kappa2, kappa3]
+	betas = [i * beta for i in betas]
+	three_group_denominator(beta, kappas, gamma=1 / 14, epsilon=0.0001)
+
+	# b1 = kappa1 * kappa1 * beta
+	# b2 = kappa2 * kappa2 * beta
+	# b3 = kappa3 * kappa3 * beta
 
 	# ret = True
 	# for _ in range(10):
@@ -489,11 +510,22 @@ def main():
 	# 	if not ret:
 	# 		break
 	# print('Passed' if ret else 'Failed')
-	betas = [b1, uni(0, b1), uni(0, b1),
-			 uni(0, b1), uni(0, b1), uni(0, b1),
-			 uni(0, b1), uni(0, b1), uni(0, b1)]
-	three_group_utility_cvxpy_tri(betas, gamma=1 / 14, epsilon=0.0001, payment2=1, payment3=1)
+	# betas = [b1, uni(0, b1), uni(0, b1),
+	# 		 uni(0, b1), uni(0, b1), uni(0, b1),
+	# 		 uni(0, b1), uni(0, b1), uni(0, b1)]
+	# three_group_utility_cvxpy_tri(betas, gamma=1 / 14, epsilon=0.0001, payment2=1, payment3=1)
+	return
 
+
+def main():
+	# one_group_comparison()
+	# two_group_comparison(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3)
+	# two_group_utility_cvxpy(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, payment2=1.1)
+
+	# two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.5)
+
+	# three_group_feasibility_scatter(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.4, phi2=0.3)
+	three_group()
 	return
 
 
