@@ -8,7 +8,7 @@ from TwoGroup import final_size_searcher_binary
 
 binary_iter = 40
 phi_step = 0.005
-phi_steps_3D = 40
+phi_steps_3D = 50
 
 
 def f(s, phi, betas, gamma, s_vec):
@@ -376,8 +376,8 @@ def three_group_utility_cvxpy_tri(betas, gamma=1 / 14, epsilon=0.0001, payment2=
 	ax1.set_title('social')
 
 	ax2.plot_trisurf(X, Y, INDIV1, color='red')
-	ax2.plot_trisurf(X, Y, INDIV2, color='yellow')
-	ax2.plot_trisurf(X, Y, INDIV3, color='green')
+	# ax2.plot_trisurf(X, Y, INDIV2, color='yellow')
+	# ax2.plot_trisurf(X, Y, INDIV3, color='green')
 	ax2.set_xlabel(r'$\phi_1$')
 	ax2.set_ylabel(r'$\phi_2$')
 	ax2.set_title('Individual')
@@ -458,6 +458,9 @@ def three_group_denominator(beta, kappas, gamma=1 / 14, epsilon=0.0001):
 	         kappa2 * kappa1, kappa2, kappa2 * kappa3,
 	         kappa3 * kappa1, kappa3 * kappa2, kappa3]
 	D = []
+	D2 = []
+	X = []
+	Y = []
 	for i in range(1, phi_steps_3D):
 		for j in range(1, phi_steps_3D):
 			k = phi_steps_3D - i - j
@@ -468,25 +471,32 @@ def three_group_denominator(beta, kappas, gamma=1 / 14, epsilon=0.0001):
 			phi3 = k / phi_steps_3D
 			S1, S2, S3 = three_group_cvxpy(betas, gamma, epsilon, phi1, phi2, phi3)
 			S = [S1, S2, S3]
-			D.append(1 + sum([(kappas[l] ** 2 * beta * S[l]) /
+			X.append(phi1)
+			Y.append(phi2)
+			D.append(1 + sum([(kappas[l] * kappas[l] * beta * S[l]) /
 			                  (kappas[l] * (1 - kappas[l]) * beta * S[l] - gamma)
 			                  for l in range(3)]))
+			D2.append(sum([kappas[l] * beta * S[l] for l in range(3)]))
 	fig = plt.figure()
-	ax1 = fig.add_subplot()
-	ax1.plot(range(len(D)), D)
+	ax1 = fig.add_subplot(projection='3d')
+	ax1.plot_trisurf(X, Y, D, cmap=cm.coolwarm)
+	ax1.set_xlabel(r'$\phi_1$')
+	ax1.set_ylabel(r'$\phi_2$')
+	# ax1.plot(range(len(D2)), D2)
+	# ax1.axhline(gamma)
 	plt.show()
 	return
 
 
 def three_group():
-	beta = 4 / 14
+	beta = 20 / 14
 
 	# betas = np.random.normal(beta, 0.2, 9)
 	# betas = [max(0.05, beta) for beta in betas]
 
 	kappa1 = 1
-	kappa2 = 0.6
-	kappa3 = 0.4
+	kappa2 = 0.01
+	kappa3 = 0.001
 
 	kappas = [kappa1, kappa2, kappa3]
 
