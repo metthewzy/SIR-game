@@ -453,6 +453,9 @@ def two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9, 
 
 
 def three_group_denominator(beta, kappas, gamma=1 / 14, epsilon=0.0001):
+	"""
+	compute the denominator in Sherman Morrison formula
+	"""
 	kappa1, kappa2, kappa3 = kappas
 	betas = [kappa1, kappa1 * kappa2, kappa1 * kappa3,
 	         kappa2 * kappa1, kappa2, kappa2 * kappa3,
@@ -478,15 +481,40 @@ def three_group_denominator(beta, kappas, gamma=1 / 14, epsilon=0.0001):
 	return
 
 
+def three_group_path(betas, gamma=1 / 14, epsilon=0.0001, r2=0.5):
+	"""
+	d_phi1 on a straight path fixing the ratio of phi2 and phi3
+	"""
+	r3 = 1 - r2
+	phi1_steps = 100
+	INDIV1 = []
+	phi1s = []
+
+	for i in range(1, phi1_steps + 1):
+		phi1 = i / phi1_steps
+		phi2 = (1 - phi1) * r2
+		phi3 = (1 - phi1) * r3
+		S1, S2, S3 = three_group_cvxpy(betas, gamma, epsilon, phi1, phi2, phi3)
+		phi1s.append(phi1)
+		INDIV1.append(S1 / phi1)
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	ax1.plot(phi1s, INDIV1)
+	ax1.set_xlabel(r'$\phi_1$')
+	plt.show()
+	return
+
+
 def three_group():
-	beta = 4 / 14
+	beta = 20 / 14
 
 	# betas = np.random.normal(beta, 0.2, 9)
 	# betas = [max(0.05, beta) for beta in betas]
 
 	kappa1 = 1
-	kappa2 = 0.6
-	kappa3 = 0.4
+	kappa2 = 0.1
+	kappa3 = 0.05
 
 	kappas = [kappa1, kappa2, kappa3]
 
@@ -494,7 +522,7 @@ def three_group():
 	         kappa2 * kappa1, kappa2, kappa2 * kappa3,
 	         kappa3 * kappa1, kappa3 * kappa2, kappa3]
 	betas = [i * beta for i in betas]
-	three_group_denominator(beta, kappas, gamma=1 / 14, epsilon=0.0001)
+	# three_group_denominator(beta, kappas, gamma=1 / 14, epsilon=0.0001)
 
 	# b1 = kappa1 * kappa1 * beta
 	# b2 = kappa2 * kappa2 * beta
@@ -514,6 +542,9 @@ def three_group():
 	# 		 uni(0, b1), uni(0, b1), uni(0, b1),
 	# 		 uni(0, b1), uni(0, b1), uni(0, b1)]
 	# three_group_utility_cvxpy_tri(betas, gamma=1 / 14, epsilon=0.0001, payment2=1, payment3=1)
+
+	for r2 in np.arange(0.1, 1, 0.1):
+		three_group_path(betas, gamma=1 / 14, epsilon=0.0001, r2=r2)
 	return
 
 
