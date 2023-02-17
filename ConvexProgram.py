@@ -132,8 +132,8 @@ def one_group_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, phi=0.5):
 	"""
 	s1 = cp.Variable()
 	constraints = [s1 >= 0,
-	               s1 <= 1 - epsilon,
-	               s1 - (1 - epsilon) * cp.exp(phi * beta / gamma * (s1 - 1)) >= 0]
+				   s1 <= 1 - epsilon,
+				   s1 - (1 - epsilon) * cp.exp(phi * beta / gamma * (s1 - 1)) >= 0]
 	obj = cp.Minimize(s1)
 	prob = cp.Problem(obj, constraints)
 	prob.solve()
@@ -157,13 +157,13 @@ def two_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.5):
 	s10 = (1 - epsilon) * phi1
 	s20 = (1 - epsilon) * phi2
 	constraints = [s1 >= 0,
-	               s1 <= s10,
-	               s2 >= 0,
-	               s2 <= s20,
-	               s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
-	                                 b12 / gamma * (s2 - s20)) >= 0,
-	               s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
-	                                 b22 / gamma * (s2 - s20)) >= 0]
+				   s1 <= s10,
+				   s2 >= 0,
+				   s2 <= s20,
+				   s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
+									 b12 / gamma * (s2 - s20)) >= 0,
+				   s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
+									 b22 / gamma * (s2 - s20)) >= 0]
 	obj = cp.Minimize(s1 + s2)
 	prob = cp.Problem(obj, constraints)
 	prob.solve()
@@ -185,20 +185,20 @@ def three_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.4, phi2=0.3, p
 	s20 = (1 - epsilon) * phi2
 	s30 = (1 - epsilon) * phi3
 	constraints = [s1 >= 0,
-	               s1 <= s10,
-	               s2 >= 0,
-	               s2 <= s20,
-	               s3 >= 0,
-	               s3 <= s30,
-	               s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
-	                                 b12 / gamma * (s2 - s20) +
-	                                 b13 / gamma * (s3 - s30)) >= 0,
-	               s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
-	                                 b22 / gamma * (s2 - s20) +
-	                                 b23 / gamma * (s3 - s30)) >= 0,
-	               s3 - s30 * cp.exp(b31 / gamma * (s1 - s10) +
-	                                 b32 / gamma * (s2 - s20) +
-	                                 b33 / gamma * (s3 - s30)) >= 0]
+				   s1 <= s10,
+				   s2 >= 0,
+				   s2 <= s20,
+				   s3 >= 0,
+				   s3 <= s30,
+				   s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
+									 b12 / gamma * (s2 - s20) +
+									 b13 / gamma * (s3 - s30)) >= 0,
+				   s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
+									 b22 / gamma * (s2 - s20) +
+									 b23 / gamma * (s3 - s30)) >= 0,
+				   s3 - s30 * cp.exp(b31 / gamma * (s1 - s10) +
+									 b32 / gamma * (s2 - s20) +
+									 b33 / gamma * (s3 - s30)) >= 0]
 	obj = cp.Minimize(s1 + s2 + s3)
 	prob = cp.Problem(obj, constraints)
 	prob.solve()
@@ -458,8 +458,8 @@ def three_group_denominator(beta, kappas, gamma=1 / 14, epsilon=0.0001):
 	"""
 	kappa1, kappa2, kappa3 = kappas
 	betas = [kappa1, kappa1 * kappa2, kappa1 * kappa3,
-	         kappa2 * kappa1, kappa2, kappa2 * kappa3,
-	         kappa3 * kappa1, kappa3 * kappa2, kappa3]
+			 kappa2 * kappa1, kappa2, kappa2 * kappa3,
+			 kappa3 * kappa1, kappa3 * kappa2, kappa3]
 	D = []
 	D2 = []
 	X = []
@@ -477,8 +477,8 @@ def three_group_denominator(beta, kappas, gamma=1 / 14, epsilon=0.0001):
 			X.append(phi1)
 			Y.append(phi2)
 			D.append(1 + sum([(kappas[l] * kappas[l] * beta * S[l]) /
-			                  (kappas[l] * (1 - kappas[l]) * beta * S[l] - gamma)
-			                  for l in range(3)]))
+							  (kappas[l] * (1 - kappas[l]) * beta * S[l] - gamma)
+							  for l in range(3)]))
 			D2.append(sum([kappas[l] * beta * S[l] for l in range(3)]))
 	fig = plt.figure()
 	ax1 = fig.add_subplot(projection='3d')
@@ -491,46 +491,79 @@ def three_group_denominator(beta, kappas, gamma=1 / 14, epsilon=0.0001):
 	return
 
 
-def three_group_path(betas, gamma=1 / 14, epsilon=0.0001, r2=0.5):
+def three_group_path(b, k, gamma=1 / 14, epsilon=0.0001, phi3=0.5):
 	"""
 	d_phi1 on a straight path fixing the ratio of phi2 and phi3
 	"""
-	r3 = 1 - r2
-	phi1_steps = 100
+	b11, b12, b13, b21, b22, b23, b31, b32, b33 = b
+	phi1_runs = 100
 	INDIV1 = []
 	phi1s = []
-
-	for i in range(1, phi1_steps + 1):
-		phi1 = i / phi1_steps
-		phi2 = (1 - phi1) * r2
-		phi3 = (1 - phi1) * r3
-		S1, S2, S3 = three_group_cvxpy(betas, gamma, epsilon, phi1, phi2, phi3)
+	derivatives = []
+	# derivatives2 = [0]
+	denominators = []
+	for i in range(1, phi1_runs):
+		phi1 = (1 - phi3) * i / phi1_runs
+		phi2 = 1 - phi1 - phi3
+		# print(phi1, phi2, phi3)
+		S1, S2, S3 = three_group_cvxpy(b, gamma, epsilon, phi1, phi2, phi3)
+		S = [S1, S2, S3]
+		denominator = 1 - sum(
+			[(k[j] ** 2 * b[0] * S[j])
+			 /
+			 (gamma - (k[j] - k[j] ** 2) * b[0] * S[j]) for j in range(3)]
+		)
+		denominators.append(denominator)
+		S1_h = S1 / phi1
+		S2_h = S2 / phi2
+		S3_h = S3 / phi3
 		phi1s.append(phi1)
-		INDIV1.append(S1 / phi1)
-
+		INDIV1.append(S1_h)
+		derivatives.append(
+			S1_h * (b11 / gamma * (S1_h - 1) - b12 / gamma * (S2_h - 1))
+			+
+			(b[0] / gamma * (S1_h - 1) - b[1] / gamma * (S2_h - 1))
+			*
+			k[0] * b[0] * S1_h * S1 / (gamma - (k[0] - k[0] ** 2) * b[0] * S[0]) / denominator
+			+
+			(b[3] / gamma * (S1_h - 1) - b[4] / gamma * (S2_h - 1))
+			*
+			k[1] * b[0] * S1_h * S2 / (gamma - (k[1] - k[1] ** 2) * b[0] * S[1]) / denominator
+			+
+			(b[6] / gamma * (S1_h - 1) - b[7] / gamma * (S2_h - 1))
+			*
+			k[2] * b[0] * S1_h * S3 / (gamma - (k[2] - k[2] ** 2) * b[0] * S[2]) / denominator
+		)
+	derivatives2 = [INDIV1[i] - INDIV1[i - 1] for i in range(1, len(INDIV1))]
 	fig = plt.figure()
-	ax1 = fig.add_subplot()
-	ax1.plot(phi1s, INDIV1)
+	ax1 = fig.add_subplot(121)
+	# ax2 = ax1.twinx()
+	ax2 = fig.add_subplot(122)
+	ax1.plot(phi1s, derivatives, label='formula')
+	ax2.plot(phi1s[1:], derivatives2, label='numerical', color='orange')
+	ax1.set_title('derivative')
+	ax2.set_title('numerical')
 	ax1.set_xlabel(r'$\phi_1$')
+	# ax1.set_ylim(-0. - 5, 1.05)
 	plt.show()
 	return
 
 
 def three_group():
-	beta = 20 / 14
+	beta = 3 / 14
 
 	# betas = np.random.normal(beta, 0.2, 9)
 	# betas = [max(0.05, beta) for beta in betas]
 
 	kappa1 = 1
-	kappa2 = 0.1
-	kappa3 = 0.05
+	kappa2 = 0.6
+	kappa3 = 0.4
 
 	kappas = [kappa1, kappa2, kappa3]
 
 	betas = [kappa1, kappa1 * kappa2, kappa1 * kappa3,
-	         kappa2 * kappa1, kappa2, kappa2 * kappa3,
-	         kappa3 * kappa1, kappa3 * kappa2, kappa3]
+			 kappa2 * kappa1, kappa2, kappa2 * kappa3,
+			 kappa3 * kappa1, kappa3 * kappa2, kappa3]
 	betas = [i * beta for i in betas]
 	# three_group_denominator(beta, kappas, gamma=1 / 14, epsilon=0.0001)
 
@@ -553,8 +586,8 @@ def three_group():
 	# 		 uni(0, b1), uni(0, b1), uni(0, b1)]
 	# three_group_utility_cvxpy_tri(betas, gamma=1 / 14, epsilon=0.0001, payment2=1, payment3=1)
 
-	for r2 in np.arange(0.1, 1, 0.1):
-		three_group_path(betas, gamma=1 / 14, epsilon=0.0001, r2=r2)
+	for phi3 in np.arange(0.1, 1, 0.1):
+		three_group_path(betas, kappas, gamma=1 / 14, epsilon=0.0001, phi3=phi3)
 	return
 
 
