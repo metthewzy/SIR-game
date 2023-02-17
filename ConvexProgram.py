@@ -496,9 +496,10 @@ def three_group_path(b, k, gamma=1 / 14, epsilon=0.0001, phi3=0.5):
 	d_phi1 on a straight path fixing the ratio of phi2 and phi3
 	"""
 	b11, b12, b13, b21, b22, b23, b31, b32, b33 = b
-	phi1_runs = 100
+	phi1_runs = 200
 	INDIV1 = []
 	phi1s = []
+	phi2s = []
 	derivatives = []
 	# derivatives2 = [0]
 	denominators = []
@@ -518,6 +519,7 @@ def three_group_path(b, k, gamma=1 / 14, epsilon=0.0001, phi3=0.5):
 		S2_h = S2 / phi2
 		S3_h = S3 / phi3
 		phi1s.append(phi1)
+		phi2s.append(phi2)
 		INDIV1.append(S1_h)
 		derivatives.append(
 			S1_h * (b11 / gamma * (S1_h - 1) - b12 / gamma * (S2_h - 1))
@@ -534,15 +536,13 @@ def three_group_path(b, k, gamma=1 / 14, epsilon=0.0001, phi3=0.5):
 			*
 			k[2] * b[0] * S1_h * S3 / (gamma - (k[2] - k[2] ** 2) * b[0] * S[2]) / denominator
 		)
-	derivatives2 = [INDIV1[i] - INDIV1[i - 1] for i in range(1, len(INDIV1))]
+	derivatives2 = [(INDIV1[i] - INDIV1[i - 1]) / ((1 - phi3) / phi1_runs) for i in range(1, len(INDIV1))]
 	fig = plt.figure()
-	ax1 = fig.add_subplot(121)
-	# ax2 = ax1.twinx()
-	ax2 = fig.add_subplot(122)
+	ax1 = fig.add_subplot()
 	ax1.plot(phi1s, derivatives, label='formula')
-	ax2.plot(phi1s[1:], derivatives2, label='numerical', color='orange')
+	ax1.plot(phi1s[1:], derivatives2, label='numerical')
+	ax1.legend()
 	ax1.set_title('derivative')
-	ax2.set_title('numerical')
 	ax1.set_xlabel(r'$\phi_1$')
 	# ax1.set_ylim(-0. - 5, 1.05)
 	plt.show()
@@ -550,7 +550,7 @@ def three_group_path(b, k, gamma=1 / 14, epsilon=0.0001, phi3=0.5):
 
 
 def three_group():
-	beta = 3 / 14
+	beta = 1.5 / 14
 
 	# betas = np.random.normal(beta, 0.2, 9)
 	# betas = [max(0.05, beta) for beta in betas]
