@@ -452,18 +452,23 @@ def two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9, 
 	return
 
 
-def three_group_denominator(beta, kappas, gamma=1 / 14, epsilon=0.0001):
+def three_group_denominator(b, kappas, gamma=1 / 14, epsilon=0.0001):
 	"""
 	compute the denominator in Sherman Morrison formula
 	"""
-	kappa1, kappa2, kappa3 = kappas
-	betas = [kappa1, kappa1 * kappa2, kappa1 * kappa3,
-			 kappa2 * kappa1, kappa2, kappa2 * kappa3,
-			 kappa3 * kappa1, kappa3 * kappa2, kappa3]
-	D = []
+	# b11, b12, b13, b21, b22, b23, b31, b32, b33 = b
+	b0 = b[0]
+	denominators = []
+	phi1s = []
+	phi2s = []
+	# phi3s = []
+	D1 = []
+	N1 = []
 	D2 = []
-	X = []
-	Y = []
+	N2 = []
+	D3 = []
+	N3 = []
+
 	for i in range(1, phi_steps_3D):
 		for j in range(1, phi_steps_3D):
 			k = phi_steps_3D - i - j
@@ -472,28 +477,128 @@ def three_group_denominator(beta, kappas, gamma=1 / 14, epsilon=0.0001):
 			phi1 = i / phi_steps_3D
 			phi2 = j / phi_steps_3D
 			phi3 = k / phi_steps_3D
-			S1, S2, S3 = three_group_cvxpy(betas, gamma, epsilon, phi1, phi2, phi3)
+			S1, S2, S3 = three_group_cvxpy(b, gamma, epsilon, phi1, phi2, phi3)
 			S = [S1, S2, S3]
-			X.append(phi1)
-			Y.append(phi2)
-			D.append(1 + sum([(kappas[l] * kappas[l] * beta * S[l]) /
-							  (kappas[l] * (1 - kappas[l]) * beta * S[l] - gamma)
-							  for l in range(3)]))
-			D2.append(sum([kappas[l] * beta * S[l] for l in range(3)]))
+			denominator = 1 - sum(
+				[kappas[l] ** 2 * b0 * S[l]
+				 /
+				 (gamma - (kappas[l] - kappas[l] ** 2) * b0 * S[l])
+				 for l in range(3)]
+			)
+			t = 0
+			D1.append(gamma - (kappas[t] - kappas[t] ** 2) * b0 * S[t])
+			N1.append(kappas[t] ** 2 * b0 * S[t])
+			t = 1
+			D2.append(gamma - (kappas[t] - kappas[t] ** 2) * b0 * S[t])
+			N2.append(kappas[t] ** 2 * b0 * S[t])
+			t = 2
+			D3.append(gamma - (kappas[t] - kappas[t] ** 2) * b0 * S[t])
+			N3.append(kappas[t] ** 2 * b0 * S[t])
+			denominators.append(denominator)
+			phi1s.append(phi1)
+			phi2s.append(phi2)
+			if denominator <= 0:
+				print("**********************")
+				print(f'beta={b0}')
+				print(f'kappas={kappas}')
+				print(f'phi={phi1, phi2, phi3}')
+
 	fig = plt.figure()
-	ax1 = fig.add_subplot(projection='3d')
-	ax1.plot_trisurf(X, Y, D, cmap=cm.coolwarm)
+	ax1 = fig.add_subplot(221, projection='3d')
+	ax2 = fig.add_subplot(222, projection='3d')
+	ax3 = fig.add_subplot(223, projection='3d')
+	ax4 = fig.add_subplot(224, projection='3d')
+	ax1.plot_trisurf(phi1s, phi2s, denominators, cmap=cm.coolwarm)
+	ax2.plot_trisurf(phi1s, phi2s, [N1[i] / D1[i] for i in range(len(D1))], cmap=cm.coolwarm)
+	ax3.plot_trisurf(phi1s, phi2s, [N2[i] / D2[i] for i in range(len(D2))], cmap=cm.coolwarm)
+	ax4.plot_trisurf(phi1s, phi2s, [N3[i] / D3[i] for i in range(len(D3))], cmap=cm.coolwarm)
+	# ax2.plot_trisurf(phi1s, phi2s, D1, cmap=cm.coolwarm)
+	# ax3.plot_trisurf(phi1s, phi2s, D2, cmap=cm.coolwarm)
+	# ax4.plot_trisurf(phi1s, phi2s, D3, cmap=cm.coolwarm)
+
 	ax1.set_xlabel(r'$\phi_1$')
 	ax1.set_ylabel(r'$\phi_2$')
-	# ax1.plot(range(len(D2)), D2)
-	# ax1.axhline(gamma)
+	ax2.set_xlabel(r'$\phi_1$')
+	ax2.set_ylabel(r'$\phi_2$')
+	ax3.set_xlabel(r'$\phi_1$')
+	ax3.set_ylabel(r'$\phi_2$')
+	ax4.set_xlabel(r'$\phi_1$')
+	ax4.set_ylabel(r'$\phi_2$')
+	ax1.set_title(fr'$\kappa=${kappas}')
+	ax2.set_title('Group 1')
+	ax3.set_title('Group 2')
+	ax4.set_title('Group 3')
+	plt.show()
+	return
+
+
+def three_group_phi_surface(b, kappas, gamma=1 / 14, epsilon=0.0001):
+	"""
+	plot the phi surface
+	"""
+	# b11, b12, b13, b21, b22, b23, b31, b32, b33 = b
+	b0 = b[0]
+	denominators = []
+	phi1s = []
+	phi2s = []
+	surfaces = []
+
+	for i in range(1, phi_steps_3D):
+		for j in range(1, phi_steps_3D):
+			k = phi_steps_3D - i - j
+			if k <= 0:
+				continue
+			phi1 = i / phi_steps_3D
+			phi2 = j / phi_steps_3D
+			phi3 = k / phi_steps_3D
+			phis = [phi1, phi2, phi3]
+			S1, S2, S3 = three_group_cvxpy(b, gamma, epsilon, phi1, phi2, phi3)
+			S = [S1, S2, S3]
+			denominator = 1 - sum(
+				[kappas[l] ** 2 * b0 * S[l]
+				 /
+				 (gamma - (kappas[l] - kappas[l] ** 2) * b0 * S[l])
+				 for l in range(3)]
+			)
+			denominators.append(denominator)
+			surface = 1 - sum(
+				[kappas[l] ** 2 * b0 * phis[l]
+				 /
+				 (gamma - (kappas[l] - kappas[l] ** 2) * b0 * phis[l])
+				 for l in range(3)]
+			)
+			surfaces.append(surface)
+			phi1s.append(phi1)
+			phi2s.append(phi2)
+			if denominator <= 0:
+				print("**********************")
+				print(f'beta={b0}')
+				print(f'kappas={kappas}')
+				print(f'phi={phi1, phi2, phi3}')
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot(121, projection='3d')
+	ax2 = fig.add_subplot(122, projection='3d')
+	surfaces = np.array(surfaces)
+	phi1s = np.array(phi1s)
+	phi2s = np.array(phi2s)
+	ax1.plot_trisurf(phi1s, phi2s, denominators, cmap=cm.coolwarm)
+	ax2.plot_trisurf(phi1s[surfaces > 0], phi2s[surfaces > 0], surfaces[surfaces > 0], color='red')
+	ax2.plot_trisurf(phi1s[surfaces <= 0], phi2s[surfaces <= 0], surfaces[surfaces <= 0], color='blue')
+
+	ax1.set_xlabel(r'$\phi_1$')
+	ax1.set_ylabel(r'$\phi_2$')
+	ax2.set_xlabel(r'$\phi_1$')
+	ax2.set_ylabel(r'$\phi_2$')
+	ax1.set_title(fr'$\kappa=${kappas}')
+	ax2.set_title(r'$\phi$ surface')
 	plt.show()
 	return
 
 
 def three_group_path(b, k, gamma=1 / 14, epsilon=0.0001, phi3=0.5):
 	"""
-	d_phi1 on a straight path fixing the ratio of phi2 and phi3
+	d_phi1 fixing phi3 varying phi1 and phi2
 	"""
 	b11, b12, b13, b21, b22, b23, b31, b32, b33 = b
 	phi1_runs = 200
@@ -549,22 +654,23 @@ def three_group_path(b, k, gamma=1 / 14, epsilon=0.0001, phi3=0.5):
 	return
 
 
+def make_betas(b0, kappas):
+	k1, k2, k3 = kappas
+	betas = [k1, k1 * k2, k1 * k3,
+			 k2 * k1, k2, k2 * k3,
+			 k3 * k1, k3 * k2, k3]
+	betas = [i * b0 for i in betas]
+	return betas
+
+
 def three_group():
-	beta = 1.5 / 14
+	beta = 3 / 14
 
 	# betas = np.random.normal(beta, 0.2, 9)
 	# betas = [max(0.05, beta) for beta in betas]
 
-	kappa1 = 1
-	kappa2 = 0.6
-	kappa3 = 0.4
-
-	kappas = [kappa1, kappa2, kappa3]
-
-	betas = [kappa1, kappa1 * kappa2, kappa1 * kappa3,
-			 kappa2 * kappa1, kappa2, kappa2 * kappa3,
-			 kappa3 * kappa1, kappa3 * kappa2, kappa3]
-	betas = [i * beta for i in betas]
+	# kappas = [1, 0.6, 0.4]
+	# betas = make_betas(beta, kappas)
 	# three_group_denominator(beta, kappas, gamma=1 / 14, epsilon=0.0001)
 
 	# b1 = kappa1 * kappa1 * beta
@@ -586,8 +692,25 @@ def three_group():
 	# 		 uni(0, b1), uni(0, b1), uni(0, b1)]
 	# three_group_utility_cvxpy_tri(betas, gamma=1 / 14, epsilon=0.0001, payment2=1, payment3=1)
 
-	for phi3 in np.arange(0.1, 1, 0.1):
-		three_group_path(betas, kappas, gamma=1 / 14, epsilon=0.0001, phi3=phi3)
+	# for phi3 in np.arange(0.1, 1, 0.1):
+	# 	three_group_path(betas, kappas, gamma=1 / 14, epsilon=0.0001, phi3=phi3)
+
+	# test the denominator
+	# kappas = [1, 0.6, 0.4]
+	# betas = make_betas(beta, kappas)
+	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
+
+	kappas = [1, 0.6, 0.1]
+	betas = make_betas(beta, kappas)
+	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
+	three_group_phi_surface(betas, kappas, gamma=1 / 14, epsilon=0.0001)
+
+	# kappas = [1, 0.9, 0.2]
+	# betas = make_betas(beta, kappas)
+	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
+	# kappas = [1, 0.2, 0.1]
+	# betas = make_betas(beta, kappas)
+	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	return
 
 
