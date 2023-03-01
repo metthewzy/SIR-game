@@ -7,7 +7,7 @@ import cvxpy as cp
 from TwoGroup import final_size_searcher_binary
 
 binary_iter = 40
-phi_step = 0.005
+phi_step = 0.001
 phi_steps_3D = 40
 
 
@@ -206,6 +206,147 @@ def three_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.4, phi2=0.3, p
 	# print("optimal value", prob.value)
 	# print("optimal var", s1.value, s2.value)
 	return s1.value, s2.value, s3.value
+
+
+def separable_POA_comparison(beta1=2 / 14, beta2=1 / 14, gamma=1 / 14, epsilon=0.0001, payment_ratio=2.0):
+	"""
+	compare POA of 2-group separable
+	"""
+	R1 = beta1 / gamma
+	R2 = beta2 / gamma
+	phi_range = np.arange(phi_step, 1, phi_step)
+	S1s = []
+	S2s = []
+	for phi in phi_range:
+		S1s.append(one_group_cvxpy(beta1, gamma, epsilon, phi))
+		S2s.append(one_group_cvxpy(beta2, gamma, epsilon, 1 - phi))
+	# POA, idx = separable_POA_searcher(beta1, beta2, gamma, epsilon, phi_range, S1s, S2s, payment_ratio)
+
+	# payment_ratio = 17
+	UG1s = [S1 * payment_ratio for S1 in S1s]
+	UG2s = [S2 for S2 in S2s]
+	U1s = [UG1 / phi for UG1, phi in zip(UG1s, phi_range)]
+	U2s = [UG2 / (1 - phi) for UG2, phi in zip(UG2s, phi_range)]
+	social = [UG1 + UG2 for UG1, UG2 in zip(UG1s, UG2s)]
+
+	# compute OPT
+	if social[0] >= social[1]:
+		phi_OPT = phi_range[0]
+		OPT = social[0]
+	elif social[-1] >= social[-2]:
+		phi_OPT = phi_range[-1]
+		OPT = social[-1]
+	else:
+		social_max = max(social)
+		idx_max = social.index(social_max)
+		m = phi_range[idx_max]
+		l = phi_range[idx_max - 1]
+		r = phi_range[idx_max + 1]
+		# l = phi_range[0]
+		# r = phi_range[-1]
+		# m = (l + r) / 2
+		phi_OPT, OPT = separable_OPT_searcher(beta1, beta2, gamma, epsilon, payment_ratio, l, r, m)
+
+	# compute NE
+	if U2s[0] >= U1s[0]:
+		NE = social[0]
+		phi_NE = phi_range[0]
+	elif U1s[-1] >= U2s[-1]:
+		NE = social[-1]
+		phi_NE = phi_range[-1]
+	else:
+		l = max([phi_range[i] for i in range(len(phi_range)) if U1s[i] > U2s[i]])
+		r = min([phi_range[i] for i in range(len(phi_range)) if U1s[i] < U2s[i]])
+		m = (l + r) / 2
+		phi_NE, NE = separable_NE_searcher(beta1, beta2, gamma, epsilon, payment_ratio, l, r, m)
+
+	# plot
+	fig = plt.figure()
+	ax1 = fig.add_subplot(121)
+	ax2 = fig.add_subplot(122)
+	ax1.plot(phi_range, UG1s, label='1')
+	ax1.plot(phi_range, UG2s, label='2')
+	ax1.plot(phi_range, social, label='social')
+	ax2.plot(phi_range, U1s, label='1')
+	ax2.plot(phi_range, U2s, label='2')
+	ax1.axvline(phi_OPT, linestyle=':', color='grey')
+	ax1.axhline(OPT, linestyle=':', color='grey')
+	ax2.axvline(phi_NE, linestyle=':', color='grey')
+	ax2.axhline(NE, linestyle=':', color='grey')
+	ax1.legend()
+	ax2.legend()
+	POA = OPT / NE
+	print("POA simulated=\n", POA)
+	print("POA bound=\n", np.exp(R1) / R1 + 1 / R2 - 1)
+	print((S2s[-1] / (1 - phi_range[-1])) / (S1s[-1] / phi_range[-1]))
+	print(OPT)
+	plt.show()
+	return
+
+
+def separable_NE_searcher(beta1, beta2, gamma, epsilon, payment_ratio, l, r, m):
+	"""
+	search for Nash equilibrium in given instance
+	"""
+	# phi_ms = []
+	# individuals = []
+	U1 = one_group_cvxpy(beta1, gamma, epsilon, m) * payment_ratio / m
+	U2 = one_group_cvxpy(beta2, gamma, epsilon, 1 - m) / (1 - m)
+	for _ in range(binary_iter):
+		if U1 > U2:
+			l = m
+		else:
+			r = m
+		m = (l + r) / 2
+		U1 = one_group_cvxpy(beta1, gamma, epsilon, m) * payment_ratio / m
+		U2 = one_group_cvxpy(beta2, gamma, epsilon, 1 - m) / (1 - m)
+	return m, U1
+
+
+def separable_OPT_searcher(beta1, beta2, gamma, epsilon, payment_ratio, l, r, m):
+	"""
+	search for social OPT in given instance
+	"""
+	# phi_ms = []
+	# socials = []
+	UG_m = social_evaluator(beta1, beta2, gamma, epsilon, payment_ratio, m)
+	# phi_ms.append(m)
+	# socials.append(UG_m)
+	for _ in range(binary_iter):
+		l2 = (l + m) / 2
+		r2 = (m + r) / 2
+		UG_l = social_evaluator(beta1, beta2, gamma, epsilon, payment_ratio, l2)
+		UG_r = social_evaluator(beta1, beta2, gamma, epsilon, payment_ratio, r2)
+		if UG_l <= UG_m and UG_r <= UG_m:
+			l = l2
+			r = r2
+		elif UG_l > UG_m:
+			r = m
+			m = (l + r) / 2
+			UG_m = social_evaluator(beta1, beta2, gamma, epsilon, payment_ratio, m)
+		# phi_ms.append(m)
+		# socials.append(UG_m)
+		else:
+			l = m
+			m = (l + r) / 2
+			UG_m = social_evaluator(beta1, beta2, gamma, epsilon, payment_ratio, m)
+		# phi_ms.append(m)
+		# socials.append(UG_m)
+	# fig = plt.figure()
+	# ax1 = fig.add_subplot()
+	# ax1.plot(phi_ms, socials)
+	# plt.show()
+	return m, UG_m
+
+
+def social_evaluator(beta1, beta2, gamma, epsilon, payment_ratio, phi):
+	"""
+	evaluate the social utility at given point
+	"""
+	S1 = one_group_cvxpy(beta1, gamma, epsilon, phi)
+	S2 = one_group_cvxpy(beta2, gamma, epsilon, 1 - phi)
+	social = S1 * payment_ratio + S2
+	return social
 
 
 def one_group_comparison(beta=3 / 14, gamma=1 / 14, epsilon=0.0001):
@@ -716,13 +857,14 @@ def three_group():
 
 def main():
 	# one_group_comparison()
+	separable_POA_comparison(beta1=4 / 14, beta2=1 / 14, gamma=1 / 14, epsilon=0.0001, payment_ratio=50.22135161418591)
 	# two_group_comparison(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3)
 	# two_group_utility_cvxpy(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, payment2=1.1)
 
 	# two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.5)
 
 	# three_group_feasibility_scatter(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.4, phi2=0.3)
-	three_group()
+	# three_group()
 	return
 
 
