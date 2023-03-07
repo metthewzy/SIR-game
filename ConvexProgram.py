@@ -208,7 +208,7 @@ def three_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.4, phi2=0.3, p
 	return s1.value, s2.value, s3.value
 
 
-def separable_POA_comparison(beta1=2 / 14, beta2=1 / 14, gamma=1 / 14, epsilon=0.0001, payment_ratio=2.0):
+def separable_two_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, gamma=1 / 14, epsilon=0.0001, payment_ratio=2.0):
 	"""
 	compare POA of 2-group separable
 	"""
@@ -284,6 +284,77 @@ def separable_POA_comparison(beta1=2 / 14, beta2=1 / 14, gamma=1 / 14, epsilon=0
 	return
 
 
+def separable_three_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, beta3=1 / 14, gamma=1 / 14, epsilon=0.0001, p2=0.5,
+										 p3=0.3):
+	phi_range = [i / phi_steps_3D for i in range(1, phi_steps_3D)]
+	S1s = [0]
+	S2s = [0]
+	S3s = [0]
+	for phi in phi_range:
+		S1s.append(one_group_cvxpy(beta1, gamma, epsilon, phi))
+		S2s.append(one_group_cvxpy(beta2, gamma, epsilon, phi))
+		S3s.append(one_group_cvxpy(beta3, gamma, epsilon, phi))
+
+	UG1 = []
+	UG2 = []
+	UG3 = []
+	INDIV1 = []
+	INDIV2 = []
+	INDIV3 = []
+	X = []
+	Y = []
+	social = []
+	for i in range(1, phi_steps_3D):
+		for j in range(1, phi_steps_3D):
+			k = phi_steps_3D - i - j
+			if k <= 0:
+				continue
+			phi1 = i / phi_steps_3D
+			phi2 = j / phi_steps_3D
+			phi3 = k / phi_steps_3D
+			S1 = S1s[i]
+			S2 = S2s[j]
+			S3 = S3s[k]
+			X.append(phi1)
+			Y.append(phi2)
+			UG1.append(S1)
+			UG2.append(S2 * p2)
+			UG3.append(S3 * p3)
+			social.append(S1 + S2 * p2 + S3 * p3)
+			INDIV1.append(S1 / phi1)
+			INDIV2.append(S2 * p2 / phi2)
+			INDIV3.append(S3 * p3 / phi3)
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot(121, projection='3d')
+	ax2 = fig.add_subplot(122, projection='3d')
+	# ax3 = fig.add_subplot(223, projection='3d')
+	# ax4 = fig.add_subplot(224, projection='3d')
+
+	ax1.plot_trisurf(X, Y, social, cmap=cm.coolwarm)
+	ax1.set_xlabel(r'$\phi_1$')
+	ax1.set_ylabel(r'$\phi_2$')
+	ax1.set_title('social')
+
+	ax2.plot_trisurf(X, Y, INDIV1, color='red', label='1')
+	ax2.set_xlabel(r'$\phi_1$')
+	ax2.set_ylabel(r'$\phi_2$')
+	ax2.set_title('Individual')
+
+	ax2.plot_trisurf(X, Y, INDIV2, color='green', label='2')
+	# ax2.set_xlabel(r'$\phi_1$')
+	# ax2.set_ylabel(r'$\phi_2$')
+	# ax2.set_title('U2')
+
+	ax2.plot_trisurf(X, Y, INDIV3, color='blue', label='3')
+	# ax2.set_xlabel(r'$\phi_1$')
+	# ax2.set_ylabel(r'$\phi_2$')
+	# ax2.set_title('U3')
+	# ax2.legend()
+	plt.show()
+	return
+
+
 def separable_NE_searcher(beta1, beta2, gamma, epsilon, payment_ratio, l, r, m):
 	"""
 	search for Nash equilibrium in given instance
@@ -330,8 +401,8 @@ def separable_OPT_searcher(beta1, beta2, gamma, epsilon, payment_ratio, l, r, m)
 			l = m
 			m = (l + r) / 2
 			UG_m = social_evaluator(beta1, beta2, gamma, epsilon, payment_ratio, m)
-		# phi_ms.append(m)
-		# socials.append(UG_m)
+	# phi_ms.append(m)
+	# socials.append(UG_m)
 	# fig = plt.figure()
 	# ax1 = fig.add_subplot()
 	# ax1.plot(phi_ms, socials)
@@ -857,7 +928,10 @@ def three_group():
 
 def main():
 	# one_group_comparison()
-	separable_POA_comparison(beta1=4 / 14, beta2=1 / 14, gamma=1 / 14, epsilon=0.0001, payment_ratio=50.22135161418591)
+	# separable_two_group_POA_comparison(beta1=4 / 14, beta2=1 / 14, gamma=1 / 14, epsilon=0.0001,
+	# 								   payment_ratio=50.22135161418591)
+	separable_three_group_POA_comparison(beta1=5 / 14, beta2=4 / 14, beta3=3 / 14, gamma=1 / 14, epsilon=0.0001,
+										 p2=0.5, p3=0.3)
 	# two_group_comparison(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3)
 	# two_group_utility_cvxpy(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, payment2=1.1)
 
