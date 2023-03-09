@@ -8,7 +8,23 @@ from TwoGroup import final_size_searcher_binary
 
 binary_iter = 40
 phi_step = 0.001
-phi_steps_3D = 40
+phi_steps_3D = 50
+phi_steps_3D_sep = 60
+cdict = {
+	'red':
+		[1, 0.0, 0.0],
+	'green':
+		[0.0, 1, 0.0],
+	'blue':
+		[0.0, 0.0, 1]
+}
+
+
+def l_max(l1, l2, l3):
+	"""
+	return list of booleans where l1>l2 and l1>l3
+	"""
+	return [l1[i] >= l2[i] and l1[i] >= l3[i] for i in range(len(l1))]
 
 
 def f(s, phi, betas, gamma, s_vec):
@@ -286,7 +302,7 @@ def separable_two_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, gamma=1 / 14,
 
 def separable_three_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, beta3=1 / 14, gamma=1 / 14, epsilon=0.0001, p2=0.5,
 										 p3=0.3):
-	phi_range = [i / phi_steps_3D for i in range(1, phi_steps_3D)]
+	phi_range = [i / phi_steps_3D_sep for i in range(1, phi_steps_3D_sep)]
 	S1s = [0]
 	S2s = [0]
 	S3s = [0]
@@ -304,14 +320,25 @@ def separable_three_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, beta3=1 / 1
 	X = []
 	Y = []
 	social = []
-	for i in range(1, phi_steps_3D):
-		for j in range(1, phi_steps_3D):
-			k = phi_steps_3D - i - j
+	surface = []
+	surface1 = []
+	X1 = []
+	Y1 = []
+	surface2 = []
+	X2 = []
+	Y2 = []
+	surface3 = []
+	X3 = []
+	Y3 = []
+	colors = []
+	for i in range(1, phi_steps_3D_sep):
+		for j in range(1, phi_steps_3D_sep):
+			k = phi_steps_3D_sep - i - j
 			if k <= 0:
 				continue
-			phi1 = i / phi_steps_3D
-			phi2 = j / phi_steps_3D
-			phi3 = k / phi_steps_3D
+			phi1 = i / phi_steps_3D_sep
+			phi2 = j / phi_steps_3D_sep
+			phi3 = k / phi_steps_3D_sep
 			S1 = S1s[i]
 			S2 = S2s[j]
 			S3 = S3s[k]
@@ -325,10 +352,36 @@ def separable_three_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, beta3=1 / 1
 			INDIV2.append(S2 * p2 / phi2)
 			INDIV3.append(S3 * p3 / phi3)
 
+			if INDIV1[-1] > INDIV2[-1]:
+				if INDIV1[-1] > INDIV3[-1]:
+					surface.append(INDIV1[-1])
+					surface1.append(INDIV1[-1])
+					colors.append(cdict['red'])
+					X1.append(phi1)
+					Y1.append(phi2)
+				else:
+					surface.append(INDIV3[-1])
+					surface3.append(INDIV3[-1])
+					colors.append(cdict['blue'])
+					X3.append(phi1)
+					Y3.append(phi2)
+			elif INDIV2[-1] > INDIV3[-1]:
+				surface.append(INDIV2[-1])
+				surface2.append(INDIV2[-1])
+				colors.append(cdict['green'])
+				X2.append(phi1)
+				Y2.append(phi2)
+			else:
+				surface.append(INDIV3[-1])
+				surface3.append(INDIV3[-1])
+				colors.append(cdict['blue'])
+				X3.append(phi1)
+				Y3.append(phi2)
+
 	fig = plt.figure()
-	ax1 = fig.add_subplot(121, projection='3d')
-	ax2 = fig.add_subplot(122, projection='3d')
-	# ax3 = fig.add_subplot(223, projection='3d')
+	ax1 = fig.add_subplot(221, projection='3d')
+	ax2 = fig.add_subplot(222, projection='3d')
+	ax3 = fig.add_subplot(223, projection='3d')
 	# ax4 = fig.add_subplot(224, projection='3d')
 
 	ax1.plot_trisurf(X, Y, social, cmap=cm.coolwarm)
@@ -336,20 +389,23 @@ def separable_three_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, beta3=1 / 1
 	ax1.set_ylabel(r'$\phi_2$')
 	ax1.set_title('social')
 
-	ax2.plot_trisurf(X, Y, INDIV1, color='red', label='1')
+	ax2.plot_trisurf(X, Y, surface, cmap=cm.coolwarm)
+	# ax2.set_xlabel(r'$\phi_1$')
+	# ax2.set_ylabel(r'$\phi_2$')
+	# ax2.set_title('NE')
+
 	ax2.set_xlabel(r'$\phi_1$')
 	ax2.set_ylabel(r'$\phi_2$')
 	ax2.set_title('Individual')
+	# ax2.set_zlim(0, 1)
+	# ax2.plot_trisurf(X1, Y1, surface1, color='red', label='1')
+	# ax2.plot_trisurf(X2, Y2, surface2, color='green', label='2')
+	# ax2.plot_trisurf(X3, Y3, surface3, color='blue', label='3')
 
-	ax2.plot_trisurf(X, Y, INDIV2, color='green', label='2')
-	# ax2.set_xlabel(r'$\phi_1$')
-	# ax2.set_ylabel(r'$\phi_2$')
-	# ax2.set_title('U2')
+	ax3.plot_trisurf(X1, Y1, surface1, color='red', label='1')
+	ax3.plot_trisurf(X2, Y2, surface2, color='green', label='2')
+	ax3.plot_trisurf(X3, Y3, surface3, color='blue', label='3')
 
-	ax2.plot_trisurf(X, Y, INDIV3, color='blue', label='3')
-	# ax2.set_xlabel(r'$\phi_1$')
-	# ax2.set_ylabel(r'$\phi_2$')
-	# ax2.set_title('U3')
 	# ax2.legend()
 	plt.show()
 	return
@@ -866,7 +922,100 @@ def three_group_path(b, k, gamma=1 / 14, epsilon=0.0001, phi3=0.5):
 	return
 
 
-def make_betas(b0, kappas):
+def three_group_utility(b, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5, p3=0.5):
+	"""
+	plot the utility of 3 group interacting
+	"""
+	# b11, b12, b13, b21, b22, b23, b31, b32, b33 = b
+	b0 = b[0]
+	denominators = []
+	phi1s = []
+	phi2s = []
+	social = []
+	surfaces = []
+	U1s = []
+	U2s = []
+	U3s = []
+
+	for i in range(1, phi_steps_3D):
+		for j in range(1, phi_steps_3D):
+			k = phi_steps_3D - i - j
+			if k <= 0:
+				continue
+			phi1 = i / phi_steps_3D
+			phi2 = j / phi_steps_3D
+			phi3 = k / phi_steps_3D
+			phis = [phi1, phi2, phi3]
+			S1, S2, S3 = three_group_cvxpy(b, gamma, epsilon, phi1, phi2, phi3)
+			S = [S1, S2, S3]
+			social.append(S1 + S2 * p2 + S3 * p3)
+			U1s.append(S1 / phi1)
+			U2s.append(p2 * S2 / phi2)
+			U3s.append(p3 * S3 / phi3)
+			phi1s.append(phi1)
+			phi2s.append(phi2)
+			if i == phi_steps_3D - 2:
+				print((S1 / phi1) / (S2 / phi2))
+				print((S1 / phi1) / (S3 / phi3))
+
+	R0 = b[0] / gamma
+	print('R0=', R0)
+	print('POA=', max(social) / min(social))
+	print(np.exp(R0) / R0)
+
+	phi1s = np.array(phi1s)
+	phi2s = np.array(phi2s)
+	U1s = np.array(U1s)
+	U2s = np.array(U2s)
+	U3s = np.array(U3s)
+	fig = plt.figure()
+	ax1 = fig.add_subplot(121, projection='3d')
+	ax2 = fig.add_subplot(122, projection='3d')
+	# ax3 = fig.add_subplot(223, projection='3d')
+	surfaces = np.array(surfaces)
+	phi1s = np.array(phi1s)
+	phi2s = np.array(phi2s)
+	ax1.plot_trisurf(phi1s, phi2s, social, cmap=cm.coolwarm)
+
+	# ax2.plot_trisurf(phi1s[l_max(U1s, U2s, U3s)],
+	# 				 phi2s[l_max(U1s, U2s, U3s)],
+	# 				 U1s[l_max(U1s, U2s, U3s)],
+	# 				 color='red')
+	# ax2.plot_trisurf(phi1s[l_max(U2s, U1s, U3s)],
+	# 				 phi2s[l_max(U2s, U1s, U3s)],
+	# 				 U2s[l_max(U2s, U1s, U3s)],
+	# 				 color='green')
+	# ax2.plot_trisurf(phi1s[l_max(U3s, U2s, U1s)],
+	# 				 phi2s[l_max(U3s, U2s, U1s)],
+	# 				 U3s[l_max(U3s, U2s, U1s)],
+	# 				 color='blue')
+	# ax2.plot_trisurf(phi1s, phi2s, U2s, color='green')
+	# ax2.plot_trisurf(phi1s, phi2s, U3s, color='blue')
+
+	ax2.plot_trisurf(phi1s, phi2s, U1s, color='red')
+	ax2.plot_trisurf(phi1s, phi2s, U2s, color='green')
+	ax2.plot_trisurf(phi1s, phi2s, U3s, color='blue')
+
+	ax1.set_xlabel(r'$\phi_1$')
+	ax1.set_ylabel(r'$\phi_2$')
+	ax2.set_xlabel(r'$\phi_1$')
+	ax2.set_ylabel(r'$\phi_2$')
+	ax1.set_title('social')
+	ax2.set_title('individual')
+	plt.show()
+	return
+
+
+def make_betas_dec(b0, kappas):
+	k1, k2, k3 = kappas
+	betas = [k1 * k1, k1 * k2, k1 * k3,
+			 k2 * k1, k2 * k2, k2 * k3,
+			 k3 * k1, k3 * k2, k3 * k3]
+	betas = [i * b0 for i in betas]
+	return betas
+
+
+def make_betas_net(b0, kappas):
 	k1, k2, k3 = kappas
 	betas = [k1, k1 * k2, k1 * k3,
 			 k2 * k1, k2, k2 * k3,
@@ -912,10 +1061,12 @@ def three_group():
 	# betas = make_betas(beta, kappas)
 	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 
-	kappas = [1, 0.6, 0.1]
-	betas = make_betas(beta, kappas)
+	kappas = [1, 0.8, 0.3]
+	# betas = make_betas_net(beta, kappas)
+	betas = make_betas_dec(beta, kappas)
 	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
-	three_group_phi_surface(betas, kappas, gamma=1 / 14, epsilon=0.0001)
+	# three_group_phi_surface(betas, kappas, gamma=1 / 14, epsilon=0.0001)
+	three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5771771080881023, p3=0.14607704672221766)
 
 	# kappas = [1, 0.9, 0.2]
 	# betas = make_betas(beta, kappas)
@@ -930,15 +1081,15 @@ def main():
 	# one_group_comparison()
 	# separable_two_group_POA_comparison(beta1=4 / 14, beta2=1 / 14, gamma=1 / 14, epsilon=0.0001,
 	# 								   payment_ratio=50.22135161418591)
-	separable_three_group_POA_comparison(beta1=5 / 14, beta2=4 / 14, beta3=3 / 14, gamma=1 / 14, epsilon=0.0001,
-										 p2=0.5, p3=0.3)
+	# separable_three_group_POA_comparison(beta1=8 / 14, beta2=7 / 14, beta3=6 / 14, gamma=1 / 14, epsilon=0.0001,
+	# 									 p2=0.9, p3=0.7)
 	# two_group_comparison(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3)
 	# two_group_utility_cvxpy(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, payment2=1.1)
 
 	# two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.5)
 
 	# three_group_feasibility_scatter(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.4, phi2=0.3)
-	# three_group()
+	three_group()
 	return
 
 
