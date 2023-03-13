@@ -28,7 +28,7 @@ def f_plotter(beta, gamma, epsilon):
 
 
 def main():
-	f_plotter(beta=2 / 14, gamma=1 / 14, epsilon=0.0001)
+	f_plotter(beta=4 / 14, gamma=1 / 14, epsilon=0.0001)
 	return
 
 
