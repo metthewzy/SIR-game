@@ -136,7 +136,7 @@ def two_group_POA_bound(b2, gamma, epsilon):
 	POAs = []
 	POA_bounds = []
 	R0s = []
-	with concurrent.futures.ProcessPoolExecutor(max_workers=18) as executor:
+	with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
 		results = [executor.submit(worst_POA_comparison, R0, b2, gamma, epsilon) for R0 in R0_range]
 		for f in concurrent.futures.as_completed(results):
 			R0, POA, POA_bound = f.result()
@@ -156,7 +156,7 @@ def two_group_POA_bound(b2, gamma, epsilon):
 	ax1.plot(R0s, [POA_bound / POA for POA_bound, POA in zip(POA_bounds, POAs)], marker='o', label='bound/actual')
 	ax1.axhline(1, color='grey', linestyle=':')
 	ax1.set_xlabel(r"$R_0$")
-	ax1.set_title("POA bound / POA")
+	ax1.set_title("POA / POA bound")
 	# ax1.plot(R0_range, POAs, label='POA')
 	# ax1.plot(R0_range, POA_bounds, label='bound')
 	# ax1.legend()
