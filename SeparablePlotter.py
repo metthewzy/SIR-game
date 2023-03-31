@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
-from ConvexProgram import one_group_binary_search
+from ConvexProgram import one_group_binary_search, separable_two_group_POA_comparison
+import concurrent.futures
 
 phi_step = 0.001
 
@@ -91,7 +92,7 @@ def two_group_POA_plotter(b1, b2, gamma, epsilon):
 	UG2s = [p2 * S2 for S2 in S2s]
 	social = [UG1 + UG2 for UG1, UG2 in zip(UG2s, UG1s)]
 
-	fig = plt.figure(figsize=(10, 5))
+	fig = plt.figure(figsize=(9, 4))
 	ax1 = fig.add_subplot(121)
 
 	ax1.plot(phi1_range, UG1s, label='Group 1')
@@ -120,6 +121,47 @@ def two_group_POA_plotter(b1, b2, gamma, epsilon):
 	fig.savefig('SeparablePOA.png')
 	# plt.show()
 	return
+
+
+def two_group_POA_bound(b2, gamma, epsilon):
+	"""
+	Compare the POA with the bound
+	"""
+	R0_range = np.arange(1, 10.01, 0.25)
+	POAs = []
+	POA_bounds = []
+	R0s = []
+	with concurrent.futures.ProcessPoolExecutor(max_workers=18) as executor:
+		results = [executor.submit(worst_POA_comparison, R0, b2, gamma, epsilon) for R0 in R0_range]
+		for f in concurrent.futures.as_completed(results):
+			R0, POA, POA_bound = f.result()
+			R0s.append(R0)
+			POAs.append(POA)
+			POA_bounds.append(POA_bound)
+	R0s, POAs, POA_bounds = zip(*sorted(zip(R0s, POAs, POA_bounds)))
+	# for R0 in R0_range:
+	# 	b1 = R0 * gamma
+	# 	p2 = one_group_binary_search(b1, gamma, epsilon, 1)
+	# 	POA, POA_bound = separable_two_group_POA_comparison(b1, b2, gamma, epsilon, p2, False)
+	# 	POAs.append(POA)
+	# 	POA_bounds.append(POA_bound)
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	ax1.plot(R0s, [POA_bound / POA for POA_bound, POA in zip(POA_bounds, POAs)], marker='o', label='bound/actual')
+	# ax1.plot(R0_range, POAs, label='POA')
+	# ax1.plot(R0_range, POA_bounds, label='bound')
+	ax1.legend()
+	plt.show()
+	return
+
+
+def worst_POA_comparison(R0, b2, gamma, epsilon):
+	b1 = R0 * gamma
+	# b2 = b1 * b_ratio
+	p2 = 1 / one_group_binary_search(b1, gamma, epsilon, 1)
+	POA, POA_bound = separable_two_group_POA_comparison(b1, b2, gamma, epsilon, p2, False)
+	return R0, POA, POA_bound
 
 
 def three_group_social(b1, b2, b3, gamma, epsilon, p2, p3):
@@ -231,7 +273,8 @@ def main():
 
 	# one_group_derivative(beta=2 / 14, gamma=1 / 14, epsilon=0.0001)
 	# two_group_social(b1=5 / 14, b2=4 / 14, gamma=1 / 14, epsilon=0.0001, p2=0.8)
-	two_group_POA_plotter(b1=2 / 14, b2=4 / 14, gamma=1 / 14, epsilon=0.0001)
+	# two_group_POA_plotter(b1=2 / 14, b2=4 / 14, gamma=1 / 14, epsilon=0.0001)
+	two_group_POA_bound(b2=0.5/14, gamma=1 / 14, epsilon=0.0001)
 	# three_group_social(b1=8 / 14, b2=7 / 14, b3=6 / 14, gamma=1 / 14, epsilon=0.0001, p2=1, p3=1)
 	return
 

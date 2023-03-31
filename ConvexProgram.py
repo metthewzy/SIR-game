@@ -148,8 +148,8 @@ def one_group_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, phi=0.5):
 	"""
 	s1 = cp.Variable()
 	constraints = [s1 >= 0,
-				   s1 <= 1 - epsilon,
-				   s1 - (1 - epsilon) * cp.exp(phi * beta / gamma * (s1 - 1)) >= 0]
+	               s1 <= 1 - epsilon,
+	               s1 - (1 - epsilon) * cp.exp(phi * beta / gamma * (s1 - 1)) >= 0]
 	obj = cp.Minimize(s1)
 	prob = cp.Problem(obj, constraints)
 	prob.solve()
@@ -173,13 +173,13 @@ def two_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.5):
 	s10 = (1 - epsilon) * phi1
 	s20 = (1 - epsilon) * phi2
 	constraints = [s1 >= 0,
-				   s1 <= s10,
-				   s2 >= 0,
-				   s2 <= s20,
-				   s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
-									 b12 / gamma * (s2 - s20)) >= 0,
-				   s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
-									 b22 / gamma * (s2 - s20)) >= 0]
+	               s1 <= s10,
+	               s2 >= 0,
+	               s2 <= s20,
+	               s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
+	                                 b12 / gamma * (s2 - s20)) >= 0,
+	               s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
+	                                 b22 / gamma * (s2 - s20)) >= 0]
 	obj = cp.Minimize(s1 + s2)
 	prob = cp.Problem(obj, constraints)
 	prob.solve()
@@ -201,20 +201,20 @@ def three_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.4, phi2=0.3, p
 	s20 = (1 - epsilon) * phi2
 	s30 = (1 - epsilon) * phi3
 	constraints = [s1 >= 0,
-				   s1 <= s10,
-				   s2 >= 0,
-				   s2 <= s20,
-				   s3 >= 0,
-				   s3 <= s30,
-				   s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
-									 b12 / gamma * (s2 - s20) +
-									 b13 / gamma * (s3 - s30)) >= 0,
-				   s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
-									 b22 / gamma * (s2 - s20) +
-									 b23 / gamma * (s3 - s30)) >= 0,
-				   s3 - s30 * cp.exp(b31 / gamma * (s1 - s10) +
-									 b32 / gamma * (s2 - s20) +
-									 b33 / gamma * (s3 - s30)) >= 0]
+	               s1 <= s10,
+	               s2 >= 0,
+	               s2 <= s20,
+	               s3 >= 0,
+	               s3 <= s30,
+	               s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
+	                                 b12 / gamma * (s2 - s20) +
+	                                 b13 / gamma * (s3 - s30)) >= 0,
+	               s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
+	                                 b22 / gamma * (s2 - s20) +
+	                                 b23 / gamma * (s3 - s30)) >= 0,
+	               s3 - s30 * cp.exp(b31 / gamma * (s1 - s10) +
+	                                 b32 / gamma * (s2 - s20) +
+	                                 b33 / gamma * (s3 - s30)) >= 0]
 	obj = cp.Minimize(s1 + s2 + s3)
 	prob = cp.Problem(obj, constraints)
 	prob.solve()
@@ -224,25 +224,42 @@ def three_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.4, phi2=0.3, p
 	return s1.value, s2.value, s3.value
 
 
-def separable_two_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, gamma=1 / 14, epsilon=0.0001, payment_ratio=2.0):
+def separable_two_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, gamma=1 / 14, epsilon=0.0001, payment_ratio=2.0,
+                                       printout=True):
 	"""
 	compare POA of 2-group separable
 	"""
 	R1 = beta1 / gamma
 	R2 = beta2 / gamma
-	phi_range = np.arange(phi_step, 1, phi_step)
-	S1s = []
-	S2s = []
-	for phi in phi_range:
+	phi_range = np.arange(0, 1 + phi_step, phi_step)
+	S1s = [0]
+	S2s = [one_group_cvxpy(beta2, gamma, epsilon, 1)]
+	UG1s = [S1s[-1] * payment_ratio]
+	UG2s = [S2s[-1]]
+	U1s = [payment_ratio]
+	U2s = [S2s[-1]]
+	for phi in phi_range[1:-1]:
 		S1s.append(one_group_cvxpy(beta1, gamma, epsilon, phi))
 		S2s.append(one_group_cvxpy(beta2, gamma, epsilon, 1 - phi))
+		UG1s.append(S1s[-1] * payment_ratio)
+		UG2s.append(S2s[-1])
+		U1s.append(UG1s[-1] / phi)
+		U2s.append(UG2s[-1] / (1 - phi))
+
+	S1s.append(one_group_cvxpy(beta1, gamma, epsilon, 1))
+	S2s.append(0)
+	UG1s.append(S1s[-1] * payment_ratio)
+	UG2s.append(S2s[-1])
+	U1s.append(UG1s[-1])
+	U2s.append(1)
 	# POA, idx = separable_POA_searcher(beta1, beta2, gamma, epsilon, phi_range, S1s, S2s, payment_ratio)
 
 	# payment_ratio = 17
-	UG1s = [S1 * payment_ratio for S1 in S1s]
-	UG2s = [S2 for S2 in S2s]
-	U1s = [UG1 / phi for UG1, phi in zip(UG1s, phi_range)]
-	U2s = [UG2 / (1 - phi) for UG2, phi in zip(UG2s, phi_range)]
+
+	# UG1s.extend([S1 * payment_ratio for S1 in S1s])
+	# UG2s.extend([S2 for S2 in S2s])
+	# U1s = [UG1 / phi for UG1, phi in zip(UG1s, phi_range)]
+	# U2s = [UG2 / (1 - phi) for UG2, phi in zip(UG2s, phi_range)]
 	social = [UG1 + UG2 for UG1, UG2 in zip(UG1s, UG2s)]
 
 	# compute OPT
@@ -256,8 +273,8 @@ def separable_two_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, gamma=1 / 14,
 		social_max = max(social)
 		idx_max = social.index(social_max)
 		m = phi_range[idx_max]
-		l = phi_range[idx_max - 1]
-		r = phi_range[idx_max + 1]
+		l = phi_range[max(idx_max - 5, 0)]
+		r = phi_range[min(idx_max + 5, len(phi_range) - 1)]
 		# l = phi_range[0]
 		# r = phi_range[-1]
 		# m = (l + r) / 2
@@ -276,32 +293,34 @@ def separable_two_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, gamma=1 / 14,
 		m = (l + r) / 2
 		phi_NE, NE = separable_NE_searcher(beta1, beta2, gamma, epsilon, payment_ratio, l, r, m)
 
-	# plot
-	fig = plt.figure()
-	ax1 = fig.add_subplot(121)
-	ax2 = fig.add_subplot(122)
-	ax1.plot(phi_range, UG1s, label='1')
-	ax1.plot(phi_range, UG2s, label='2')
-	ax1.plot(phi_range, social, label='social')
-	ax2.plot(phi_range, U1s, label='1')
-	ax2.plot(phi_range, U2s, label='2')
-	ax1.axvline(phi_OPT, linestyle=':', color='grey')
-	ax1.axhline(OPT, linestyle=':', color='grey')
-	ax2.axvline(phi_NE, linestyle=':', color='grey')
-	ax2.axhline(NE, linestyle=':', color='grey')
-	ax1.legend()
-	ax2.legend()
 	POA = OPT / NE
-	print("POA simulated=\n", POA)
-	print("POA bound=\n", np.exp(R1) / R1 + 1 / R2 - 1)
-	print((S2s[-1] / (1 - phi_range[-1])) / (S1s[-1] / phi_range[-1]))
-	print(OPT)
-	plt.show()
-	return
+	POA_bound = np.exp(R1) / R1 / (1 - epsilon)
+	# plot
+	if printout or POA > POA_bound:
+		fig = plt.figure()
+		ax1 = fig.add_subplot(121)
+		ax2 = fig.add_subplot(122)
+		ax1.plot(phi_range, UG1s, label='1')
+		ax1.plot(phi_range, UG2s, label='2')
+		ax1.plot(phi_range, social, label='social')
+		ax2.plot(phi_range, U1s, label='1')
+		ax2.plot(phi_range, U2s, label='2')
+		ax1.axvline(phi_OPT, linestyle=':', color='grey')
+		ax1.axhline(OPT, linestyle=':', color='grey')
+		ax2.axvline(phi_NE, linestyle=':', color='grey')
+		ax2.axhline(NE, linestyle=':', color='grey')
+		ax1.legend()
+		ax2.legend()
+		print("POA simulated=\n", POA)
+		print("POA bound=\n", POA_bound)
+		# print((S2s[-1] / (1 - phi_range[-1])) / (S1s[-1] / phi_range[-1]))
+		# print(OPT)
+		plt.show()
+	return POA, POA_bound
 
 
 def separable_three_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, beta3=1 / 14, gamma=1 / 14, epsilon=0.0001, p2=0.5,
-										 p3=0.3):
+                                         p3=0.3):
 	phi_range = [i / phi_steps_3D_sep for i in range(1, phi_steps_3D_sep)]
 	S1s = [0]
 	S2s = [0]
@@ -1009,8 +1028,8 @@ def three_group_utility(b, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5, p3=0.5)
 def make_betas_dec(b0, kappas):
 	k1, k2, k3 = kappas
 	betas = [k1 * k1, k1 * k2, k1 * k3,
-			 k2 * k1, k2 * k2, k2 * k3,
-			 k3 * k1, k3 * k2, k3 * k3]
+	         k2 * k1, k2 * k2, k2 * k3,
+	         k3 * k1, k3 * k2, k3 * k3]
 	betas = [i * b0 for i in betas]
 	return betas
 
@@ -1018,8 +1037,8 @@ def make_betas_dec(b0, kappas):
 def make_betas_net(b0, kappas):
 	k1, k2, k3 = kappas
 	betas = [k1, k1 * k2, k1 * k3,
-			 k2 * k1, k2, k2 * k3,
-			 k3 * k1, k3 * k2, k3]
+	         k2 * k1, k2, k2 * k3,
+	         k3 * k1, k3 * k2, k3]
 	betas = [i * b0 for i in betas]
 	return betas
 
@@ -1080,8 +1099,8 @@ def three_group():
 
 def main():
 	# one_group_comparison()
-	# separable_two_group_POA_comparison(beta1=4 / 14, beta2=1 / 14, gamma=1 / 14, epsilon=0.0001,
-	# 								   payment_ratio=50.22135161418591)
+	separable_two_group_POA_comparison(beta1=4 / 14, beta2=1 / 14, gamma=1 / 14, epsilon=0.0001,
+	                                   payment_ratio=50.22135161418591, printout=True)
 	# separable_three_group_POA_comparison(beta1=8 / 14, beta2=7 / 14, beta3=6 / 14, gamma=1 / 14, epsilon=0.0001,
 	# 									 p2=0.9, p3=0.7)
 	# two_group_comparison(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3)
@@ -1090,7 +1109,7 @@ def main():
 	# two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.5)
 
 	# three_group_feasibility_scatter(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.4, phi2=0.3)
-	three_group()
+	# three_group()
 	return
 
 
