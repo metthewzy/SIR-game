@@ -146,13 +146,18 @@ def two_group_POA_bound(b2, gamma, epsilon):
 	# 	POAs.append(POA)
 	# 	POA_bounds.append(POA_bound)
 
-	fig = plt.figure()
+	fig = plt.figure(figsize=(6, 4))
 	ax1 = fig.add_subplot()
 	ax1.plot(R0s, [POA_bound / POA for POA_bound, POA in zip(POA_bounds, POAs)], marker='o', label='bound/actual')
+	ax1.axhline(1, color='grey', linestyle=':')
+	ax1.set_xlabel(r"$R_1$")
+	ax1.set_title("POA bound / POA")
 	# ax1.plot(R0_range, POAs, label='POA')
 	# ax1.plot(R0_range, POA_bounds, label='bound')
-	ax1.legend()
-	plt.show()
+	# ax1.legend()
+	plt.tight_layout()
+	fig.savefig('SeparablePOA_bound_ratio.png')
+	# plt.show()
 	return
 
 
