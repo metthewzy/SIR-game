@@ -114,11 +114,16 @@ def two_group_POA_plotter(b1, b2, gamma, epsilon):
 	ax2.legend()
 	ax1.set_xlim(0, 1)
 	ax2.set_xlim(0, 1)
-	ax1.set_ylim(0, 1.05)
+
+	u, l = ax1.get_ylim()
+	ax1.set_ylim(0, l)
 	ax2.set_ylim(0, 1.05)
 
 	plt.tight_layout()
 	fig.savefig('SeparablePOA.png')
+	R0, POA, POA_bound = worst_POA_comparison(b1 / gamma, b2, gamma, epsilon)
+	print(f'POA=\n{round(1 / POA, 5)}')
+	print(f'POA bound=\n{round(1 / POA_bound, 5)}')
 	# plt.show()
 	return
 
@@ -150,7 +155,7 @@ def two_group_POA_bound(b2, gamma, epsilon):
 	ax1 = fig.add_subplot()
 	ax1.plot(R0s, [POA_bound / POA for POA_bound, POA in zip(POA_bounds, POAs)], marker='o', label='bound/actual')
 	ax1.axhline(1, color='grey', linestyle=':')
-	ax1.set_xlabel(r"$R_1$")
+	ax1.set_xlabel(r"$R_0$")
 	ax1.set_title("POA bound / POA")
 	# ax1.plot(R0_range, POAs, label='POA')
 	# ax1.plot(R0_range, POA_bounds, label='bound')
@@ -278,7 +283,7 @@ def main():
 
 	# one_group_derivative(beta=2 / 14, gamma=1 / 14, epsilon=0.0001)
 	# two_group_social(b1=5 / 14, b2=4 / 14, gamma=1 / 14, epsilon=0.0001, p2=0.8)
-	# two_group_POA_plotter(b1=2 / 14, b2=4 / 14, gamma=1 / 14, epsilon=0.0001)
+	# two_group_POA_plotter(b1=5 / 14, b2=0.5 / 14, gamma=1 / 14, epsilon=0.0001)
 	two_group_POA_bound(b2=0.5/14, gamma=1 / 14, epsilon=0.0001)
 	# three_group_social(b1=8 / 14, b2=7 / 14, b3=6 / 14, gamma=1 / 14, epsilon=0.0001, p2=1, p3=1)
 	return
