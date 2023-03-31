@@ -34,6 +34,7 @@ def one_group_derivative(beta, gamma, epsilon):
 
 def two_group_social(b1, b2, gamma, epsilon, p2):
 	phi1_range = np.arange(phi_step, 1, phi_step)
+	phi1_range = np.arange(0, 1 + phi_step, phi_step)
 	U1s = []
 	U2s = []
 	social = []
@@ -53,6 +54,71 @@ def two_group_social(b1, b2, gamma, epsilon, p2):
 	ax1.axvline(gamma / b1, linestyle=':', color='blue')
 	ax1.legend()
 	plt.show()
+	return
+
+
+def two_group_POA_plotter(b1, b2, gamma, epsilon):
+	"""
+	Plot the worst POA
+	"""
+	# phi1_range = np.arange(phi_step, 1, phi_step)
+	phi1_range = np.arange(0, 1 + phi_step, phi_step)
+	S1s = [0]
+	S1_by_phis = [1]
+	S2 = one_group_binary_search(b2, gamma, epsilon, 1)
+	S2s = [S2]
+	S2_by_phis = [S2]
+	for phi1 in phi1_range[1:-1]:
+		phi2 = 1 - phi1
+		S1 = one_group_binary_search(b1, gamma, epsilon, phi1)
+		S2 = one_group_binary_search(b2, gamma, epsilon, phi2)
+		S1s.append(S1)
+		S2s.append(S2)
+		S1_by_phis.append(S1 / phi1)
+		S2_by_phis.append(S2 / phi2)
+
+	S1 = one_group_binary_search(b1, gamma, epsilon, 1)
+	S1s.append(S1)
+	S1_by_phis.append(S1)
+	S2s.append(0)
+	S2_by_phis.append(1)
+
+	p2 = S1_by_phis[-1] / S2_by_phis[-1]
+	print(f"p2={round(p2, 5)}")
+	U1s = S1_by_phis.copy()
+	UG1s = S1s.copy()
+	U2s = [p2 * S2_by_phi for S2_by_phi in S2_by_phis]
+	UG2s = [p2 * S2 for S2 in S2s]
+	social = [UG1 + UG2 for UG1, UG2 in zip(UG2s, UG1s)]
+
+	fig = plt.figure(figsize=(10, 5))
+	ax1 = fig.add_subplot(121)
+
+	ax1.plot(phi1_range, UG1s, label='Group 1')
+	ax1.plot(phi1_range, UG2s, label='Group 2')
+	ax1.plot(phi1_range, social, label='Social')
+	ax1.axhline(max(social), color='red', linestyle='--', label='OPT')
+	ax1.axhline(social[-1], color='grey', linestyle='--', label='NE')
+	ax1.axvline(phi1_range[social.index(max(social))], color='red', linestyle=':')
+	ax1.set_xlabel(r"$\phi_1$")
+	ax1.set_title('Group utility')
+	ax1.legend()
+
+	ax2 = fig.add_subplot(122)
+	ax2.plot(phi1_range, U1s, label='Group 1')
+	ax2.plot(phi1_range, U2s, label='Group 2')
+	ax2.axvline(phi1_range[social.index(max(social))], color='red', linestyle=':')
+	ax2.set_xlabel(r"$\phi_1$")
+	ax2.set_title('Individual utility')
+	ax2.legend()
+	ax1.set_xlim(0, 1)
+	ax2.set_xlim(0, 1)
+	ax1.set_ylim(0, 1.05)
+	ax2.set_ylim(0, 1.05)
+
+	plt.tight_layout()
+	fig.savefig('SeparablePOA.png')
+	# plt.show()
 	return
 
 
@@ -165,7 +231,8 @@ def main():
 
 	# one_group_derivative(beta=2 / 14, gamma=1 / 14, epsilon=0.0001)
 	# two_group_social(b1=5 / 14, b2=4 / 14, gamma=1 / 14, epsilon=0.0001, p2=0.8)
-	three_group_social(b1=8 / 14, b2=7 / 14, b3=6 / 14, gamma=1 / 14, epsilon=0.0001, p2=1, p3=1)
+	two_group_POA_plotter(b1=2 / 14, b2=4 / 14, gamma=1 / 14, epsilon=0.0001)
+	# three_group_social(b1=8 / 14, b2=7 / 14, b3=6 / 14, gamma=1 / 14, epsilon=0.0001, p2=1, p3=1)
 	return
 
 
