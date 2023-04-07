@@ -1025,6 +1025,69 @@ def three_group_utility(b, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5, p3=0.5)
 	return
 
 
+def three_group_monotone_test(b, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5, p3=0.5):
+	"""
+	testing the monotonicity of individual utility between random pairs
+	"""
+	phi_list = []
+
+	for i in range(1, phi_steps_3D):
+		for j in range(1, phi_steps_3D):
+			k = phi_steps_3D - i - j
+			if k <= 0:
+				continue
+			phi1 = i / phi_steps_3D
+			phi2 = j / phi_steps_3D
+			phi3 = k / phi_steps_3D
+			phis = [phi1, phi2, phi3]
+			phi_list.append(phis)
+
+	counter = 0
+	for i in range(1000):
+		P = np.random.randint(0, len(phi_list))
+		Q = np.random.randint(0, len(phi_list))
+		while Q == P:
+			Q = np.random.randint(0, len(phi_list))
+
+		P = phi_list[P]
+		P1, P2, P3 = P
+		Q = phi_list[Q]
+		Q1, Q2, Q3 = Q
+		S1P, S2P, S3P = three_group_cvxpy(b, gamma, epsilon, P1, P2, P3)
+		S1Q, S2Q, S3Q = three_group_cvxpy(b, gamma, epsilon, Q1, Q2, Q3)
+		U1P = S1P / P1
+		U1Q = S1Q / Q1
+		U1_low = min(U1P, U1Q)
+		U1_high = max(U1P, U1Q)
+		U1Rs = []
+		# print(P1, P2, P3)
+		# print(Q1, Q2, Q3)
+		for t in range(1, 50):
+			R1 = (50 - t) / 50 * P1 + t / 50 * Q1
+			R2 = (50 - t) / 50 * P2 + t / 50 * Q2
+			R3 = (50 - t) / 50 * P3 + t / 50 * Q3
+			# print(R1, R2, R3)
+			S1R, S2R, S3R = three_group_cvxpy(b, gamma, epsilon, R1, R2, R3)
+			U1R = S1R / R1
+			U1Rs.append(U1R)
+
+		if min(U1Rs) < U1_low or max(U1Rs) > U1_high:
+			counter += 1
+			fig = plt.figure()
+			ax1 = fig.add_subplot()
+			ax1.axhline(U1_low, color='grey', linestyle=':')
+			ax1.axhline(U1_high, color='grey', linestyle=':')
+			ax1.plot(range(1, 50), U1Rs)
+			ax1.set_title(f'P={P}\nQ={Q}')
+			fig.savefig(f'bad instances/instance{counter:03}.png')
+			# plt.show()
+			plt.close(fig)
+		print(i)
+	print(f'bad instances:{counter}')
+
+	return
+
+
 def make_betas_dec(b0, kappas):
 	k1, k2, k3 = kappas
 	betas = [k1 * k1, k1 * k2, k1 * k3,
@@ -1085,7 +1148,8 @@ def three_group():
 	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	# three_group_phi_surface(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	# three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5771771080881023, p3=0.14607704672221766)
-	three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.8, p3=0.6)
+	# three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.8, p3=0.6)
+	three_group_monotone_test(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.8, p3=0.6)
 
 	# kappas = [1, 0.9, 0.2]
 	# betas = make_betas(beta, kappas)
