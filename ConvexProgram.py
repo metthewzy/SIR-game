@@ -1044,7 +1044,6 @@ def make_betas_net(b0, kappas):
 
 
 def three_group():
-	beta = 3 / 14
 
 	# betas = np.random.normal(beta, 0.2, 9)
 	# betas = [max(0.05, beta) for beta in betas]
@@ -1079,8 +1078,8 @@ def three_group():
 	# kappas = [1, 0.6, 0.4]
 	# betas = make_betas(beta, kappas)
 	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
-
-	kappas = [1, 0.8, 0.3]
+	beta = 3 / 14
+	kappas = [1, 0.8, 0.5]
 	# betas = make_betas_net(beta, kappas)
 	betas = make_betas_dec(beta, kappas)
 	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
@@ -1099,8 +1098,8 @@ def three_group():
 
 def main():
 	# one_group_comparison()
-	separable_two_group_POA_comparison(beta1=4 / 14, beta2=1 / 14, gamma=1 / 14, epsilon=0.0001,
-	                                   payment_ratio=50.22135161418591, printout=True)
+	# separable_two_group_POA_comparison(beta1=4 / 14, beta2=1 / 14, gamma=1 / 14, epsilon=0.0001,
+	#                                    payment_ratio=50.22135161418591, printout=True)
 	# separable_three_group_POA_comparison(beta1=8 / 14, beta2=7 / 14, beta3=6 / 14, gamma=1 / 14, epsilon=0.0001,
 	# 									 p2=0.9, p3=0.7)
 	# two_group_comparison(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3)
@@ -1109,7 +1108,7 @@ def main():
 	# two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.5)
 
 	# three_group_feasibility_scatter(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.4, phi2=0.3)
-	# three_group()
+	three_group()
 	return
 
 
