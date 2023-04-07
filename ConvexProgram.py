@@ -1142,7 +1142,7 @@ def three_group():
 	# betas = make_betas(beta, kappas)
 	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	beta = 3 / 14
-	kappas = [1, 0.8, 0.5]
+	kappas = [1, 0.5, 0.4]
 	# betas = make_betas_net(beta, kappas)
 	betas = make_betas_dec(beta, kappas)
 	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
