@@ -1148,8 +1148,8 @@ def three_group():
 	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	# three_group_phi_surface(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	# three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5771771080881023, p3=0.14607704672221766)
-	# three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.8, p3=0.6)
-	three_group_monotone_test(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.8, p3=0.6)
+	three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5, p3=0.4)
+	# three_group_monotone_test(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.8, p3=0.6)
 
 	# kappas = [1, 0.9, 0.2]
 	# betas = make_betas(beta, kappas)
