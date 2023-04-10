@@ -277,6 +277,44 @@ def f_plotter_trisurf(beta, gamma, epsilon):
 	return
 
 
+def SIR_plotter():
+	gamma = 1 / 10
+	epsilon = 0.0001
+	R0s = [2, 5, 5]
+	phis = [1, 1, 0.1]
+	T = 200
+	dt = 0.5
+	fig = plt.figure(figsize=(6, 8))
+	for i in range(len(R0s)):
+		R0 = R0s[i]
+		phi = phis[i]
+		beta = R0 * gamma
+		S = [phi * (1 - epsilon)]
+		I = [phi * epsilon]
+		R = [0]
+		t_range = np.arange(0, T + dt, dt)
+		for t in t_range[1:]:
+			dS = -beta * S[-1] * I[-1] * dt
+			dI = -dS - gamma * I[-1] * dt
+			dR = gamma * I[-1] * dt
+			S.append(S[-1] + dS)
+			I.append(I[-1] + dI)
+			R.append(R[-1] + dR)
+
+		ax1 = fig.add_subplot(3, 1, i+1)
+		ax1.plot(t_range, S, label='S')
+		ax1.plot(t_range, I, label='I')
+		ax1.plot(t_range, R, label='R')
+		ax1.set_xlabel('Time')
+		ax1.set_ylabel('Population')
+		ax1.legend()
+		ax1.set_title(rf'$\beta$={round(beta, 3)}, $\gamma$={round(gamma, 3)}, $\phi$={round(phi, 3)} ')
+	plt.tight_layout()
+	fig.savefig('SIR.png')
+	plt.close(fig)
+	return
+
+
 def main():
 	# f_plotter(beta=4 / 14, gamma=1 / 14, epsilon=0.0001)
 	# f_plotter_trisurf(beta=3 / 14, gamma=1 / 14, epsilon=0.0001)
@@ -284,8 +322,10 @@ def main():
 	# one_group_derivative(beta=2 / 14, gamma=1 / 14, epsilon=0.0001)
 	# two_group_social(b1=5 / 14, b2=4 / 14, gamma=1 / 14, epsilon=0.0001, p2=0.8)
 	# two_group_POA_plotter(b1=5 / 14, b2=0.5 / 14, gamma=1 / 14, epsilon=0.0001)
-	two_group_POA_bound(b2=0.5/14, gamma=1 / 14, epsilon=0.0001)
+	# two_group_POA_bound(b2=0.5 / 14, gamma=1 / 14, epsilon=0.0001)
 	# three_group_social(b1=8 / 14, b2=7 / 14, b3=6 / 14, gamma=1 / 14, epsilon=0.0001, p2=1, p3=1)
+
+	SIR_plotter()
 	return
 
 
