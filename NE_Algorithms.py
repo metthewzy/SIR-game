@@ -55,7 +55,6 @@ def two_group_f1_binary(b1, b2, gamma, phi1, phi2, p1, p2, U):
 		return -1
 	for _ in range(20):
 		m = (l + r) / 2
-		print(m)
 		f_m = two_group_f1(b1, b2, gamma, phi1, m, p1, p2, U)
 		if f_m * f_r > 0:
 			r = m
@@ -76,7 +75,6 @@ def two_group_f2_binary(b1, b2, gamma, phi1, phi2, p1, p2, U):
 		return -1
 	for _ in range(20):
 		m = (l + r) / 2
-		print(m)
 		f_m = two_group_f2(b1, b2, gamma, m, phi2, p1, p2, U)
 		if f_m * f_r > 0:
 			r = m
@@ -88,7 +86,7 @@ def two_group_f2_binary(b1, b2, gamma, phi1, phi2, p1, p2, U):
 	return m
 
 
-def two_group_binary(b=2 / 14, kappa=0.8, gamma=1 / 14, p1=1, p2=0.8,
+def two_group_feasibility(b=2 / 14, kappa=0.8, gamma=1 / 14, p1=1, p2=0.8,
 					 U=0.32):
 	b11 = b
 	b12 = b21 = kappa * b
@@ -140,7 +138,7 @@ def one_group(beta=2 / 14, gamma=1 / 14, p=2, U=1):
 def decomposable():
 	# one_group()
 	# two_group_f_plot()
-	two_group_binary()
+	two_group_feasibility()
 	return
 
 
