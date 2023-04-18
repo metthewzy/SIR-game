@@ -87,11 +87,11 @@ def two_group_f2_binary(b1, b2, gamma, phi1, phi2, p1, p2, U):
 
 
 def two_group_feasibility(b=2 / 14, kappa=0.8, gamma=1 / 14, p1=1, p2=0.8,
-					 U=0.32):
+					 U=0.65):
 	b11 = b
 	b12 = b21 = kappa * b
 	b22 = kappa * kappa * b
-	phi_range = np.arange(0.01, 1, 0.01)
+	phi_range = np.arange(0, 1.01, 0.01)
 
 	phi1_f1 = []
 	phi2_f1 = []
