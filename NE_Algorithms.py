@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from ConvexProgram import two_group_utility_cvxpy
+from matplotlib import cm
 
 epsilon = 0.0001
 
@@ -46,6 +47,41 @@ def two_group_f_plot(b=2 / 14, kappa=0.8, gamma=1 / 14, p1=1, p2=0.8,
 	return
 
 
+def two_group_f_3Dplot(b=2 / 14, kappa=0.2, gamma=1 / 14, p1=1, p2=0.9,
+					 # U=0.32765):
+					 U=0.2):
+	b11 = b
+	b12 = b21 = kappa * b
+	b22 = kappa * kappa * b
+	# two_group_utility_cvxpy(b, gamma, epsilon, kappa, p2)
+	phi_range = np.arange(0, 1.01, 0.05)
+	f1 = []
+	f2 = []
+	X = []
+	Y = []
+	for phi1 in phi_range:
+		for phi2 in phi_range:
+			X.append(phi1)
+			Y.append(phi2)
+			f1.append(two_group_f1(b11, b12, gamma, phi1, phi2, p1, p2, U))
+			f2.append(two_group_f2(b21, b22, gamma, phi1, phi2, p1, p2, U))
+	surface_max = [max(p1, p2) for p1, p2 in zip(f1, f2)]
+	fig = plt.figure()
+	ax1 = fig.add_subplot(121, projection='3d')
+
+	ax2 = fig.add_subplot(122, projection='3d')
+	ax1.plot_trisurf(X, Y, f1, color='red')
+	ax1.plot_trisurf(X, Y, f2, color='blue')
+	ax2.plot_trisurf(X, Y, surface_max, cmap=cm.coolwarm)
+	ax1.set_xlabel(r'$\phi_1$')
+	ax1.set_ylabel(r'$\phi_2$')
+	# ax2.set_xlabel(r'$\phi_1$')
+	# ax2.set_ylabel(r'$\phi_2$')
+	# ax1.legend()
+	plt.show()
+	return
+
+
 def two_group_f1_binary(b1, b2, gamma, phi1, phi2, p1, p2, U):
 	l = 0
 	r = 1
@@ -87,7 +123,7 @@ def two_group_f2_binary(b1, b2, gamma, phi1, phi2, p1, p2, U):
 
 
 def two_group_feasibility(b=2 / 14, kappa=0.8, gamma=1 / 14, p1=1, p2=0.8,
-					 U=0.65):
+					 U=0.32):
 	b11 = b
 	b12 = b21 = kappa * b
 	b22 = kappa * kappa * b
@@ -138,6 +174,7 @@ def one_group(beta=2 / 14, gamma=1 / 14, p=2, U=1):
 def decomposable():
 	# one_group()
 	# two_group_f_plot()
+	# two_group_f_3Dplot()
 	two_group_feasibility()
 	return
 
