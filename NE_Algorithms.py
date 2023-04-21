@@ -162,8 +162,8 @@ def two_group_f2_binary(b1, b2, gamma, phi1, phi2, p1, p2, U):
 	return m
 
 
-def two_group_feasibility(ax1, b=2 / 14, kappa=0.3, gamma=1 / 14, p1=1, p2=0.5,
-						  U=0.754, alpha=1):
+def two_group_feasibility_binary(ax1, b=2 / 14, kappa=0.3, gamma=1 / 14, p1=1, p2=0.5,
+								 U=0.754, c='r'):
 	b11 = b
 	b12 = b21 = kappa * b
 	b22 = kappa * kappa * b
@@ -187,8 +187,8 @@ def two_group_feasibility(ax1, b=2 / 14, kappa=0.3, gamma=1 / 14, p1=1, p2=0.5,
 
 	# fig = plt.figure()
 	# ax1 = fig.add_subplot()
-	ax1.plot(phi1_f1, phi2_f1, label='f1', color='red', alpha=alpha)
-	ax1.plot(phi1_f2, phi2_f2, label='f2', color='blue', alpha=alpha)
+	ax1.plot(phi1_f1, phi2_f1, label='f1', color=c)
+	ax1.plot(phi1_f2, phi2_f2, label='f2', color=c, linestyle='dashed')
 	return
 
 
@@ -241,7 +241,7 @@ def one_group(beta=2 / 14, gamma=1 / 14, p=2, U=1):
 	return
 
 
-def two_group_feasibility_family():
+def two_group_feasibility_family_linear():
 	Us = [0.2, 0.25, 0.3, 0.35, 0.4]
 	# alphas = [1, 0.6, 0.4]
 	colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
@@ -256,7 +256,24 @@ def two_group_feasibility_family():
 		ax1.axvline(1, color='grey', linestyle=':')
 		ax1.plot([0, 1], [1, 0], color='grey', linestyle=':')
 		plt.show()
+	return
 
+
+def two_group_feasibility_family_binary():
+	Us = [0.2, 0.25, 0.3, 0.35, 0.4]
+	# alphas = [1, 0.6, 0.4]
+	colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
+
+	for U, c in zip(Us, colors):
+		fig = plt.figure()
+		ax1 = fig.add_subplot()
+		two_group_feasibility_binary(ax1, b=2 / 14, kappa=0.3, gamma=1 / 14, p1=1, p2=0.5, U=U, c=c)
+		ax1.axhline(0, color='grey', linestyle=':')
+		ax1.axhline(1, color='grey', linestyle=':')
+		ax1.axvline(0, color='grey', linestyle=':')
+		ax1.axvline(1, color='grey', linestyle=':')
+		ax1.plot([0, 1], [1, 0], color='grey', linestyle=':')
+		plt.show()
 	return
 
 
@@ -264,7 +281,8 @@ def decomposable():
 	# one_group()
 	# two_group_f_plot()
 	# two_group_f_3Dplot()
-	two_group_feasibility_family()
+	two_group_feasibility_family_linear()
+	# two_group_feasibility_family_binary()
 	return
 
 

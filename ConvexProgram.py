@@ -148,8 +148,8 @@ def one_group_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, phi=0.5):
 	"""
 	s1 = cp.Variable()
 	constraints = [s1 >= 0,
-	               s1 <= 1 - epsilon,
-	               s1 - (1 - epsilon) * cp.exp(phi * beta / gamma * (s1 - 1)) >= 0]
+				   s1 <= 1 - epsilon,
+				   s1 - (1 - epsilon) * cp.exp(phi * beta / gamma * (s1 - 1)) >= 0]
 	obj = cp.Minimize(s1)
 	prob = cp.Problem(obj, constraints)
 	prob.solve()
@@ -173,13 +173,13 @@ def two_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.5):
 	s10 = (1 - epsilon) * phi1
 	s20 = (1 - epsilon) * phi2
 	constraints = [s1 >= 0,
-	               s1 <= s10,
-	               s2 >= 0,
-	               s2 <= s20,
-	               s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
-	                                 b12 / gamma * (s2 - s20)) >= 0,
-	               s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
-	                                 b22 / gamma * (s2 - s20)) >= 0]
+				   s1 <= s10,
+				   s2 >= 0,
+				   s2 <= s20,
+				   s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
+									 b12 / gamma * (s2 - s20)) >= 0,
+				   s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
+									 b22 / gamma * (s2 - s20)) >= 0]
 	obj = cp.Minimize(s1 + s2)
 	prob = cp.Problem(obj, constraints)
 	prob.solve()
@@ -201,20 +201,20 @@ def three_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.4, phi2=0.3, p
 	s20 = (1 - epsilon) * phi2
 	s30 = (1 - epsilon) * phi3
 	constraints = [s1 >= 0,
-	               s1 <= s10,
-	               s2 >= 0,
-	               s2 <= s20,
-	               s3 >= 0,
-	               s3 <= s30,
-	               s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
-	                                 b12 / gamma * (s2 - s20) +
-	                                 b13 / gamma * (s3 - s30)) >= 0,
-	               s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
-	                                 b22 / gamma * (s2 - s20) +
-	                                 b23 / gamma * (s3 - s30)) >= 0,
-	               s3 - s30 * cp.exp(b31 / gamma * (s1 - s10) +
-	                                 b32 / gamma * (s2 - s20) +
-	                                 b33 / gamma * (s3 - s30)) >= 0]
+				   s1 <= s10,
+				   s2 >= 0,
+				   s2 <= s20,
+				   s3 >= 0,
+				   s3 <= s30,
+				   s1 - s10 * cp.exp(b11 / gamma * (s1 - s10) +
+									 b12 / gamma * (s2 - s20) +
+									 b13 / gamma * (s3 - s30)) >= 0,
+				   s2 - s20 * cp.exp(b21 / gamma * (s1 - s10) +
+									 b22 / gamma * (s2 - s20) +
+									 b23 / gamma * (s3 - s30)) >= 0,
+				   s3 - s30 * cp.exp(b31 / gamma * (s1 - s10) +
+									 b32 / gamma * (s2 - s20) +
+									 b33 / gamma * (s3 - s30)) >= 0]
 	obj = cp.Minimize(s1 + s2 + s3)
 	prob = cp.Problem(obj, constraints)
 	prob.solve()
@@ -225,7 +225,7 @@ def three_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.4, phi2=0.3, p
 
 
 def separable_two_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, gamma=1 / 14, epsilon=0.0001, payment_ratio=2.0,
-                                       printout=True):
+									   printout=True):
 	"""
 	compare POA of 2-group separable
 	"""
@@ -320,7 +320,7 @@ def separable_two_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, gamma=1 / 14,
 
 
 def separable_three_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, beta3=1 / 14, gamma=1 / 14, epsilon=0.0001, p2=0.5,
-                                         p3=0.3):
+										 p3=0.3):
 	phi_range = [i / phi_steps_3D_sep for i in range(1, phi_steps_3D_sep)]
 	S1s = [0]
 	S2s = [0]
@@ -1010,10 +1010,15 @@ def three_group_utility(b, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5, p3=0.5)
 	# 				 color='blue')
 	# ax2.plot_trisurf(phi1s, phi2s, U2s, color='green')
 	# ax2.plot_trisurf(phi1s, phi2s, U3s, color='blue')
-
-	ax2.plot_trisurf(phi1s, phi2s, U1s, color='red')
-	ax2.plot_trisurf(phi1s, phi2s, U2s, color='green')
-	ax2.plot_trisurf(phi1s, phi2s, U3s, color='blue')
+	if len(phi1s[np.logical_and(U1s > U2s, U1s > U3s)]) > 0:
+		ax2.plot_trisurf(phi1s[np.logical_and(U1s > U2s, U1s > U3s)], phi2s[np.logical_and(U1s > U2s, U1s > U3s)],
+						 U1s[np.logical_and(U1s > U2s, U1s > U3s)], color='red')
+	if len(phi1s[np.logical_and(U2s > U1s, U2s > U3s)]) > 0:
+		ax2.plot_trisurf(phi1s[np.logical_and(U2s > U1s, U2s > U3s)], phi2s[np.logical_and(U2s > U1s, U2s > U3s)],
+						 U2s[np.logical_and(U2s > U1s, U2s > U3s)], color='green')
+	if len(phi1s[np.logical_and(U3s > U1s, U3s > U2s)]) > 0:
+		ax2.plot_trisurf(phi1s[np.logical_and(U3s > U1s, U3s > U2s)], phi2s[np.logical_and(U3s > U1s, U3s > U2s)],
+						 U3s[np.logical_and(U3s > U1s, U3s > U2s)], color='blue')
 
 	ax1.set_xlabel(r'$\phi_1$')
 	ax1.set_ylabel(r'$\phi_2$')
@@ -1091,8 +1096,8 @@ def three_group_monotone_test(b, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5, p
 def make_betas_dec(b0, kappas):
 	k1, k2, k3 = kappas
 	betas = [k1 * k1, k1 * k2, k1 * k3,
-	         k2 * k1, k2 * k2, k2 * k3,
-	         k3 * k1, k3 * k2, k3 * k3]
+			 k2 * k1, k2 * k2, k2 * k3,
+			 k3 * k1, k3 * k2, k3 * k3]
 	betas = [i * b0 for i in betas]
 	return betas
 
@@ -1100,14 +1105,13 @@ def make_betas_dec(b0, kappas):
 def make_betas_net(b0, kappas):
 	k1, k2, k3 = kappas
 	betas = [k1, k1 * k2, k1 * k3,
-	         k2 * k1, k2, k2 * k3,
-	         k3 * k1, k3 * k2, k3]
+			 k2 * k1, k2, k2 * k3,
+			 k3 * k1, k3 * k2, k3]
 	betas = [i * b0 for i in betas]
 	return betas
 
 
 def three_group():
-
 	# betas = np.random.normal(beta, 0.2, 9)
 	# betas = [max(0.05, beta) for beta in betas]
 
@@ -1142,13 +1146,13 @@ def three_group():
 	# betas = make_betas(beta, kappas)
 	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	beta = 3 / 14
-	kappas = [1, 0.5, 0.4]
+	kappas = [1, 0.4, 0.3]
 	# betas = make_betas_net(beta, kappas)
 	betas = make_betas_dec(beta, kappas)
 	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	# three_group_phi_surface(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	# three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5771771080881023, p3=0.14607704672221766)
-	three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5, p3=0.4)
+	three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.6, p3=0.5)
 	# three_group_monotone_test(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.8, p3=0.6)
 
 	# kappas = [1, 0.9, 0.2]
@@ -1167,12 +1171,12 @@ def main():
 	# separable_three_group_POA_comparison(beta1=8 / 14, beta2=7 / 14, beta3=6 / 14, gamma=1 / 14, epsilon=0.0001,
 	# 									 p2=0.9, p3=0.7)
 	# two_group_comparison(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3)
-	two_group_utility_cvxpy(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, payment2=0.8)
+	# two_group_utility_cvxpy(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, payment2=0.8)
 
 	# two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.5)
 
 	# three_group_feasibility_scatter(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.4, phi2=0.3)
-	# three_group()
+	three_group()
 	return
 
 
