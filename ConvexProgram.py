@@ -1167,12 +1167,12 @@ def main():
 	# separable_three_group_POA_comparison(beta1=8 / 14, beta2=7 / 14, beta3=6 / 14, gamma=1 / 14, epsilon=0.0001,
 	# 									 p2=0.9, p3=0.7)
 	# two_group_comparison(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3)
-	# two_group_utility_cvxpy(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, payment2=1.1)
+	two_group_utility_cvxpy(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, payment2=0.8)
 
 	# two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.5)
 
 	# three_group_feasibility_scatter(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.4, phi2=0.3)
-	three_group()
+	# three_group()
 	return
 
 

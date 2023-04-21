@@ -48,8 +48,8 @@ def two_group_f_plot(b=2 / 14, kappa=0.8, gamma=1 / 14, p1=1, p2=0.8,
 
 
 def two_group_f_3Dplot(b=2 / 14, kappa=0.2, gamma=1 / 14, p1=1, p2=0.9,
-					 # U=0.32765):
-					 U=0.2):
+					   # U=0.32765):
+					   U=0.2):
 	b11 = b
 	b12 = b21 = kappa * b
 	b22 = kappa * kappa * b
@@ -82,6 +82,46 @@ def two_group_f_3Dplot(b=2 / 14, kappa=0.2, gamma=1 / 14, p1=1, p2=0.9,
 	return
 
 
+def two_group_f1_phi1(b1, b2, gamma, phi1, phi2, p1, p2, U):
+	"""
+	Solve phi1 given phi2 in f1
+	"""
+	phi1 = (np.log(U / (1 - epsilon) / p1) -
+			b2 / gamma * (U / p2 - 1) * phi2) \
+		   / (b1 / gamma * (U / p1 - 1))
+	return phi1
+
+
+def two_group_f1_phi2(b1, b2, gamma, phi1, phi2, p1, p2, U):
+	"""
+	Solve phi2 given phi1 in f1
+	"""
+	phi2 = (np.log(U / (1 - epsilon) / p1) -
+			b1 / gamma * (U / p1 - 1) * phi1) \
+		   / (b2 / gamma * (U / p2 - 1))
+	return phi2
+
+
+def two_group_f2_phi2(b1, b2, gamma, phi1, phi2, p1, p2, U):
+	"""
+	Solve phi2 given phi1 in f2
+	"""
+	phi2 = (np.log(U / (1 - epsilon) / p2) -
+			b1 / gamma * (U / p1 - 1) * phi1) \
+		   / (b2 / gamma * (U / p2 - 1))
+	return phi2
+
+
+def two_group_f2_phi1(b1, b2, gamma, phi1, phi2, p1, p2, U):
+	"""
+	Solve phi1 given phi2 in f2
+	"""
+	phi1 = (np.log(U / (1 - epsilon) / p2) -
+			b2 / gamma * (U / p2 - 1) * phi2) \
+		   / (b1 / gamma * (U / p1 - 1))
+	return phi1
+
+
 def two_group_f1_binary(b1, b2, gamma, phi1, phi2, p1, p2, U):
 	l = 0
 	r = 1
@@ -89,7 +129,7 @@ def two_group_f1_binary(b1, b2, gamma, phi1, phi2, p1, p2, U):
 	f_r = two_group_f1(b1, b2, gamma, phi1, r, p1, p2, U)
 	if f_l * f_r > 0:
 		return -1
-	for _ in range(20):
+	for _ in range(40):
 		m = (l + r) / 2
 		f_m = two_group_f1(b1, b2, gamma, phi1, m, p1, p2, U)
 		if f_m * f_r > 0:
@@ -109,7 +149,7 @@ def two_group_f2_binary(b1, b2, gamma, phi1, phi2, p1, p2, U):
 	f_r = two_group_f2(b1, b2, gamma, r, phi2, p1, p2, U)
 	if f_l * f_r > 0:
 		return -1
-	for _ in range(20):
+	for _ in range(40):
 		m = (l + r) / 2
 		f_m = two_group_f2(b1, b2, gamma, m, phi2, p1, p2, U)
 		if f_m * f_r > 0:
@@ -122,8 +162,8 @@ def two_group_f2_binary(b1, b2, gamma, phi1, phi2, p1, p2, U):
 	return m
 
 
-def two_group_feasibility(b=2 / 14, kappa=0.8, gamma=1 / 14, p1=1, p2=0.8,
-					 U=0.32):
+def two_group_feasibility(ax1, b=2 / 14, kappa=0.3, gamma=1 / 14, p1=1, p2=0.5,
+						  U=0.754, alpha=1):
 	b11 = b
 	b12 = b21 = kappa * b
 	b22 = kappa * kappa * b
@@ -145,16 +185,46 @@ def two_group_feasibility(b=2 / 14, kappa=0.8, gamma=1 / 14, p1=1, p2=0.8,
 			phi1_f2.append(ret)
 			phi2_f2.append(phi2)
 
-	fig = plt.figure()
-	ax1 = fig.add_subplot()
-	ax1.plot(phi1_f1, phi2_f1, label='f1')
-	ax1.plot(phi1_f2, phi2_f2, label='f2')
-	ax1.axhline(0, color='grey', linestyle=':')
-	ax1.axhline(1, color='grey', linestyle=':')
-	ax1.axvline(0, color='grey', linestyle=':')
-	ax1.axvline(1, color='grey', linestyle=':')
-	ax1.legend()
-	plt.show()
+	# fig = plt.figure()
+	# ax1 = fig.add_subplot()
+	ax1.plot(phi1_f1, phi2_f1, label='f1', color='red', alpha=alpha)
+	ax1.plot(phi1_f2, phi2_f2, label='f2', color='blue', alpha=alpha)
+	return
+
+
+def two_group_feasibility_linear(ax1, b=2 / 14, kappa=0.3, gamma=1 / 14, p1=1, p2=0.5,
+								 U=0.754, alpha=1, c='r'):
+	b11 = b
+	b12 = b21 = kappa * b
+	b22 = kappa * kappa * b
+	phi_range = np.arange(0, 1.01, 0.01)
+
+	phi1_f1 = []
+	phi2_f1 = []
+	for phi2 in [0, 1]:
+		phi1 = two_group_f1_phi1(b11, b12, gamma, 0, phi2, p1, p2, U)
+		phi1_f1.append(phi1)
+		phi2_f1.append(phi2)
+	for phi1 in [0, 1]:
+		phi2 = two_group_f1_phi2(b11, b12, gamma, phi1, 0, p1, p2, U)
+		phi1_f1.append(phi1)
+		phi2_f1.append(phi2)
+
+	phi1_f2 = []
+	phi2_f2 = []
+	for phi1 in [0, 1]:
+		phi2 = two_group_f2_phi2(b21, b22, gamma, phi1, 0, p1, p2, U)
+		phi1_f2.append(phi1)
+		phi2_f2.append(phi2)
+	for phi2 in [0, 1]:
+		phi1 = two_group_f2_phi1(b21, b22, gamma, 0, phi2, p1, p2, U)
+		phi1_f2.append(phi1)
+		phi2_f2.append(phi2)
+
+	# fig = plt.figure()
+	# ax1 = fig.add_subplot()
+	ax1.plot(phi1_f1, phi2_f1, label='f1', color=c, alpha=alpha)
+	ax1.plot(phi1_f2, phi2_f2, label='f2', color=c, alpha=alpha, linestyle='dashed')
 	return
 
 
@@ -171,11 +241,30 @@ def one_group(beta=2 / 14, gamma=1 / 14, p=2, U=1):
 	return
 
 
+def two_group_feasibility_family():
+	Us = [0.2, 0.25, 0.3, 0.35, 0.4]
+	# alphas = [1, 0.6, 0.4]
+	colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
+
+	for U, c in zip(Us, colors):
+		fig = plt.figure()
+		ax1 = fig.add_subplot()
+		two_group_feasibility_linear(ax1, b=2 / 14, kappa=0.3, gamma=1 / 14, p1=1, p2=0.5, U=U, c=c)
+		ax1.axhline(0, color='grey', linestyle=':')
+		ax1.axhline(1, color='grey', linestyle=':')
+		ax1.axvline(0, color='grey', linestyle=':')
+		ax1.axvline(1, color='grey', linestyle=':')
+		ax1.plot([0, 1], [1, 0], color='grey', linestyle=':')
+		plt.show()
+
+	return
+
+
 def decomposable():
 	# one_group()
 	# two_group_f_plot()
 	# two_group_f_3Dplot()
-	two_group_feasibility()
+	two_group_feasibility_family()
 	return
 
 
