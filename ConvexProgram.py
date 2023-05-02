@@ -1008,17 +1008,23 @@ def three_group_utility(b, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5, p3=0.5)
 	# 				 phi2s[l_max(U3s, U2s, U1s)],
 	# 				 U3s[l_max(U3s, U2s, U1s)],
 	# 				 color='blue')
-	# ax2.plot_trisurf(phi1s, phi2s, U2s, color='green')
-	# ax2.plot_trisurf(phi1s, phi2s, U3s, color='blue')
-	if len(phi1s[np.logical_and(U1s > U2s, U1s > U3s)]) > 0:
-		ax2.plot_trisurf(phi1s[np.logical_and(U1s > U2s, U1s > U3s)], phi2s[np.logical_and(U1s > U2s, U1s > U3s)],
-						 U1s[np.logical_and(U1s > U2s, U1s > U3s)], color='red')
-	if len(phi1s[np.logical_and(U2s > U1s, U2s > U3s)]) > 0:
-		ax2.plot_trisurf(phi1s[np.logical_and(U2s > U1s, U2s > U3s)], phi2s[np.logical_and(U2s > U1s, U2s > U3s)],
-						 U2s[np.logical_and(U2s > U1s, U2s > U3s)], color='green')
-	if len(phi1s[np.logical_and(U3s > U1s, U3s > U2s)]) > 0:
-		ax2.plot_trisurf(phi1s[np.logical_and(U3s > U1s, U3s > U2s)], phi2s[np.logical_and(U3s > U1s, U3s > U2s)],
-						 U3s[np.logical_and(U3s > U1s, U3s > U2s)], color='blue')
+	ax2.plot_trisurf(phi1s, phi2s, U1s, color='red')
+	ax2.plot_trisurf(phi1s, phi2s, U2s, color='green')
+	ax2.plot_trisurf(phi1s, phi2s, U3s, color='blue')
+
+	# len1 = len(phi1s[np.logical_and(U1s > U2s, U1s > U3s)])
+	# len2 = len(phi1s[np.logical_and(U2s > U1s, U2s > U3s)])
+	# len3 = len(phi1s[np.logical_and(U3s > U1s, U3s > U2s)])
+	# print(len1, len2, len3)
+	# if len1 >= 3:
+	# 	ax2.plot_trisurf(phi1s[np.logical_and(U1s > U2s, U1s > U3s)], phi2s[np.logical_and(U1s > U2s, U1s > U3s)],
+	# 					 U1s[np.logical_and(U1s > U2s, U1s > U3s)], color='red')
+	# if len2 >= 3:
+	# 	ax2.plot_trisurf(phi1s[np.logical_and(U2s > U1s, U2s > U3s)], phi2s[np.logical_and(U2s > U1s, U2s > U3s)],
+	# 					 U2s[np.logical_and(U2s > U1s, U2s > U3s)], color='green')
+	# if len3 >= 3:
+	# 	ax2.plot_trisurf(phi1s[np.logical_and(U3s > U1s, U3s > U2s)], phi2s[np.logical_and(U3s > U1s, U3s > U2s)],
+	# 					 U3s[np.logical_and(U3s > U1s, U3s > U2s)], color='blue')
 
 	ax1.set_xlabel(r'$\phi_1$')
 	ax1.set_ylabel(r'$\phi_2$')
@@ -1111,6 +1117,21 @@ def make_betas_net(b0, kappas):
 	return betas
 
 
+def three_group_NE_maker(b, kappas, gamma=1 / 14, epsilon=0.0001):
+	phi1, phi2, phi3 = 0.5, 0.2, 0.3
+	k1, k2, k3 = kappas
+	S1, S2, S3 = three_group_cvxpy(b, gamma, epsilon, phi1, phi2, phi3)
+	p1 = 1
+	p2 = p1 * S1 / phi1 * phi2 / S2
+	p3 = p1 * S1 / phi1 * phi3 / S3
+	print(p1, p2, p3)
+	U = p1 * S1 / phi1
+	print(np.log(U / (1 - epsilon) / p1) / k1)
+	print(np.log(U / (1 - epsilon) / p2) / k2)
+	print(np.log(U / (1 - epsilon) / p3) / k3)
+	return
+
+
 def three_group():
 	# betas = np.random.normal(beta, 0.2, 9)
 	# betas = [max(0.05, beta) for beta in betas]
@@ -1146,13 +1167,15 @@ def three_group():
 	# betas = make_betas(beta, kappas)
 	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	beta = 3 / 14
-	kappas = [1, 0.4, 0.3]
+	kappas = [1, 0.9, 0.8]
 	# betas = make_betas_net(beta, kappas)
 	betas = make_betas_dec(beta, kappas)
+
 	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	# three_group_phi_surface(betas, kappas, gamma=1 / 14, epsilon=0.0001)
-	# three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5771771080881023, p3=0.14607704672221766)
-	three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.6, p3=0.5)
+	# three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.4732510087699757, p3=0.4252810735928513)
+	three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.9, p3=0.8)
+	# three_group_NE_maker(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	# three_group_monotone_test(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.8, p3=0.6)
 
 	# kappas = [1, 0.9, 0.2]
@@ -1171,7 +1194,7 @@ def main():
 	# separable_three_group_POA_comparison(beta1=8 / 14, beta2=7 / 14, beta3=6 / 14, gamma=1 / 14, epsilon=0.0001,
 	# 									 p2=0.9, p3=0.7)
 	# two_group_comparison(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3)
-	# two_group_utility_cvxpy(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, payment2=0.8)
+	# two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, payment2=0.6)
 
 	# two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.5)
 

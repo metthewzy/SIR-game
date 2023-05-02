@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from ConvexProgram import two_group_utility_cvxpy
 from matplotlib import cm
+import cvxpy as cp
 
 epsilon = 0.0001
 
@@ -277,12 +278,138 @@ def two_group_feasibility_family_binary():
 	return
 
 
+def three_group_cvxpy(U, p, b, kappa, gamma=1 / 14):
+	"""
+	minimization program for 3 group NE
+	"""
+	k1, k2, k3 = kappa
+	p1, p2, p3 = p
+	phi1 = cp.Variable()
+	phi2 = cp.Variable()
+	phi3 = cp.Variable()
+	b11 = b * k1 * k1
+	b12 = b * k1 * k2
+	b13 = b * k1 * k3
+	b21 = b * k2 * k1
+	b22 = b * k2 * k2
+	b23 = b * k2 * k3
+	b31 = b * k3 * k1
+	b32 = b * k3 * k2
+	b33 = b * k3 * k3
+	obj = cp.Minimize(phi1 + phi2 + phi3)
+	constrainst = [phi1 >= 0,
+				   phi2 >= 0,
+				   phi3 >= 0,
+				   phi1 + phi2 + phi3 >= 1,
+				   U - (1 - epsilon) * p1 * cp.exp(b11 / gamma * phi1 * (U / p1 - 1) +
+												   b12 / gamma * phi2 * (U / p2 - 1) +
+												   b13 / gamma * phi3 * (U / p3 - 1)) >= 0,
+				   U - (1 - epsilon) * p2 * cp.exp(b21 / gamma * phi1 * (U / p1 - 1) +
+												   b22 / gamma * phi2 * (U / p2 - 1) +
+												   b23 / gamma * phi3 * (U / p3 - 1)) >= 0,
+				   U - (1 - epsilon) * p3 * cp.exp(b31 / gamma * phi1 * (U / p1 - 1) +
+												   b32 / gamma * phi2 * (U / p2 - 1) +
+												   b33 / gamma * phi3 * (U / p3 - 1)) >= 0
+				   ]
+	prob = cp.Problem(obj, constrainst)
+	prob.solve()
+	print('f1:')
+	print(U - (1 - epsilon) * p1 * np.exp(b11 / gamma * phi1.value * (U / p1 - 1) +
+										  b12 / gamma * phi2.value * (U / p2 - 1) +
+										  b13 / gamma * phi3.value * (U / p3 - 1)
+										  ))
+	print('f2:')
+	print(U - (1 - epsilon) * p2 * np.exp(b21 / gamma * phi1.value * (U / p1 - 1) +
+										  b22 / gamma * phi2.value * (U / p2 - 1) +
+										  b23 / gamma * phi3.value * (U / p3 - 1)
+										  ))
+	print('f3:')
+	print(U - (1 - epsilon) * p3 * np.exp(b31 / gamma * phi1.value * (U / p1 - 1) +
+										  b32 / gamma * phi2.value * (U / p2 - 1) +
+										  b33 / gamma * phi3.value * (U / p3 - 1)
+										  ))
+	print("status:", prob.status)
+	print("optimal value", prob.value)
+	print("optimal var", phi1.value, phi2.value, phi3.value)
+	return
+
+
+def two_group_cvxpy(U, p, b, kappa, gamma=1 / 14):
+	"""
+	minimization program for 2 group NE
+	"""
+	k1, k2 = kappa
+	p1, p2 = p
+	phi1 = cp.Variable()
+	phi2 = cp.Variable()
+	b11 = b * k1 * k1
+	b12 = b * k1 * k2
+	b21 = b * k2 * k1
+	b22 = b * k2 * k2
+
+	obj = cp.Minimize(phi1 + phi2)
+	constrainst = [phi1 >= 0,
+				   phi2 >= 0,
+				   # phi1 + phi2 <= 1,
+				   U - (1 - epsilon) * p1 * cp.exp(b11 / gamma * phi1 * (U / p1 - 1) +
+												   b12 / gamma * phi2 * (U / p2 - 1)) >= 0,
+				   U - (1 - epsilon) * p2 * cp.exp(b21 / gamma * phi1 * (U / p1 - 1) +
+												   b22 / gamma * phi2 * (U / p2 - 1)) >= 0
+				   ]
+	prob = cp.Problem(obj, constrainst)
+	prob.solve()
+	print('f1:')
+	print(U - (1 - epsilon) * p1 * np.exp(b11 / gamma * phi1.value * (U / p1 - 1) +
+										  b12 / gamma * phi2.value * (U / p2 - 1)))
+	print('f2:')
+	print(U - (1 - epsilon) * p2 * np.exp(b21 / gamma * phi1.value * (U / p1 - 1) +
+										  b22 / gamma * phi2.value * (U / p2 - 1)))
+	print("status:", prob.status)
+	print("optimal value", prob.value)
+	print("optimal var", phi1.value, phi2.value)
+	return
+
+
+def two_group_plot(U=0.48, p=[1, 0.6], b=3 / 14, kappa=[1, 0.3], gamma=1 / 14):
+	p1, p2 = p
+	k1, k2 = kappa
+	b11 = b * k1 * k1
+	b12 = b * k1 * k2
+	b21 = b * k2 * k1
+	b22 = b * k2 * k2
+	phi_range = np.arange(0, 1.01, 0.025)
+	fig = plt.figure()
+	ax1 = fig.add_subplot()
+	f1 = []
+	f2 = []
+	for phi1 in phi_range:
+		f1.append((np.log(U / (1 - epsilon) / p1) - b11 / gamma * (U / p1 - 1) * phi1) /
+				  (b12 / gamma * (U / p2 - 1))
+				  )
+		f2.append((np.log(U / (1 - epsilon) / p2) - b21 / gamma * (U / p1 - 1) * phi1) /
+				  (b22 / gamma * (U / p2 - 1))
+				  )
+	# ax1.scatter(phi1, phi2)
+	# ax1.scatter(X, Y)
+	ax1.plot([0, 1], [1, 0], c='red', linestyle=':',label='sum')
+	ax1.plot(phi_range, f1, label='f1')
+	ax1.plot(phi_range, f2, label='f2')
+	# ax1.set_xlim(0, 1)
+	# ax1.set_ylim(0, 1)
+	ax1.legend()
+	plt.show()
+	return
+
+
 def decomposable():
 	# one_group()
 	# two_group_f_plot()
 	# two_group_f_3Dplot()
-	two_group_feasibility_family_linear()
+	# two_group_feasibility_family_linear()
 	# two_group_feasibility_family_binary()
+	# three_group_cvxpy(U=0.42, p=[1, 0.6, 0.5], b=3 / 14, kappa=[1, 0.3, 0.2])
+	# two_group_cvxpy(U=0.48, p=[1, 0.6], b=3 / 14, kappa=[1, 0.3])
+	two_group_plot()
 	return
 
 
