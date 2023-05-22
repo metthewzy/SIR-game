@@ -85,8 +85,6 @@ def dQ_dk2(R0, R1, R2):
 
 def derivative_calculator(R0=2.0):
 	steps = 20
-	R1 = 1.5
-	R2 = 0.5
 	der1 = []
 	der2 = []
 	R1s = []
@@ -112,9 +110,42 @@ def derivative_calculator(R0=2.0):
 	return
 
 
+def Q(R0, R1, R2):
+	k1 = np.sqrt(R1 / R0)
+	k2 = np.sqrt(R2 / R0)
+	B = np.exp(R0) - (1 - epsilon) * R0
+	ret = ((1 - R2) * B ** k1 + (R1 - 1) * B ** k2) \
+	      / (k1 ** 2 - k2 ** 2)
+	return ret
+
+
+def Q_calculator(R0=1.5):
+	steps = 20
+	R1s = []
+	R2s = []
+	Qs = []
+	for R1 in np.arange(1 + (R0 - 1) / steps, R0, (R0 - 1) / steps):
+		for R2 in np.arange(1 / steps, 1, 1 / steps):
+			R1s.append(R1)
+			R2s.append(R2)
+			Qs.append(Q(R0, R1, R2))
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot(111, projection='3d')
+	ax1.plot_trisurf(R1s, R2s, Qs, cmap=cm.coolwarm)
+	ax1.set_xlabel('R1')
+	ax1.set_ylabel('R2')
+	ax1.set_title(f'R0={round(R0, 5)}\ne^R0={round(np.exp(R0), 5)} max Q={round(max(Qs), 5)}')
+	print(np.exp(R0), max(Qs))
+
+	plt.show()
+	return
+
+
 def main():
 	# OPT_program(n=8)
-	derivative_calculator(R0=1.9)
+	# derivative_calculator(R0=1.2)
+	Q_calculator(R0=20)
 	return
 
 
