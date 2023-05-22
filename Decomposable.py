@@ -4,7 +4,8 @@ from matplotlib import cm
 import cvxpy as cp
 
 color_cycle = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22',
-			   '#17becf']
+               '#17becf']
+epsilon = 0.0001
 
 
 def OPT_program(n):
@@ -27,7 +28,7 @@ def OPT_program(n):
 	# Primal
 	obj_P = cp.Maximize(cp.sum([payments[i] * S[i] for i in range(n)]))
 	constraints_P = [cp.sum(S) <= 1,
-					 cp.sum([R[i] * S[i] for i in range(n)]) <= 1]
+	                 cp.sum([R[i] * S[i] for i in range(n)]) <= 1]
 	prob_P = cp.Problem(obj_P, constraints_P)
 	prob_P.solve()
 	print('\nPrimal:')
@@ -62,8 +63,58 @@ def OPT_program(n):
 	return
 
 
+def dQ_dk1(R0, R1, R2):
+	k1 = np.sqrt(R1 / R0)
+	k2 = np.sqrt(R2 / R0)
+	B = np.exp(R0) - (1 - epsilon) * R0
+	ret = (((1 - R2) * B ** k1 + B ** k2 * 2 * R0 * k1) * (k1 ** 2 - k2 ** 2)
+	       - ((1 - R2) * B ** k1 + (R1 - 1) * B ** k2) * 2 * k1) \
+	      / (k1 ** 2 - k2 ** 2) ** 2
+	return ret
+
+
+def dQ_dk2(R0, R1, R2):
+	k1 = np.sqrt(R1 / R0)
+	k2 = np.sqrt(R2 / R0)
+	B = np.exp(R0) - (1 - epsilon) * R0
+	ret = (((-2 * R0 * k2) * B ** k1 + (R1 - 1) * B ** k2) * (k1 ** 2 - k2 ** 2) \
+	       - ((1 - R2) * B ** k1 + (R1 - 1) * B ** k2) * (-2 * k2)) \
+	      / (k1 ** 2 - k2 ** 2) ** 2
+	return ret
+
+
+def derivative_calculator(R0=2.0):
+	steps = 20
+	R1 = 1.5
+	R2 = 0.5
+	der1 = []
+	der2 = []
+	R1s = []
+	R2s = []
+	for R1 in np.arange(1 + (R0 - 1) / steps, R0, (R0 - 1) / steps):
+		for R2 in np.arange(1 / steps, 1, 1 / steps):
+			R1s.append(R1)
+			R2s.append(R2)
+			der1.append(dQ_dk1(R0, R1, R2))
+			der2.append(dQ_dk2(R0, R1, R2))
+	fig = plt.figure()
+	ax1 = fig.add_subplot(121, projection='3d')
+	ax1.plot_trisurf(R1s, R2s, der1, cmap=cm.coolwarm)
+	ax1.set_xlabel('R1')
+	ax1.set_ylabel('R2')
+
+	ax2 = fig.add_subplot(122, projection='3d')
+	ax2.plot_trisurf(R1s, R2s, der2, cmap=cm.coolwarm)
+	ax2.set_xlabel('R1')
+	ax2.set_ylabel('R2')
+
+	plt.show()
+	return
+
+
 def main():
-	OPT_program(n=8)
+	# OPT_program(n=8)
+	derivative_calculator(R0=1.9)
 	return
 
 
