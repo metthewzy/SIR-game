@@ -4,7 +4,7 @@ from matplotlib import cm
 import cvxpy as cp
 
 color_cycle = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22',
-               '#17becf']
+			   '#17becf']
 epsilon = 0.0001
 
 
@@ -28,7 +28,7 @@ def OPT_program(n):
 	# Primal
 	obj_P = cp.Maximize(cp.sum([payments[i] * S[i] for i in range(n)]))
 	constraints_P = [cp.sum(S) <= 1,
-	                 cp.sum([R[i] * S[i] for i in range(n)]) <= 1]
+					 cp.sum([R[i] * S[i] for i in range(n)]) <= 1]
 	prob_P = cp.Problem(obj_P, constraints_P)
 	prob_P.solve()
 	print('\nPrimal:')
@@ -68,8 +68,8 @@ def dQ_dk1(R0, R1, R2):
 	k2 = np.sqrt(R2 / R0)
 	B = np.exp(R0) - (1 - epsilon) * R0
 	ret = (((1 - R2) * B ** k1 + B ** k2 * 2 * R0 * k1) * (k1 ** 2 - k2 ** 2)
-	       - ((1 - R2) * B ** k1 + (R1 - 1) * B ** k2) * 2 * k1) \
-	      / (k1 ** 2 - k2 ** 2) ** 2
+		   - ((1 - R2) * B ** k1 + (R1 - 1) * B ** k2) * 2 * k1) \
+		  / (k1 ** 2 - k2 ** 2) ** 2
 	return ret
 
 
@@ -78,8 +78,8 @@ def dQ_dk2(R0, R1, R2):
 	k2 = np.sqrt(R2 / R0)
 	B = np.exp(R0) - (1 - epsilon) * R0
 	ret = (((-2 * R0 * k2) * B ** k1 + (R1 - 1) * B ** k2) * (k1 ** 2 - k2 ** 2) \
-	       - ((1 - R2) * B ** k1 + (R1 - 1) * B ** k2) * (-2 * k2)) \
-	      / (k1 ** 2 - k2 ** 2) ** 2
+		   - ((1 - R2) * B ** k1 + (R1 - 1) * B ** k2) * (-2 * k2)) \
+		  / (k1 ** 2 - k2 ** 2) ** 2
 	return ret
 
 
@@ -116,7 +116,7 @@ def Q(R0, R1, R2):
 	print(k1, k2)
 	B = np.exp(R0) - (1 - epsilon) * R0
 	ret = ((1 - R2) * B ** k1 + (R1 - 1) * B ** k2) \
-	      / (k1 ** 2 - k2 ** 2)
+		  / (k1 ** 2 - k2 ** 2)
 	return ret
 
 
@@ -164,7 +164,7 @@ def L_calculator(R0=1.5):
 	ax1.set_xlabel('R1')
 	ax1.set_ylabel('R2')
 	ax1.set_title(f'e^R0/R0={round(np.exp(R0) / R0, 5)}  max L={round(max(Ls), 5)}'
-	              f'\nratio={round(max(Ls) / (np.exp(R0) / R0), 5)}')
+				  f'\nratio={round(max(Ls) / (np.exp(R0) / R0), 5)}')
 	print(np.exp(R0) / R0, max(Ls))
 
 	plt.show()
@@ -176,12 +176,12 @@ def L1_calculator(max_R0=1.5):
 	R0s = []
 	R2s = []
 	L1s = []
-	for R0 in np.arange(1 + (max_R0 - 1) / steps, max_R0, (max_R0 - 1) / steps):
+	for R0 in np.arange(1, max_R0, (max_R0 - 1) / steps):
 		for R2 in np.arange(0, 1, 1 / steps):
 			R0s.append(R0)
 			R2s.append(R2)
 			B = np.exp(R0) - (1 - epsilon) * R0
-			L1 = (1 - R2) * B + (R0 - 1) * B ** (np.sqrt(R2 / R0))
+			L1 = ((1 - R2) * B + (R0 - 1) * B ** (np.sqrt(R2 / R0))) / (R0 - R2)
 			L1s.append(L1)
 
 	fig = plt.figure()
@@ -191,6 +191,160 @@ def L1_calculator(max_R0=1.5):
 	ax1.set_ylabel('R2')
 
 	plt.show()
+	return
+
+
+def log_L1_calculator(max_R0=1.5):
+	steps = 20
+	R0s = []
+	R2s = []
+	L1s = []
+	for R0 in np.arange(1, max_R0, (max_R0 - 1) / steps):
+		for R2 in np.arange(0, 1, 1 / steps):
+			R0s.append(R0)
+			R2s.append(R2)
+			B = np.exp(R0) - (1 - epsilon) * R0
+			L1 = ((1 - R2) * B + (R0 - 1) * B ** (np.sqrt(R2 / R0))) / (R0 - R2)
+			L1s.append(np.log(L1))
+
+	fig = plt.figure()
+	ax1 = fig.add_subplot(111, projection='3d')
+	ax1.plot_trisurf(R0s, R2s, L1s, cmap=cm.coolwarm)
+	ax1.set_xlabel('R0')
+	ax1.set_ylabel('R2')
+
+	plt.show()
+	return
+
+
+def L1_calculator2(max_R0=1.5):
+	"""
+	plot L1 as a function of R2 first
+	"""
+	steps = 50
+
+	for R0 in np.arange(1 + (max_R0 - 1) / steps, max_R0, (max_R0 - 1) / steps):
+		R2s = []
+		L1s = []
+		for R2 in np.arange(1 / steps, 1, 1 / steps):
+			R2s.append(R2)
+			B = np.exp(R0) - (1 - epsilon) * R0
+			L1 = ((1 - R2) * B + (R0 - 1) * B ** (np.sqrt(R2 / R0))) / (R0 - R2)
+			L1s.append(L1)
+		fig = plt.figure()
+		ax1 = fig.add_subplot(111)
+		ax1.plot(R2s, L1s)
+		ax1.set_xlabel('R2')
+		ax1.set_ylabel('L1')
+		ax1.set_title(f'R0={round(R0, 5)}')
+
+		plt.show()
+
+	return
+
+
+def L2_calculator2(max_R0=1.5):
+	"""
+	plot L2 as a function of R2 first
+	"""
+	steps = 20
+
+	for R0 in np.arange(1 + (max_R0 - 1) / steps, max_R0, (max_R0 - 1) / steps):
+		R2s = []
+		L2s = []
+		for R2 in np.arange(1 / steps, 1, 1 / steps):
+			R2s.append(R2)
+			B = np.exp(R0) - (1 - epsilon) * R0
+			L2 = ((1 - R2) * np.exp(R0) + (R0 - 1) * np.exp(np.sqrt(R2 * R0))) / (R0 - R2)
+			L2s.append(L2)
+		fig = plt.figure()
+		ax1 = fig.add_subplot(111)
+		ax1.plot(R2s, L2s)
+		ax1.set_xlabel('R2')
+		ax1.set_ylabel('L2')
+		ax1.set_title(f'R0={round(R0, 5)}')
+
+		plt.show()
+
+	return
+
+
+def L1_calculator3(max_R0=1.5):
+	"""
+	plot L1 as a function of R0 first
+	"""
+	steps = 20
+	for R2 in np.arange(1 / steps, 1, 1 / steps):
+		R0s = []
+		L1s = []
+		for R0 in np.arange(1 + (max_R0 - 1) / steps, max_R0, (max_R0 - 1) / steps):
+			R0s.append(R0)
+			B = np.exp(R0) - (1 - epsilon) * R0
+			L1 = ((1 - R2) * B + (R0 - 1) * B ** (np.sqrt(R2 / R0))) / (R0 - R2)
+			L1s.append(L1)
+		fig = plt.figure()
+		ax1 = fig.add_subplot(111)
+		ax1.plot(R0s, L1s, label='L1')
+		ax1.plot(R0s, [np.exp(R0) / R0 for R0 in R0s], label='bound')
+		ax1.set_xlabel('R0')
+		ax1.set_ylabel('L1')
+		ax1.set_title(f'R2={round(R2, 5)}')
+		ax1.legend()
+		plt.show()
+
+	return
+
+
+def L2_calculator3(max_R0=1.5):
+	"""
+	plot L2 as a function of R0 first
+	"""
+	steps = 20
+	for R2 in np.arange(1 / steps, 1, 1 / steps):
+		R0s = []
+		L2s = []
+		for R0 in np.arange(1 + (max_R0 - 1) / steps, max_R0, (max_R0 - 1) / steps):
+			R0s.append(R0)
+			B = np.exp(R0) - (1 - epsilon) * R0
+			L2 = ((1 - R2) * np.exp(R0) + (R0 - 1) * np.exp(np.sqrt(R2 * R0))) / (R0 - R2)
+			L2s.append(L2)
+		fig = plt.figure()
+		ax1 = fig.add_subplot(111)
+		ax1.plot(R0s, L2s, label='L2')
+		ax1.plot(R0s, [np.exp(R0) / R0 for R0 in R0s], label='bound')
+		ax1.set_xlabel('R0')
+		ax1.set_ylabel('L2')
+		ax1.set_title(f'R2={round(R2, 5)}')
+		ax1.legend()
+		plt.show()
+
+	return
+
+
+def test(max_R0=1.5):
+	steps = 1000
+	R0s = []
+	R2s = []
+	Ineqs = []
+	for R0 in np.arange(1 + (max_R0 - 1) / steps, max_R0, (max_R0 - 1) / steps):
+		for R2 in np.arange(1 / steps, 1, 1 / steps):
+			R0s.append(R0)
+			R2s.append(R2)
+			B = np.exp(R0) - (1 - epsilon) * R0
+			# dL1 = (R0 - 1) / ((R0 - R2) ** 2) * \
+			# 	  (- B + (np.log(B) * (R0 - R2) / 2 / np.sqrt(R0 * R2) + 1) * B ** np.sqrt(R2 / R0))
+			# print(R0, R2, dL1)
+			val = (B - (np.log(B) * (R0 - R2) / 2 / np.sqrt(R0 * R2) + 1) * np.exp(np.sqrt(R0 * R2))) * (R0 - 1) / (R0 - R2) / (R0 - R2)
+			if val < 0:
+				print(R0, R2, val)
+			Ineqs.append(val)
+	# fig = plt.figure()
+	# ax1 = fig.add_subplot(111, projection='3d')
+	# ax1.plot_trisurf(R0s, R2s, Ineqs, cmap=cm.coolwarm)
+	# ax1.set_xlabel('R0')
+	# ax1.set_ylabel('R2')
+	# ax1.set_zlabel('Inequality')
+	# plt.show()
 	return
 
 
@@ -241,10 +395,8 @@ def R2_derivative_calculator(max_R0=1.5):
 			R0s.append(R0)
 			R2s.append(R2)
 			B = np.exp(R0) - (1 - epsilon) * R0
-			dL1 = 1 / (R0 - R2) \
-			      * (-B + (R0 - 1) * B ** (np.sqrt(R2 / R0)) * np.log(B) / (2 * np.sqrt(R2 / R0)) / R0) \
-			      + 1 / ((R0 - R2) ** 2) \
-			      * ((1 - R2) * B + (R0 - 1) * B ** (np.sqrt(R2 / R0)))
+			dL1 = (R0 - 1) / ((R0 - R2) ** 2) * \
+				  (- B + (np.log(B) * (R0 - R2) / 2 / np.sqrt(R0 * R2) + 1) * B ** np.sqrt(R2 / R0))
 			print(R0, R2, dL1)
 			dL1s.append(dL1)
 	fig = plt.figure()
@@ -262,9 +414,16 @@ def main():
 	# derivative_calculator(R0=1.2)
 	# Q_calculator(R0=20)
 	# L_calculator(R0=2)
-	# L1_calculator(max_R0=1.05)
+	# L1_calculator(max_R0=5)
+	# log_L1_calculator(max_R0=5)
+	# L1_calculator2(max_R0=5)
+
+	# L2_calculator2(max_R0=5)
+	# L1_calculator3(max_R0=5)
+	# L2_calculator3(max_R0=5)
 	# T1T2_calculator(R0=3)
-	R2_derivative_calculator(max_R0=2)
+	# R2_derivative_calculator(max_R0=2)
+	test(max_R0=20)
 	return
 
 
