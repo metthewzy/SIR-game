@@ -294,7 +294,8 @@ def separable_two_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, gamma=1 / 14,
 		phi_NE, NE = separable_NE_searcher(beta1, beta2, gamma, epsilon, payment_ratio, l, r, m)
 
 	POA = OPT / NE
-	POA_bound = np.exp(R1) / R1 / (1 - epsilon)
+	# POA_bound = np.exp(R1) / R1 / (1 - epsilon)
+	POA_bound = np.exp(R1) / R1
 	# plot
 	if printout or POA > POA_bound:
 		fig = plt.figure()

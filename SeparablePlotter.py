@@ -65,7 +65,7 @@ def two_group_POA_plotter(b1, b2, gamma, epsilon):
 	# phi1_range = np.arange(phi_step, 1, phi_step)
 	phi1_range = np.arange(0, 1 + phi_step, phi_step)
 	S1s = [0]
-	S1_by_phis = [1]
+	S1_by_phis = [1 - epsilon]
 	S2 = one_group_binary_search(b2, gamma, epsilon, 1)
 	S2s = [S2]
 	S2_by_phis = [S2]
@@ -82,7 +82,7 @@ def two_group_POA_plotter(b1, b2, gamma, epsilon):
 	S1s.append(S1)
 	S1_by_phis.append(S1)
 	S2s.append(0)
-	S2_by_phis.append(1)
+	S2_by_phis.append(1 - epsilon)
 
 	p2 = S1_by_phis[-1] / S2_by_phis[-1]
 	print(f"p2={round(p2, 5)}")
@@ -120,11 +120,11 @@ def two_group_POA_plotter(b1, b2, gamma, epsilon):
 	ax2.set_ylim(0, 1.05)
 
 	plt.tight_layout()
-	fig.savefig('SeparablePOA.png')
+	# fig.savefig('SeparablePOA.png')
 	R0, POA, POA_bound = worst_POA_comparison(b1 / gamma, b2, gamma, epsilon)
-	print(f'POA=\n{round(1 / POA, 5)}')
-	print(f'POA bound=\n{round(1 / POA_bound, 5)}')
-	# plt.show()
+	print(f'POA=\n{round(POA, 5)}')
+	print(f'POA bound=\n{round(POA_bound, 5)}')
+	plt.show()
 	return
 
 
@@ -156,20 +156,20 @@ def two_group_POA_bound(b2, gamma, epsilon):
 	ax1.plot(R0s, [POA_bound / POA for POA_bound, POA in zip(POA_bounds, POAs)], marker='o', label='bound/actual')
 	ax1.axhline(1, color='grey', linestyle=':')
 	ax1.set_xlabel(r"$R_0$")
-	ax1.set_title("POA / POA bound")
+	ax1.set_title("POA bound / POA")
 	# ax1.plot(R0_range, POAs, label='POA')
 	# ax1.plot(R0_range, POA_bounds, label='bound')
 	# ax1.legend()
 	plt.tight_layout()
-	fig.savefig('SeparablePOA_bound_ratio.png')
-	# plt.show()
+	# fig.savefig('SeparablePOA_bound_ratio.png')
+	plt.show()
 	return
 
 
 def worst_POA_comparison(R0, b2, gamma, epsilon):
 	b1 = R0 * gamma
 	# b2 = b1 * b_ratio
-	p2 = 1 / one_group_binary_search(b1, gamma, epsilon, 1)
+	p2 = (1 - epsilon) / one_group_binary_search(b1, gamma, epsilon, 1)
 	POA, POA_bound = separable_two_group_POA_comparison(b1, b2, gamma, epsilon, p2, False)
 	return R0, POA, POA_bound
 
@@ -301,7 +301,7 @@ def SIR_plotter():
 			I.append(I[-1] + dI)
 			R.append(R[-1] + dR)
 
-		ax1 = fig.add_subplot(3, 1, i+1)
+		ax1 = fig.add_subplot(3, 1, i + 1)
 		ax1.plot(t_range, S, label='S')
 		ax1.plot(t_range, I, label='I')
 		ax1.plot(t_range, R, label='R')
@@ -320,9 +320,9 @@ def main():
 	# f_plotter_trisurf(beta=3 / 14, gamma=1 / 14, epsilon=0.0001)
 
 	# one_group_derivative(beta=2 / 14, gamma=1 / 14, epsilon=0.0001)
-	two_group_social(b1=5 / 14, b2=5 / 14, gamma=1 / 14, epsilon=0.0001, p2=1)
-	# two_group_POA_plotter(b1=5 / 14, b2=0.5 / 14, gamma=1 / 14, epsilon=0.0001)
-	# two_group_POA_bound(b2=0.5 / 14, gamma=1 / 14, epsilon=0.0001)
+	# two_group_social(b1=5 / 14, b2=5 / 14, gamma=1 / 14, epsilon=0.0001, p2=1)
+	two_group_POA_plotter(b1=5 / 14, b2=0.5 / 14, gamma=1 / 14, epsilon=0.1)
+	# two_group_POA_bound(b2=0.5 / 14, gamma=1 / 14, epsilon=0.5)
 	# three_group_social(b1=8 / 14, b2=7 / 14, b3=6 / 14, gamma=1 / 14, epsilon=0.0001, p2=1, p3=1)
 
 	# SIR_plotter()
