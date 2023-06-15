@@ -161,6 +161,25 @@ def one_group_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, phi=0.5):
 	return S_inf
 
 
+def one_group_cvxpy_S_bar_C(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, phi=0.5, C=0):
+	"""
+	Solve the one-group final size using convex programming
+	"""
+	s1 = cp.Variable()
+	constraints = [s1 >= 0,
+				   s1 <= 1 - epsilon,
+				   s1 - (1 - epsilon) * cp.exp(phi * beta / gamma * (s1 - 1) + C) >= 0]
+	obj = cp.Minimize(s1)
+	prob = cp.Problem(obj, constraints)
+	prob.solve()
+	# print("status:", prob.status)
+	# print("optimal value", prob.value)
+	# print("optimal var", s1.value)
+	S_inf = s1.value * phi
+	# S_inf = s1.value
+	return S_inf
+
+
 def two_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.5):
 	"""
 	Solve the two-group final size using convex programming
