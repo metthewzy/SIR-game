@@ -321,7 +321,7 @@ def main():
 
 	# one_group_derivative(beta=2 / 14, gamma=1 / 14, epsilon=0.0001)
 	# two_group_social(b1=5 / 14, b2=5 / 14, gamma=1 / 14, epsilon=0.0001, p2=1)
-	two_group_POA_plotter(b1=5 / 14, b2=0.5 / 14, gamma=1 / 14, epsilon=0.1)
+	two_group_POA_plotter(b1=2 / 14, b2=0.5 / 14, gamma=1 / 14, epsilon=0.0001)
 	# two_group_POA_bound(b2=0.5 / 14, gamma=1 / 14, epsilon=0.5)
 	# three_group_social(b1=8 / 14, b2=7 / 14, b3=6 / 14, gamma=1 / 14, epsilon=0.0001, p2=1, p3=1)
 

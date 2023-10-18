@@ -236,7 +236,7 @@ def separable_two_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, gamma=1 / 14,
 	S2s = [one_group_cvxpy(beta2, gamma, epsilon, 1)]
 	UG1s = [S1s[-1] * payment_ratio]
 	UG2s = [S2s[-1]]
-	U1s = [payment_ratio]
+	U1s = [payment_ratio * (1 - epsilon)]
 	U2s = [S2s[-1]]
 	for phi in phi_range[1:-1]:
 		S1s.append(one_group_cvxpy(beta1, gamma, epsilon, phi))
@@ -251,7 +251,7 @@ def separable_two_group_POA_comparison(beta1=2 / 14, beta2=1 / 14, gamma=1 / 14,
 	UG1s.append(S1s[-1] * payment_ratio)
 	UG2s.append(S2s[-1])
 	U1s.append(UG1s[-1])
-	U2s.append(1)
+	U2s.append(1 - epsilon)
 	# POA, idx = separable_POA_searcher(beta1, beta2, gamma, epsilon, phi_range, S1s, S2s, payment_ratio)
 
 	# payment_ratio = 17
