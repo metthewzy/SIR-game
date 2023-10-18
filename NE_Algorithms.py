@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from ConvexProgram import two_group_utility_cvxpy
+from ConvexProgram import two_group_utility_cvxpy, one_group_cvxpy_S_bar_C
 from matplotlib import cm
 import cvxpy as cp
 
@@ -391,7 +391,7 @@ def two_group_plot(U=0.48, p=[1, 0.6], b=3 / 14, kappa=[1, 0.3], gamma=1 / 14):
 				  )
 	# ax1.scatter(phi1, phi2)
 	# ax1.scatter(X, Y)
-	ax1.plot([0, 1], [1, 0], c='red', linestyle=':',label='sum')
+	ax1.plot([0, 1], [1, 0], c='red', linestyle=':', label='sum')
 	ax1.plot(phi_range, f1, label='f1')
 	ax1.plot(phi_range, f2, label='f2')
 	# ax1.set_xlim(0, 1)
@@ -413,8 +413,99 @@ def decomposable():
 	return
 
 
+def NE_experiment():
+	def NE_computer(C=0):
+		print('when C=', C)
+		# 2 group NE
+		for i in range(groups - 1):
+			for j in range(i + 1, groups):
+				N = (1 - epsilon) * ((p[j] ** k[i]) / (p[i] ** k[j])) ** (
+						1 / (k[i] - k[j]))
+				X0 = np.log(N / p[i] / (1 - epsilon)) / k[i] - C
+				Xi = k[i] * X0
+				Xj = k[j] * X0
+				bii = beta0 * k[i] * k[i]
+				bij = beta0 * k[i] * k[j]
+				bjj = beta0 * k[j] * k[j]
+
+				phi_i = (Xi - bij / gamma * (N / p[j] - 1)) \
+						/ (bii / gamma * (N / p[i] - 1) -
+						   bij / gamma * (N / p[j] - 1))
+
+				phi_j = (Xj - bij / gamma * (N / p[i] - 1)) \
+						/ (bjj / gamma * (N / p[j] - 1) -
+						   bij / gamma * (N / p[i] - 1))
+
+				Us = []
+				NE = True
+				for l in range(groups):
+					Us.append(
+						(1 - epsilon) * np.exp(k[l] * (X0 + C)) * p[l]
+					)
+					if l != i and l != j and Us[l] > N:
+						NE = False
+				if not 0 <= phi_i <= 1:
+					NE = False
+				if NE:
+					print('group', i, j, 'is NE')
+				# print('phi_i=', phi_i)
+				# print('phi_j=', phi_j)
+				# print('N=', N)
+				# print('X0=', X0)
+				# print(Us)
+				# print('**********************************************')
+
+		# 1 group NE
+		for i in range(groups):
+			phi_i = 1
+			bii = beta0 * k[i] * k[i]
+			S_bar_i = one_group_cvxpy_S_bar_C(bii, gamma, epsilon, phi_i, C)
+			N = S_bar_i * p[i]
+			Xi = np.log(S_bar_i / (1 - epsilon))
+			X0 = Xi / k[i] - C
+			# print(X0)
+			NE = True
+			Us = []
+			for j in range(groups):
+				Xj = X0 * k[j]
+				S_bar_j = (1 - epsilon) * np.exp(k[j] * (X0 + C)) / 1
+				Uj = p[j] * S_bar_j
+				Us.append(Uj)
+				if j != i and Uj > N:
+					NE = False
+			if NE:
+				print('group', i, 'is NE')
+			# print('N=', N)
+			# print('X0=', X0)
+			# print(Us)
+			# print('**********************************************')
+		return
+
+	groups = 5
+	beta0 = 2 / 14
+	gamma = 1 / 14
+	k = np.random.rand(groups)
+	k = np.sort(k)
+	k = k[::-1]
+	k = k / max(k)
+
+	p = np.random.rand(groups)
+	p = np.sort(p)
+	p = p[::-1]
+	p = p / max(p)
+	print('kappas:', k)
+	print('payments:', p)
+	print('ratios', [p[i] / k[i] for i in range(groups)])
+	print('**********************************************')
+	NE_computer()
+	NE_computer(C=-10)
+
+	return
+
+
 def main():
-	decomposable()
+	# decomposable()
+	NE_experiment()
 	return
 
 

@@ -161,6 +161,25 @@ def one_group_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, phi=0.5):
 	return S_inf
 
 
+def one_group_cvxpy_S_bar_C(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, phi=0.5, C=0):
+	"""
+	Solve the one-group final size using convex programming
+	"""
+	s1 = cp.Variable()
+	constraints = [s1 >= 0,
+				   s1 <= 1 - epsilon,
+				   s1 - (1 - epsilon) * cp.exp(phi * beta / gamma * (s1 - 1) + C) >= 0]
+	obj = cp.Minimize(s1)
+	prob = cp.Problem(obj, constraints)
+	prob.solve()
+	# print("status:", prob.status)
+	# print("optimal value", prob.value)
+	# print("optimal var", s1.value)
+	S_inf = s1.value * phi
+	# S_inf = s1.value
+	return S_inf
+
+
 def two_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.5):
 	"""
 	Solve the two-group final size using convex programming
@@ -973,9 +992,9 @@ def three_group_utility(b, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5, p3=0.5)
 			# U1s.append(S1 / phi1)
 			# U2s.append(p2 * S2 / phi2)
 			# U3s.append(p3 * S3 / phi3)
-			U1s.append(S1)
-			U2s.append(p2 * S2)
-			U3s.append(p3 * S3)
+			U1s.append(S1 / phi1)
+			U2s.append(p2 * S2 / phi2)
+			U3s.append(p3 * S3 / phi3)
 			phi1s.append(phi1)
 			phi2s.append(phi2)
 			phi3s.append(phi3)
@@ -995,10 +1014,10 @@ def three_group_utility(b, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5, p3=0.5)
 	U2s = np.array(U2s)
 	U3s = np.array(U3s)
 	fig = plt.figure()
-	ax1 = fig.add_subplot(221, projection='3d')
-	ax2 = fig.add_subplot(222, projection='3d')
-	ax3 = fig.add_subplot(223, projection='3d')
-	ax4 = fig.add_subplot(224, projection='3d')
+	ax1 = fig.add_subplot(121, projection='3d')
+	ax2 = fig.add_subplot(122, projection='3d')
+	# ax3 = fig.add_subplot(223, projection='3d')
+	# ax4 = fig.add_subplot(224, projection='3d')
 	# ax3 = fig.add_subplot(223, projection='3d')
 	surfaces = np.array(surfaces)
 	# phi1s = np.array(phi1s)
@@ -1018,8 +1037,8 @@ def three_group_utility(b, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5, p3=0.5)
 	# 				 U3s[l_max(U3s, U2s, U1s)],
 	# 				 color='blue')
 	ax2.plot_trisurf(phi1s, phi2s, U1s, color='red')
-	ax3.plot_trisurf(phi1s, phi2s, U2s, color='green')
-	ax4.plot_trisurf(phi1s, phi3s, U3s, color='blue')
+	ax2.plot_trisurf(phi1s, phi2s, U2s, color='green')
+	ax2.plot_trisurf(phi1s, phi2s, U3s, color='blue')
 
 	# len1 = len(phi1s[np.logical_and(U1s > U2s, U1s > U3s)])
 	# len2 = len(phi1s[np.logical_and(U2s > U1s, U2s > U3s)])
@@ -1039,14 +1058,14 @@ def three_group_utility(b, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.5, p3=0.5)
 	ax1.set_ylabel(r'$\phi_2$')
 	ax2.set_xlabel(r'$\phi_1$')
 	ax2.set_ylabel(r'$\phi_2$')
-	ax3.set_xlabel(r'$\phi_1$')
-	ax3.set_ylabel(r'$\phi_2$')
-	ax4.set_xlabel(r'$\phi_1$')
-	ax4.set_ylabel(r'$\phi_3$')
+	# ax3.set_xlabel(r'$\phi_1$')
+	# ax3.set_ylabel(r'$\phi_2$')
+	# ax4.set_xlabel(r'$\phi_1$')
+	# ax4.set_ylabel(r'$\phi_2$')
 	ax1.set_title('social')
 	ax2.set_title('group 1')
-	ax3.set_title('group 2')
-	ax4.set_title('group 3')
+	# ax3.set_title('group 2')
+	# ax4.set_title('group 3')
 	# ax2.set_title('individual')
 	plt.show()
 	return
@@ -1183,14 +1202,14 @@ def three_group():
 	# betas = make_betas(beta, kappas)
 	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	beta = 3 / 14
-	kappas = [1, 0.5, 0.3]
+	kappas = [1, 0.9, 0.8]
 	# betas = make_betas_net(beta, kappas)
 	betas = make_betas_dec(beta, kappas)
 
 	# three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	# three_group_phi_surface(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	# three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.4732510087699757, p3=0.4252810735928513)
-	three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.9, p3=0.3)
+	three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.8, p3=0.3)
 	# three_group_NE_maker(betas, kappas, gamma=1 / 14, epsilon=0.0001)
 	# three_group_monotone_test(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.8, p3=0.6)
 
