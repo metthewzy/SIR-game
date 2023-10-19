@@ -18,6 +18,7 @@ def binary_verification(R0, n):
     print('phi=', phi)
 
     sums = []
+    diff = []
     steps = 200
     low, high = -R0, 0
     X0_range = np.arange(low, high + (high - low) / steps, (high - low) / steps)
@@ -27,10 +28,13 @@ def binary_verification(R0, n):
             [kappa[i] * (S[i] - phi[i]) for i in range(n)]
         )
         sums.append(curr_sum)
+        diff.append((X0 - curr_sum))
     figure = plt.figure()
     ax1 = figure.add_subplot()
+    ax1.axhline(0, linestyle=':', color='grey')
     ax1.plot(X0_range, X0_range, label='X0 guess')
     ax1.plot(X0_range, sums, label='feedback summation')
+    ax1.plot(X0_range, diff, label='X0 - sum')
     ax1.legend()
     plt.show()
     return
