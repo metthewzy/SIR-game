@@ -26,29 +26,31 @@ def F2(X, beta, gamma, phi):
 
 
 def feasible_plotter():
+    lower = -50
     beta = [random.random() for _ in range(4)]
     beta = [b / max(beta) * 0.6 for b in beta]
-    beta = [0.02768752084575399, 0.536165900406655, 0.6, 0.1569916097724648]
+    # beta = [0.02768752084575399, 0.536165900406655, 0.6, 0.1569916097724648]
     k1, k2 = 0.3, 0.3
     # beta = [k1 * k1, k1 * k2, k2 * k1, k2 * k2]
     print('beta=', beta)
     gamma = 1 / 14
-    phi1 = 0.6
+    phi1 = 0.01
     phi = [phi1, 1 - phi1]
-    X_steps = 50
+    X_steps = 100
     fig = plt.figure()
     ax1 = fig.add_subplot()
 
     # binary search for X2
-    X1_range = np.arange(-2, 0 + 2 / X_steps, 2 / X_steps)
+    X1_range = np.arange(lower, 0 + (0 - lower) / X_steps, (0 - lower) / X_steps)
     X2_curve = []
     for X1 in X1_range:
-        l, r = -2, 0
-        F_l = F1([X1, l], beta, gamma, phi)
-        F_r = F1([X1, r], beta, gamma, phi)
-        for _ in range(50):
+        l, r = lower, 0
+        F_l = F2([X1, l], beta, gamma, phi)
+        F_r = F2([X1, r], beta, gamma, phi)
+        # print(F_l, F_r)
+        for _ in range(100):
             m = (l + r) / 2
-            F_m = F1([X1, m], beta, gamma, phi)
+            F_m = F2([X1, m], beta, gamma, phi)
             if F_l * F_m >= 0:
                 l = m
                 F_l = F_m
@@ -58,15 +60,15 @@ def feasible_plotter():
         X2_curve.append(m)
 
     # binary search for X1
-    X2_range = np.arange(-2, 0 + 2 / X_steps, 2 / X_steps)
+    X2_range = np.arange(lower, 0 + (0 - lower) / X_steps, (0 - lower) / X_steps)
     X1_curve = []
     for X2 in X2_range:
-        l, r = -2, 0
-        F_l = F2([l, X2], beta, gamma, phi)
-        F_r = F2([r, X2], beta, gamma, phi)
-        for _ in range(50):
+        l, r = lower, 0
+        F_l = F1([l, X2], beta, gamma, phi)
+        F_r = F1([r, X2], beta, gamma, phi)
+        for _ in range(100):
             m = (l + r) / 2
-            F_m = F2([m, X2], beta, gamma, phi)
+            F_m = F1([m, X2], beta, gamma, phi)
             if F_l * F_m >= 0:
                 l = m
                 F_l = F_m
@@ -75,8 +77,8 @@ def feasible_plotter():
                 F_r = F_m
         X1_curve.append(m)
 
-    ax1.plot(X1_range, X2_curve, label='F1')
-    ax1.plot(X1_curve, X2_range, label='F2')
+    ax1.plot(X1_range, X2_curve, label='F2')
+    ax1.plot(X1_curve, X2_range, label='F1')
     ax1.legend()
     plt.show()
     return
@@ -84,17 +86,17 @@ def feasible_plotter():
 
 def F1F2_trisurf():
     beta = [random.random() for _ in range(4)]
-    beta = [b / max(beta) * 0.6 for b in beta]
+    beta = [b / max(beta) * 2 for b in beta]
     beta = [0.02768752084575399, 0.536165900406655, 0.6, 0.1569916097724648]
     k1, k2 = 0.3, 0.3
     # beta = [k1 * k1, k1 * k2, k2 * k1, k2 * k2]
     print('beta=', beta)
     gamma = 1 / 14
-    phi1 = 0.6
+    phi1 = 0.01
     phi = [phi1, 1 - phi1]
     X_steps = 30
     fig = plt.figure()
-    ax1 = fig.add_subplot(projection ='3d')
+    ax1 = fig.add_subplot(projection='3d')
     X1_range = np.arange(-2, 0 + 2 / X_steps, 2 / X_steps)
     X2_range = np.arange(-2, 0 + 2 / X_steps, 2 / X_steps)
     X1s = []
@@ -116,8 +118,8 @@ def F1F2_trisurf():
 
 
 def main():
-    # feasible_plotter()
-    F1F2_trisurf()
+    feasible_plotter()
+    # F1F2_trisurf()
     return
 
 
