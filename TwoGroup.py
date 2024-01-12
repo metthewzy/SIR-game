@@ -111,8 +111,9 @@ def utility_plotter_final_size(beta, beta_ratio, gamma, epsilon, payment_ratio):
 	b11 = beta
 	b12 = b21 = beta * beta_ratio
 	b22 = beta * beta_ratio * beta_ratio
-	phi1_step = 0.01
-	phi1_range = np.arange(phi1_step, 1, phi1_step)
+	phi1_step = 0.001
+	phi1_start = 0.0001
+	phi1_range = np.arange(phi1_start, 1, phi1_step)
 	# print(phi1_range, phi1_range[1:-1])
 	group_utility1 = []
 	group_utility2 = []
