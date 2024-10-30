@@ -15,17 +15,37 @@ def U(a, S_bar):
     return a * np.sqrt(S_bar)
 
 
-def main():
+def f2(S):
+    return S
+
+
+def f1(S):
+    return 1 * np.sqrt(S)
+
+
+def concave_function_comparison():
+    S_low, S_high, S_step = 0, 1, 0.01
+    S_range = np.arange(S_low, S_high + S_step, S_step)
+    U1 = [f1(S) for S in S_range]
+    U2 = [f2(S) for S in S_range]
+    fig = plt.figure()
+    ax1 = fig.add_subplot()
+    ax1.plot(S_range, U1, label=rf'$U_1$')
+    ax1.plot(S_range, U2, label=rf'$U_2$')
+    ax1.legend()
+    plt.show()
+    return
+
+
+def U_vs_X0():
     X_low, X_high, X_step = -5, 1, 0.01
     X_range = np.arange(X_low, X_high + X_step, X_step)
     k1 = 1
-    k2 = 0.8
-    a1 = 1
-    a2 = 0.8
+    k2 = 0.6
     S1 = [np.exp(k1 * X) for X in X_range]
     S2 = [np.exp(k2 * X) for X in X_range]
-    U1 = [U(a1, S) for S in S1]
-    U2 = [U(a2, S) for S in S2]
+    U1 = [f1(S) for S in S1]
+    U2 = [f2(S) for S in S2]
     fig = plt.figure()
     ax1 = fig.add_subplot(121)
     ax1.plot(X_range, U1, label=rf'$U_1$')
@@ -36,9 +56,9 @@ def main():
     ax1.legend()
 
     S_low, S_high, S_step = 0, 1, 0.01
-    S_range = np.arange(S_low, S_high+S_step, S_step)
-    U1 = [U(a1, S) for S in S_range]
-    U2 = [U(a2, S) for S in S_range]
+    S_range = np.arange(S_low, S_high + S_step, S_step)
+    U1 = [f1(S) for S in S_range]
+    U2 = [f2(S) for S in S_range]
     ax2 = fig.add_subplot(122)
     ax2.plot(S_range, U1, label=rf'$U_1$')
     ax2.plot(S_range, U2, label=rf'$U_2$')
@@ -47,6 +67,11 @@ def main():
     ax2.legend()
     plt.show()
     return
+
+
+def main():
+    U_vs_X0()
+    # concave_function_comparison()
 
 
 if __name__ == '__main__':
