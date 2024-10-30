@@ -16,11 +16,16 @@ def U(a, S_bar):
 
 
 def f2(S):
-    return S
+    return S * 0.6
 
 
 def f1(S):
-    return 1 * np.sqrt(S)
+    return np.log2(np.log2(S + 1) + 1)
+
+
+def df(S, U):
+    ret = [(U[i] - U[i - 1]) / (S[i] - S[i - 1]) for i in range(1, len(U))]
+    return ret
 
 
 def concave_function_comparison():
@@ -38,7 +43,7 @@ def concave_function_comparison():
 
 
 def U_vs_X0():
-    X_low, X_high, X_step = -5, 1, 0.01
+    X_low, X_high, X_step = -10, 4, 0.01
     X_range = np.arange(X_low, X_high + X_step, X_step)
     k1 = 1
     k2 = 0.6
@@ -47,7 +52,7 @@ def U_vs_X0():
     U1 = [f1(S) for S in S1]
     U2 = [f2(S) for S in S2]
     fig = plt.figure()
-    ax1 = fig.add_subplot(121)
+    ax1 = fig.add_subplot(221)
     ax1.plot(X_range, U1, label=rf'$U_1$')
     ax1.plot(X_range, U2, label=rf'$U_2$')
     ax1.axvline(0, color='grey', linestyle=':')
@@ -59,12 +64,19 @@ def U_vs_X0():
     S_range = np.arange(S_low, S_high + S_step, S_step)
     U1 = [f1(S) for S in S_range]
     U2 = [f2(S) for S in S_range]
-    ax2 = fig.add_subplot(122)
+    ax2 = fig.add_subplot(222)
     ax2.plot(S_range, U1, label=rf'$U_1$')
     ax2.plot(S_range, U2, label=rf'$U_2$')
     ax2.set_xlabel(r'$\bar{S}$')
     ax2.set_ylabel('Utility')
     ax2.legend()
+
+    ax3 = fig.add_subplot(224)
+    ax3.plot(S_range[1:], df(S_range, U1), label=r'$\frac{dU_1}{dX_0}$')
+    ax3.plot(S_range[1:], df(S_range, U2), label=r'$\frac{dU_2}{dX_0}$')
+    ax3.set_xlabel(r'$\bar{S}$')
+    ax3.set_ylabel(r'$dU$')
+    ax3.legend()
     plt.show()
     return
 
