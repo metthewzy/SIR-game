@@ -79,7 +79,6 @@ def U_vs_X0():
     ax3.set_ylabel(r'$\bar{S}$')
     ax3.set_xlabel(r'$X_0$')
     ax3.legend()
-    plt.show()
 
     ax4 = fig.add_subplot(224)
     ax4.plot(S_range[1:], df(S_range, U1), label=r'$\frac{dU_1}{dX_0}$')
@@ -87,6 +86,7 @@ def U_vs_X0():
     ax4.set_xlabel(r'$\bar{S}$')
     ax4.set_ylabel(r'$dU$')
     ax4.legend()
+    plt.show()
 
     return
 
