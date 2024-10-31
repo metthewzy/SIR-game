@@ -71,13 +71,23 @@ def U_vs_X0():
     ax2.set_ylabel('Utility')
     ax2.legend()
 
-    ax3 = fig.add_subplot(224)
-    ax3.plot(S_range[1:], df(S_range, U1), label=r'$\frac{dU_1}{dX_0}$')
-    ax3.plot(S_range[1:], df(S_range, U2), label=r'$\frac{dU_2}{dX_0}$')
-    ax3.set_xlabel(r'$\bar{S}$')
-    ax3.set_ylabel(r'$dU$')
+    ax3 = fig.add_subplot(223)
+    X_range = np.arange(X_low, 1, X_step)
+    ax3.plot(X_range, [np.exp(k1 * X) for X in X_range], label=r'$\bar{S}_1$')
+    ax3.plot(X_range, [np.exp(k2 * X) for X in X_range], label=r'$\bar{S}_2$')
+    ax3.axvline(0, color='grey', linestyle=':')
+    ax3.set_ylabel(r'$\bar{S}$')
+    ax3.set_xlabel(r'$X_0$')
     ax3.legend()
     plt.show()
+
+    ax4 = fig.add_subplot(224)
+    ax4.plot(S_range[1:], df(S_range, U1), label=r'$\frac{dU_1}{dX_0}$')
+    ax4.plot(S_range[1:], df(S_range, U2), label=r'$\frac{dU_2}{dX_0}$')
+    ax4.set_xlabel(r'$\bar{S}$')
+    ax4.set_ylabel(r'$dU$')
+    ax4.legend()
+
     return
 
 
