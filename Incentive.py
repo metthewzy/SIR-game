@@ -23,20 +23,61 @@ def two_group_incentive():
     csv_name = f'{path}/Sbar.csv'
     if not os.path.exists(path):
         os.makedirs(path)
-
-    # save_two_group_Sbar(csv_name)
-
-    # plot_two_group(csv_name)
-
-    plot_two_group_incentive(csv_name)
+    beta0 = 2 / 7
+    gamma = 1 / 7
+    epsilon = 0.0001
+    k1 = 1
+    k2 = 0.6
+    ps = [1, 0.95]
+    paras = [beta0, gamma, epsilon, k1, k2, ps]
+    # save_two_group_Sbar(csv_name, paras)
+    # plot_two_group(csv_name, paras)
+    # plot_two_group_incentive(csv_name, paras)
+    two_group_delta_finder(csv_name, paras)
     return
 
 
-def plot_two_group_incentive(csv_name):
+def two_group_delta_finder(csv_name, paras):
+    """
+    boost the lower group to make the current phi a Nash equilibrium
+    """
+    beta0, gamma, epsilon, k1, k2, ps = paras
     phi1s, Sbar1s, Sbar2s = read_two_group_Sbar(csv_name)
-    p1 = 1
+    p1, p2 = ps
+    Bs = []
+    Deltas = []
+    NEs = []
+    for phi1, Sbar1, Sbar2 in zip(phi1s, Sbar1s, Sbar2s):
+        phi2 = 1 - phi1
+        if p2 * Sbar2 >= p1 * Sbar1:
+            NEs.append(p2 * Sbar2)
+            Delta = p2 * Sbar2 / Sbar1 - p1
+            Deltas.append(Delta)
+            Bs.append(phi1 * Delta)
+        else:
+            NEs.append(p1 * Sbar1)
+            Delta = p1 * Sbar1 / Sbar2 - p2
+            Deltas.append(Delta)
+            Bs.append(phi2 * Delta)
+    fig = plt.figure()
+    ax1 = fig.add_subplot(121)
+    ax1.plot(phi1s, Deltas, label='Delta')
+    ax1.plot(phi1s, Bs, label='Budget')
+    ax1.set_xlabel(r'$\phi_1$')
+    ax1.legend()
+    ax2 = fig.add_subplot(122)
+    ax2.plot(phi1s, NEs, label='NE')
+    ax2.set_xlabel(r'$\phi_1$')
+    ax2.legend()
+    plt.show()
+    return
+
+
+def plot_two_group_incentive(csv_name, paras):
+    beta0, gamma, epsilon, k1, k2, ps = paras
+    phi1s, Sbar1s, Sbar2s = read_two_group_Sbar(csv_name)
+    p1, p2_orig = ps
     U1s = [p1 * Sbar1 for Sbar1 in Sbar1s]
-    p2_orig = 0.9
     phi1_NEs = []
     Bs = []
     socials = []
@@ -73,10 +114,10 @@ def plot_two_group_incentive(csv_name):
     return
 
 
-def plot_two_group(csv_name):
+def plot_two_group(csv_name, paras):
+    beta0, gamma, epsilon, k1, k2, ps = paras
     phi1s, Sbar1s, Sbar2s = read_two_group_Sbar(csv_name)
-    p1 = 1
-    p2 = 0.95
+    p1, p2 = ps
     U1s = [p1 * Sbar1 for Sbar1 in Sbar1s]
     U2s = [p2 * Sbar2 for Sbar2 in Sbar2s]
     fig = plt.figure()
@@ -108,15 +149,11 @@ def read_three_group_Sbar(csv_name):
     return phi1s, phi2s, phi3s, Sbar1s, Sbar2s, Sbar3s
 
 
-def save_two_group_Sbar(csv_name):
+def save_two_group_Sbar(csv_name, paras):
     """
     save the Sbar to csv
     """
-    beta0 = 2 / 7
-    gamma = 1 / 7
-    epsilon = 0.0001
-    k1 = 1
-    k2 = 0.6
+    beta0, gamma, epsilon, k1, k2, ps = paras
     betas = [beta0 * k1 * k1,
              beta0 * k1 * k2,
              beta0 * k2 * k1,
@@ -245,8 +282,8 @@ def three_group_incentive():
 
 
 def main():
-    # two_group_incentive()
-    three_group_incentive()
+    two_group_incentive()
+    # three_group_incentive()
     return
 
 
