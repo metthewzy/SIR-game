@@ -19,98 +19,95 @@ def two_group_NE_finder(U1s, U2s):
 
 
 def two_group_incentive():
-    path = 'incentive'
-    csv_name = f'{path}/Sbar.csv'
-    if not os.path.exists(path):
-        os.makedirs(path)
-    beta0 = 2 / 7
-    gamma = 1 / 7
-    epsilon = 0.0001
-    k1 = 1
-    k2 = 0.6
-    ps = [1, 0.95]
-    paras = [beta0, gamma, epsilon, k1, k2, ps]
+    csv_name, paras = two_group_parameter_scenario(1)  # 0: low infection; 1: high infection
     # save_two_group_Sbar(csv_name, paras)
-    # plot_two_group(csv_name, paras)
-    # plot_two_group_incentive(csv_name, paras)
-    two_group_delta_finder(csv_name, paras)
+    plot_two_group(csv_name, paras)
+    plot_two_group_incentive(csv_name, paras)
     return
 
 
-def two_group_delta_finder(csv_name, paras):
+def two_group_parameter_scenario(scenario=0):
+    """
+    scenario:   0: low R0, no peak when phi1 low
+                1: high R0, always peak
+    """
+    if scenario:
+        path = 'incentive'
+        csv_name = f'{path}/Sbar2.csv'
+        if not os.path.exists(path):
+            os.makedirs(path)
+        beta0 = 2 / 7
+        gamma = 1 / 7
+        epsilon = 0.0001
+        k1 = 1
+        k2 = 0.8
+        ps = [1, 0.97]
+    else:
+        path = 'incentive'
+        csv_name = f'{path}/Sbar.csv'
+        if not os.path.exists(path):
+            os.makedirs(path)
+        beta0 = 2 / 7
+        gamma = 1 / 7
+        epsilon = 0.0001
+        k1 = 1
+        k2 = 0.6
+        ps = [1, 0.95]
+    paras = [beta0, gamma, epsilon, k1, k2, ps]
+    return csv_name, paras
+
+
+def two_group_Delta_finder(csv_name, paras):
     """
     boost the lower group to make the current phi a Nash equilibrium
     """
     beta0, gamma, epsilon, k1, k2, ps = paras
     phi1s, Sbar1s, Sbar2s = read_two_group_Sbar(csv_name)
     p1, p2 = ps
+    Delta1s = []
+    Delta2s = []
     Bs = []
-    Deltas = []
-    NEs = []
     for phi1, Sbar1, Sbar2 in zip(phi1s, Sbar1s, Sbar2s):
         phi2 = 1 - phi1
         if p2 * Sbar2 >= p1 * Sbar1:
-            NEs.append(p2 * Sbar2)
-            Delta = p2 * Sbar2 / Sbar1 - p1
-            Deltas.append(Delta)
-            Bs.append(phi1 * Delta)
+            Delta1 = p2 * Sbar2 / Sbar1 - p1
+            Delta2 = 0
         else:
-            NEs.append(p1 * Sbar1)
-            Delta = p1 * Sbar1 / Sbar2 - p2
-            Deltas.append(Delta)
-            Bs.append(phi2 * Delta)
-    fig = plt.figure()
-    ax1 = fig.add_subplot(121)
-    ax1.plot(phi1s, Deltas, label='Delta')
-    ax1.plot(phi1s, Bs, label='Budget')
-    ax1.set_xlabel(r'$\phi_1$')
-    ax1.legend()
-    ax2 = fig.add_subplot(122)
-    ax2.plot(phi1s, NEs, label='NE')
-    ax2.set_xlabel(r'$\phi_1$')
-    ax2.legend()
-    plt.show()
-    return
+            Delta1 = 0
+            Delta2 = p1 * Sbar1 / Sbar2 - p2
+        Delta1s.append(Delta1)
+        Delta2s.append(Delta2)
+        Bs.append(phi1 * Delta1 + phi2 * Delta2)
+    return Delta1s, Delta2s, Bs
 
 
 def plot_two_group_incentive(csv_name, paras):
     beta0, gamma, epsilon, k1, k2, ps = paras
     phi1s, Sbar1s, Sbar2s = read_two_group_Sbar(csv_name)
-    p1, p2_orig = ps
-    U1s = [p1 * Sbar1 for Sbar1 in Sbar1s]
-    phi1_NEs = []
-    Bs = []
-    socials = []
-    UG1s = []
-    UG2s = []
-    delta_step = 0.0005
-    deltas = np.arange(0, p1 - p2_orig + delta_step * 3, delta_step)
-    for delta in deltas:
-        p2 = p2_orig + delta
-        U2s = [p2 * Sbar2 for Sbar2 in Sbar2s]
-        idx_NE = two_group_NE_finder(U1s, U2s)
-        phi1_NE = phi1s[idx_NE]
-        phi2_NE = 1 - phi1_NE
-        phi1_NEs.append(phi1_NE)
-        UG1s.append(phi1_NE * U1s[idx_NE])
-        UG2s.append(phi2_NE * U2s[idx_NE])
-        socials.append(phi1_NE * U1s[idx_NE] + phi2_NE * U2s[idx_NE])
-        Bs.append(phi2_NE * delta)
+    p1, p2 = ps
+    socials = [p1 * phi1 * Sbar1 + p2 * (1 - phi1) * Sbar2 for phi1, Sbar1, Sbar2 in zip(phi1s, Sbar1s, Sbar2s)]
+    Delta1s, Delta2s, Bs = two_group_Delta_finder(csv_name, paras)
+    new_p1s = [p1 + Delta1 for Delta1 in Delta1s]
+    new_p2s = [p2 + Delta2 for Delta2 in Delta2s]
+    NEs = [max(p1 * Sbar1, p2 * Sbar2) for phi1, Sbar1, Sbar2 in zip(phi1s, Sbar1s, Sbar2s)]
+
+    # metric1: Social (new NE) / Budget
+    metric1 = [0 if B == 0 else NE / B for NE, B in zip(NEs, Bs)]
+    # metric2: Social improvement / Budget
+    metric2 = [0 if B == 0 else (NE - social) / B for NE, social, B in zip(NEs, socials, Bs)]
 
     fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    ax1.plot(deltas, socials, label='Social')
-    # ax1.plot(deltas, Bs, label='Budget')
-    ax1.plot(deltas, phi1_NEs, label=r'$\phi_1$')
-    ax1.plot(deltas, [social - B for social, B in zip(socials, Bs)], label='Net social')
-    ax1.plot(deltas, UG1s, label='UG1')
-    ax1.plot(deltas, UG2s, label='UG2')
-    ax1.axvline(p1 - p2_orig, linestyle=':')
-    ax1.set_xlabel(r'$\Delta$')
-    ax1.set_ylabel('Social welfare')
+    ax1 = fig.add_subplot(121)
+    ax1.plot(phi1s, metric1, label='metric 1')
+    ax1.set_xlabel(r'$\phi_1$')
     ax1.legend()
-    plt.show()
 
+    ax2 = fig.add_subplot(122)
+    ax2.plot(phi1s, metric2, label='metric 2')
+    ax2.set_xlabel(r'$\phi_1$')
+    ax2.legend()
+
+    plt.show()
     return
 
 
