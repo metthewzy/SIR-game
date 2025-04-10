@@ -301,8 +301,8 @@ def three_group_incentive():
 
 
 def main():
-    # two_group_incentive()
-    three_group_incentive()
+    two_group_incentive()
+    # three_group_incentive()
     return
 
 
