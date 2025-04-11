@@ -6,15 +6,12 @@ def reduce(support, beta, gamma, epsilon, p, N, n_groups):
     try finding a Nash for the current support set
     """
     NE = []
-    # not_NE = []
     phi = [0] * n_groups
     for i in range(n_groups):
         bit = 1 << i
         if bit & support:
             NE.append(i)
-        # else:
-        #     not_NE.append(i)
-    print('trying ', NE)
+    print(f'\ntrying groups {NE}:')
     A = []
     A_full = []
     B = []
@@ -26,33 +23,38 @@ def reduce(support, beta, gamma, epsilon, p, N, n_groups):
         ]
         A_full.append(row)
         if i in NE:
-            A.append(row)
-            B.append(np.log(N))
-    for row, b in zip(A,B):
-        print(f'{row} : {b}')
-    # A.append(
-    #     [1] * len(NE)
-    # )
-    # B.append(1)
+            A.append(row + [-1])
+            B.append(0)
+    A.append(
+        [1] * len(NE) + [0]
+    )
+    B.append(1)
+
+    # for row, b in zip(A, B):
+    #     print(f'{row} : {b}')
+
     try:
         X = np.linalg.solve(A, B)
-    except Exception:
-        print('solver exception')
+    except Exception as e:
+        print('solver exception', e)
         return False, []
     for i in range(len(NE)):
+        if X[i] < 0:
+            print(f"group {NE[i]} is negative")
+            return False, []
         phi[NE[i]] = X[i]
-    if sum(phi) != 1:
-        print('not summing to 1', X)
-        return False, []
-
+    RHS = X[-1]
+    print('solution:', X)
     for i in range(n_groups):
         row = A_full[i]
-        if sum(
-            [a * x for a, x in zip(row, phi)]
-        ) > np.log(N):
+        cur_sum = sum(
+            [a * x for a, x in zip(row, X[:-1])]
+        )
+        if cur_sum > RHS:
+            # print(f'group {i} is better', cur_sum, '>', RHS)
             print(f'group {i} is better')
             return False, []
-    print("found!")
+    # print("found!")
     return True, phi
 
 
@@ -66,13 +68,15 @@ def three_groups():
     gamma = 2
     epsilon = 0.01
     p = [0.5, 1, 0.8]
-    Ns = [0.5 * max(p)]
+    Ns = [0.05 * max(p)]
     for N in Ns:
         for support in range(1, 2 ** n_groups):
             res, phi = reduce(support, beta, gamma, epsilon, p, N, n_groups)
             if res:
-                print("FOUND!!!!!!!!", phi)
-                break
+                print('******************** FOUND !!! ************************')
+                print(f'phi = {phi}')
+                print('*******************************************************')
+                # break
     return
 
 
