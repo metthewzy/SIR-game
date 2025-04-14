@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import random
 
 
 def reduce(support, beta, gamma, epsilon, p, N, n_groups):
@@ -11,7 +13,7 @@ def reduce(support, beta, gamma, epsilon, p, N, n_groups):
         bit = 1 << i
         if bit & support:
             NE.append(i)
-    print(f'\ntrying groups {NE}:')
+    # print(f'\ntrying groups {NE}:')
     A = []
     A_full = []
     B = []
@@ -36,15 +38,15 @@ def reduce(support, beta, gamma, epsilon, p, N, n_groups):
     try:
         X = np.linalg.solve(A, B)
     except Exception as e:
-        print('solver exception', e)
+        # print('solver exception', e)
         return False, [], 0
     for i in range(len(NE)):
         if X[i] < 0:
-            print(f"group {NE[i]} is negative")
+            # print(f"group {NE[i]} is negative")
             return False, [], 0
         phi[NE[i]] = X[i]
     RHS = X[-1]
-    print('solution:', X)
+    # print('solution:', X)
     for i in range(n_groups):
         row = A_full[i]
         cur_sum = sum(
@@ -52,7 +54,7 @@ def reduce(support, beta, gamma, epsilon, p, N, n_groups):
         )
         if cur_sum > RHS:
             # print(f'group {i} is better', cur_sum, '>', RHS)
-            print(f'group {i} is better')
+            # print(f'group {i} is better')
             return False, [], 0
     # print("found!")
     return True, phi, RHS
@@ -60,23 +62,46 @@ def reduce(support, beta, gamma, epsilon, p, N, n_groups):
 
 def three_groups():
     n_groups = 3
-    beta = [
-        [1, 2, 3],
-        [3, 2, 1],
-        [1, 4, 5]
-    ]
-    gamma = 2
+    # beta = [
+    #     [1, 2, 3],
+    #     [3, 2, 1],
+    #     [1, 4, 5]
+    # ]
+    beta_low, beta_high = 0.5, 3
+    beta = [random.uniform(beta_low, beta_high) for _ in range(n_groups * n_groups)]
+    gamma = 0.8 * max(beta)
+    beta = np.array(beta).reshape(n_groups, n_groups)
     epsilon = 0.01
-    p = [0.5, 1, 0.8]
-    Ns = [0.5 * max(p)]
+    p = [random.random() for _ in range(n_groups)]
+    p_max = max(p)
+    step = 0.01
+    Ns = np.arange(step, 1, step)
+    Ns = [N * p_max for N in Ns]
+    Us = []
+    print(f'beta:\n{beta}')
+    print(f'gamma:\n{gamma}')
+    print(f'p:\n{p}')
     for N in Ns:
+        found = False
         for support in range(1, 2 ** n_groups):
-            res, phi, ln_N = reduce(support, beta, gamma, epsilon, p, N, n_groups)
+            res, phi, U = reduce(support, beta, gamma, epsilon, p, N, n_groups)
             if res:
-                print('******************** FOUND !!! ************************')
-                print(f'phi = {phi}')
-                print('*******************************************************')
-                # break
+                # print('******************** FOUND !!! ************************')
+                # print(f'phi = {phi}')
+                # print('*******************************************************')
+                Us.append(np.exp(U))
+                found = True
+                break
+        if not found:
+            print('*****************NOT FOUND !!! ************************')
+            print(f'N = {N}')
+            print('*******************************************************')
+            Us.append(0)
+    fig = plt.figure()
+    ax1 = fig.add_subplot()
+    ax1.plot(Ns, Us)
+    ax1.plot([min(Ns + Us), max(Ns + Us)], [min(Ns + Us), max(Ns + Us)], color='orange')
+    plt.show()
     return
 
 
