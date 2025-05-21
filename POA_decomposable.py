@@ -76,7 +76,7 @@ def final_size_2group():
 def final_size_3group():
     p = [1, 0.8, 0.7]
     R0 = 2
-    kappa = [1, 0.6, 0.3]
+    kappa = [1, 0.99, 0.98]
     epsilon = 0.001
     phi_step = 0.05
     phi1_range = np.arange(0, 1 + phi_step, phi_step)
@@ -117,6 +117,8 @@ def final_size_3group():
     ax1.plot_trisurf(X, Y, U1s, label=r'$U_1$')
     ax1.plot_trisurf(X, Y, U2s, label=r'$U_2$')
     ax1.plot_trisurf(X, Y, U3s, label=r'$U_3$')
+    ax1.set_xlabel(r'$\varphi_1$')
+    ax1.set_ylabel(r'$\varphi_2$')
     ax1.legend()
     plt.show()
     fig = plt.figure()
@@ -125,6 +127,8 @@ def final_size_3group():
     ax1.plot_trisurf(X, Y, UG2s, label=r'$UG_2$')
     ax1.plot_trisurf(X, Y, UG3s, label=r'$UG_3$')
     ax1.plot_trisurf(X, Y, social, label='Social')
+    ax1.set_xlabel(r'$\varphi_1$')
+    ax1.set_ylabel(r'$\varphi_2$')
     ax1.legend()
     plt.show()
     return
