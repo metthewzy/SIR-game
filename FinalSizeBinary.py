@@ -199,28 +199,49 @@ def f1_final_size_plotter(phi1, beta, beta_ratio, gamma, epsilon, plot):
 
 
 def interacting_binary():
-    phis = [0.6, 0.3, 0.1]
-    kappas = [1, 0.8, 0.5]
-    R0 = 1.5
+    phis = [0.2, 0.5, 0.3]
+    kappas = [1, 0.8, 0.3]
+    R0 = 2
     epsilon = 0.001
 
-    def g():
+    def g(S1, phis, kappas):
         S_bars = [(S1 ** kappa) * ((1 - epsilon) ** (1 - kappa)) for kappa in kappas]
         X = 0
         for S_bar, phi, kappa in zip(S_bars, phis, kappas):
             X += kappa * R0 * phi * (S_bar - 1)
-        return S1 - (1 - epsilon) * np.exp(X)
+        return (1 - epsilon) * np.exp(X)
+
+    def g2(S1, phis, kappas):
+        S_bars = [S1 for _ in kappas]
+        X = 0
+        for S_bar, phi, kappa in zip(S_bars, phis, kappas):
+            X += kappa * R0 * phi * (S_bar - 1)
+        return (1 - epsilon) * np.exp(X)
 
     step = 0.001
     S1_range = np.arange(step, (1 - epsilon) + step, step)
     gs = []
     for S1 in S1_range:
-        gs.append(g())
+        gs.append(g(S1, phis, kappas))
+
+    # kappas2 = [0.3, 0.3, 0.3]
+    kappas2 = [1, 1, 1]
+    g2s = []
+    for S1 in S1_range:
+        g2s.append(g2(S1, phis, kappas))
+
+    g2_olds = []
+    for S1 in S1_range:
+        g2_olds.append(g(S1, phis, kappas2))
 
     fig = plt.figure()
     ax1 = fig.add_subplot()
-    ax1.plot(S1_range, gs)
-    ax1.axhline(0, color='grey', linestyle=':')
+    ax1.plot(S1_range, gs, label='g')
+    ax1.plot(S1_range, g2s, label='g2')
+    # ax1.plot(S1_range, g2_olds, label='g2_old', linestyle=':')
+    # ax1.axhline(0, color='grey', linestyle=':')
+    ax1.plot([0, 1], [0, 1], color='grey', linestyle=':')
+    ax1.legend()
     plt.show()
     return
 
