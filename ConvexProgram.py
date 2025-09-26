@@ -537,7 +537,7 @@ def one_group_comparison(beta=3 / 14, gamma=1 / 14, epsilon=0.0001):
     return
 
 
-def two_group_comparison(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9):
+def two_group_comparison(beta=3 / 10, gamma=1 / 10, epsilon=0.0001, kappa=0.9):
     """
     compare the two-group plots of binary search and convex program
     """
@@ -574,7 +574,7 @@ def two_group_comparison(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9):
 
 def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9, payment2=0.8):
     """
-    two-group utility plots of convex program
+    two-group utility plots of convex program. Assume kappa <1
     """
     phi1_range = np.arange(phi_step, 1, phi_step)
 
@@ -592,14 +592,25 @@ def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9
     INDIV1 = []
     INDIV2 = []
     social = []
+    opt = 0
+    phiOpt = 0
 
     for phi1 in phi1_range:
         S1, S2 = two_group_cvxpy(betas, gamma, epsilon, phi1)
         UG1.append(S1)
         UG2.append(S2 * payment2)
-        social.append(S1 + S2 * payment2)
+        totalU = S1 + S2 * payment2
+        indS1 = S1 / phi1
+        indS2 = S2 * payment2 / (1 - phi1)
         INDIV1.append(S1 / phi1)
         INDIV2.append(S2 * payment2 / (1 - phi1))
+        totalU = indS1 * phi1 + indS2 * (1 - phi1)
+        social.append(totalU)
+        if opt < totalU:
+            opt = totalU
+            phiOpt = phi1
+        # if abs(indS1 - indS2) < epsilon:
+        #     NashInd1 = phi1
 
     fig = plt.figure()
     ax1 = fig.add_subplot(121)
@@ -617,7 +628,34 @@ def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9
     ax2.set_ylabel(r'$S(\infty)/\phi$')
     ax1.legend()
     ax2.legend()
-    plt.show()
+    fig.savefig(f'figCvx/b={round(beta, 3)}g={round(gamma, 3)}k={round(kappa,3)}p={round(payment2,3)}.png')
+    plt.close(fig)
+    # plt.show()
+    # print(INDIV1-INDIV2)
+    DiffArrayN = np.array(INDIV1)-np.array(INDIV2)
+    if DiffArrayN[0] > 0:
+        if np.min(DiffArrayN) <0 : #Assume b11 is highest always
+        # DiffArray = np.absolute(np.array(INDIV1) - np.array(INDIV2))
+            NashIndA = np.where(DiffArrayN < 0)
+            NashInd1 = NashIndA[0][0]
+            NashValue = INDIV1[NashInd1]
+        else:
+            DiffArray = np.array(INDIV1)
+            NashInd1 = len(INDIV1) - 1
+            NashValue = INDIV1[NashInd1]
+    else:
+        if np.max(DiffArrayN) > 0 :
+            NashIndA = np.where(DiffArrayN > 0)
+            NashInd1 = NashIndA[0][0]
+            NashValue = INDIV1[NashInd1]
+        else:
+            DiffArray = np.array(INDIV2)
+            NashInd1 = 0
+            NashValue = INDIV2[NashInd1]
+
+    print(f'Opt={phiOpt} and Nash={NashInd1}')
+    print(f'Opt={opt} and Nash={NashValue}')
+    return opt, NashValue
     return
 
 
@@ -1215,12 +1253,12 @@ def three_group():
     # betas = [1, 3, 4, 0, 4, 5, 3, 2, 4]
     # betas = [b / 1 for b in betas]
 
-    # three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
-    # three_group_phi_surface(betas, kappas, gamma=1 / 14, epsilon=0.0001)
-    # three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.4732510087699757, p3=0.4252810735928513)
-    # three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.8, p3=0.3)
+    three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
+    three_group_phi_surface(betas, kappas, gamma=1 / 14, epsilon=0.0001)
+    three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.4732510087699757, p3=0.4252810735928513)
+    three_group_utility(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.8, p3=0.3)
     three_group_NE_maker(betas, kappas, gamma=1, epsilon=0.0001)
-    # three_group_monotone_test(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.8, p3=0.6)
+    three_group_monotone_test(betas, kappas, gamma=1 / 14, epsilon=0.0001, p2=0.8, p3=0.6)
 
     # kappas = [1, 0.9, 0.2]
     # betas = make_betas(beta, kappas)
@@ -1230,6 +1268,45 @@ def three_group():
     # three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
     return
 
+def poa_two_group_fixedBeta(beta):
+
+    phi_step = 0.05
+    beta_step = 0.25
+    beta_range = np.arange(beta_step, 1, beta_step)
+    pay_step = 0.25
+    pay_range = np.arange(pay_step, 1, pay_step)
+    beta_i = 0
+    pay_i = 0
+    POA_list = []
+    for beta_s in beta_range:
+        POA_beta = []
+        for payment2 in pay_range:
+            opt, Nash = two_group_utility_cvxpy(beta, gamma = 1 / 10, epsilon=0.0001, kappa = beta_s, payment2=payment2)
+            POA_beta.append(opt/Nash)
+        POA_list.append(POA_beta)
+    POA_array = np.array(POA_list)
+    np.savetxt(f'figCvx/POAarray_w_b={beta}', POA_array, fmt='%.2f', delimiter=',')
+    worst_POA = np.max(POA_array)
+    worst_beta, worst_pay = np.unravel_index(np.argmax(POA_array,axis=None),POA_array.shape)
+    print(f'worst_POA={worst_POA} and worst_pay={worst_pay*pay_step+pay_step},worst_beta={beta},{worst_beta*beta_step+beta_step}')
+    return worst_POA
+
+def poa_two_group():
+    beta_step = 0.025 #phi_step
+    beta_range = np.arange(2/10,3/10,beta_step)
+    PoA_vs_Beta = []
+    for beta in beta_range:
+        PoA_vs_Beta.append(poa_two_group_fixedBeta(beta))
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(121)
+    ax1.plot(beta_range, PoA_vs_Beta, label='POA')
+    ax1.set_title('POA')
+    ax1.set_xlabel(r'$\beta$')
+    ax1.set_ylabel(r'POA')
+    ax1.legend()
+    fig.savefig(f'figCvx/POAvsBeta.png')
+    plt.show()
 
 def main():
     # one_group_comparison()
@@ -1237,13 +1314,13 @@ def main():
     #                                    payment_ratio=50.22135161418591, printout=True)
     # separable_three_group_POA_comparison(beta1=8 / 14, beta2=7 / 14, beta3=6 / 14, gamma=1 / 14, epsilon=0.0001,
     # 									 p2=0.9, p3=0.7)
-    # two_group_comparison(beta=2 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3)
-    # two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, payment2=0.6)
-
+    # two_group_comparison(beta=2.5 / 10, gamma=1 / 10, epsilon=0.0001, kappa=0.3)
+    # two_group_utility_cvxpy(beta=2.5 / 10, gamma=1 / 10, epsilon=0.0001, kappa=0.3, payment2=0.6)
+    poa_two_group()
     # two_group_feasibility(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.5)
 
     # three_group_feasibility_scatter(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.3, phi1=0.4, phi2=0.3)
-    three_group()
+    # three_group()
     return
 
 
