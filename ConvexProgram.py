@@ -5,6 +5,7 @@ from matplotlib import cm
 from scipy.optimize import minimize
 import cvxpy as cp
 from TwoGroup import final_size_searcher_binary
+import os
 
 binary_iter = 40
 phi_step = 0.001
@@ -628,14 +629,14 @@ def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9
     ax2.set_ylabel(r'$S(\infty)/\phi$')
     ax1.legend()
     ax2.legend()
-    fig.savefig(f'figCvx/b={round(beta, 3)}g={round(gamma, 3)}k={round(kappa,3)}p={round(payment2,3)}.png')
+    fig.savefig(f'figCvx/b={round(beta, 3)}g={round(gamma, 3)}k={round(kappa, 3)}p={round(payment2, 3)}.png')
     plt.close(fig)
     # plt.show()
     # print(INDIV1-INDIV2)
-    DiffArrayN = np.array(INDIV1)-np.array(INDIV2)
+    DiffArrayN = np.array(INDIV1) - np.array(INDIV2)
     if DiffArrayN[0] > 0:
-        if np.min(DiffArrayN) <0 : #Assume b11 is highest always
-        # DiffArray = np.absolute(np.array(INDIV1) - np.array(INDIV2))
+        if np.min(DiffArrayN) < 0:  # Assume b11 is highest always
+            # DiffArray = np.absolute(np.array(INDIV1) - np.array(INDIV2))
             NashIndA = np.where(DiffArrayN < 0)
             NashInd1 = NashIndA[0][0]
             NashValue = INDIV1[NashInd1]
@@ -644,7 +645,7 @@ def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9
             NashInd1 = len(INDIV1) - 1
             NashValue = INDIV1[NashInd1]
     else:
-        if np.max(DiffArrayN) > 0 :
+        if np.max(DiffArrayN) > 0:
             NashIndA = np.where(DiffArrayN > 0)
             NashInd1 = NashIndA[0][0]
             NashValue = INDIV1[NashInd1]
@@ -1268,8 +1269,8 @@ def three_group():
     # three_group_denominator(betas, kappas, gamma=1 / 14, epsilon=0.0001)
     return
 
-def poa_two_group_fixedBeta(beta):
 
+def poa_two_group_fixedBeta(beta):
     phi_step = 0.05
     beta_step = 0.25
     beta_range = np.arange(beta_step, 1, beta_step)
@@ -1281,19 +1282,24 @@ def poa_two_group_fixedBeta(beta):
     for beta_s in beta_range:
         POA_beta = []
         for payment2 in pay_range:
-            opt, Nash = two_group_utility_cvxpy(beta, gamma = 1 / 10, epsilon=0.0001, kappa = beta_s, payment2=payment2)
-            POA_beta.append(opt/Nash)
+            opt, Nash = two_group_utility_cvxpy(beta, gamma=1 / 10, epsilon=0.0001, kappa=beta_s, payment2=payment2)
+            POA_beta.append(opt / Nash)
         POA_list.append(POA_beta)
     POA_array = np.array(POA_list)
     np.savetxt(f'figCvx/POAarray_w_b={beta}', POA_array, fmt='%.2f', delimiter=',')
     worst_POA = np.max(POA_array)
-    worst_beta, worst_pay = np.unravel_index(np.argmax(POA_array,axis=None),POA_array.shape)
-    print(f'worst_POA={worst_POA} and worst_pay={worst_pay*pay_step+pay_step},worst_beta={beta},{worst_beta*beta_step+beta_step}')
+    worst_beta, worst_pay = np.unravel_index(np.argmax(POA_array, axis=None), POA_array.shape)
+    print(
+        f'worst_POA={worst_POA} and worst_pay={worst_pay * pay_step + pay_step},worst_beta={beta},'
+        f'{worst_beta * beta_step + beta_step}')
     return worst_POA
 
+
 def poa_two_group():
-    beta_step = 0.025 #phi_step
-    beta_range = np.arange(2/10,3/10,beta_step)
+    if not os.path.exists("figCvx"):
+        os.makedirs("figCvx")
+    beta_step = 0.025  # phi_step
+    beta_range = np.arange(2 / 10, 3 / 10, beta_step)
     PoA_vs_Beta = []
     for beta in beta_range:
         PoA_vs_Beta.append(poa_two_group_fixedBeta(beta))
@@ -1307,6 +1313,7 @@ def poa_two_group():
     ax1.legend()
     fig.savefig(f'figCvx/POAvsBeta.png')
     plt.show()
+
 
 def main():
     # one_group_comparison()
