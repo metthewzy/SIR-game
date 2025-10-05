@@ -5,6 +5,7 @@ from matplotlib import cm
 from scipy.optimize import minimize
 import cvxpy as cp
 from TwoGroup import final_size_searcher_binary
+import json
 import os
 
 binary_iter = 40
@@ -206,7 +207,7 @@ def two_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.5):
     # print("status:", prob.status)
     # print("optimal value", prob.value)
     # print("optimal var", s1.value, s2.value)
-    return s1.value, s2.value
+    return s1.value.item(), s2.value.item()
 
 
 def three_group_cvxpy(betas, gamma=1 / 14, epsilon=0.0001, phi1=0.4, phi2=0.3, phi3=0.3):
@@ -595,6 +596,7 @@ def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9
     social = []
     opt = 0
     phiOpt = 0
+    OptIndex = 0
 
     for phi1 in phi1_range:
         S1, S2 = two_group_cvxpy(betas, gamma, epsilon, phi1)
@@ -610,29 +612,32 @@ def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9
         if opt < totalU:
             opt = totalU
             phiOpt = phi1
+            OptIndex = len(INDIV1)
         # if abs(indS1 - indS2) < epsilon:
         #     NashInd1 = phi1
-
-    fig = plt.figure()
-    ax1 = fig.add_subplot(121)
-    ax2 = fig.add_subplot(122)
-    ax1.plot(phi1_range, UG1, label='G1')
-    ax1.plot(phi1_range, UG2, label='G2')
-    ax1.plot(phi1_range, social, label='Social')
-    ax2.plot(phi1_range, INDIV1, label='G1')
-    ax2.plot(phi1_range, INDIV2, label='G2')
-    ax1.set_title('Group utility')
-    ax1.set_xlabel(r'$\phi_1$')
-    ax1.set_ylabel(r'$S(\infty)$')
-    ax2.set_title('Individual utility')
-    ax2.set_xlabel(r'$\phi_1$')
-    ax2.set_ylabel(r'$S(\infty)/\phi$')
-    ax1.legend()
-    ax2.legend()
-    fig.savefig(f'figCvx/b={round(beta, 3)}g={round(gamma, 3)}k={round(kappa, 3)}p={round(payment2, 3)}.png')
-    plt.close(fig)
+    drawfig = False
+    if drawfig:
+        fig = plt.figure()
+        ax1 = fig.add_subplot(121)
+        ax2 = fig.add_subplot(122)
+        ax1.plot(phi1_range, UG1, label='G1')
+        ax1.plot(phi1_range, UG2, label='G2')
+        ax1.plot(phi1_range, social, label='Social')
+        ax2.plot(phi1_range, INDIV1, label='G1')
+        ax2.plot(phi1_range, INDIV2, label='G2')
+        ax1.set_title('Group utility')
+        ax1.set_xlabel(r'$\phi_1$')
+        ax1.set_ylabel(r'$S(\infty)$')
+        ax2.set_title('Individual utility')
+        ax2.set_xlabel(r'$\phi_1$')
+        ax2.set_ylabel(r'$S(\infty)/\phi$')
+        ax1.legend()
+        ax2.legend()
+        fig.savefig(f'figCvx/b={round(beta, 3)}g={round(gamma, 3)}k={round(kappa, 3)}p={round(payment2, 3)}.png')
+        plt.close(fig)
     # plt.show()
     # print(INDIV1-INDIV2)
+    UG1json = json.dumps(UG1)
     DiffArrayN = np.array(INDIV1) - np.array(INDIV2)
     if DiffArrayN[0] > 0:
         if np.min(DiffArrayN) < 0:  # Assume b11 is highest always
@@ -654,10 +659,26 @@ def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9
             NashInd1 = 0
             NashValue = INDIV2[NashInd1]
 
+
+    data = {
+        "beta" : round(beta,4),
+        "kappa" : round(kappa,4),
+        "gamma" : round(gamma,4),
+        "paymentRatio" : round(payment2,4),
+        "GroupUtility1" : UG1json,
+        "GroupUtility2" : json.dumps(UG2),
+        "IndUtility1" : json.dumps(INDIV1),
+        "IndUtility2" : json.dumps(INDIV2),
+        "PhiOpt" : round(phiOpt,4),
+        "OptIndex" : OptIndex,
+        "PhiNash" : round(phi_step+phi_step*NashInd1,4),
+        "NashIndex" : int(NashInd1)
+    }
+
     print(f'Opt={phiOpt} and Nash={NashInd1}')
     print(f'Opt={opt} and Nash={NashValue}')
-    return opt, NashValue
-    return
+    return opt, NashValue, data
+
 
 
 def three_group_utility_cvxpy_tri(betas, gamma=1 / 14, epsilon=0.0001, payment2=1, payment3=1):
@@ -1270,8 +1291,8 @@ def three_group():
     return
 
 
-def poa_two_group_fixedBeta(beta):
-    phi_step = 0.05
+def poa_two_group_fixedBeta(beta, gamma, dataList):
+    phi_step = 0.1
     beta_step = 0.25
     beta_range = np.arange(beta_step, 1, beta_step)
     pay_step = 0.25
@@ -1282,8 +1303,9 @@ def poa_two_group_fixedBeta(beta):
     for beta_s in beta_range:
         POA_beta = []
         for payment2 in pay_range:
-            opt, Nash = two_group_utility_cvxpy(beta, gamma=1 / 10, epsilon=0.0001, kappa=beta_s, payment2=payment2)
+            opt, Nash, data = two_group_utility_cvxpy(beta, gamma=1 / 10, epsilon=0.0001, kappa=beta_s, payment2=payment2)
             POA_beta.append(opt / Nash)
+            dataList.append(data)
         POA_list.append(POA_beta)
     POA_array = np.array(POA_list)
     np.savetxt(f'figCvx/POAarray_w_b={beta}', POA_array, fmt='%.2f', delimiter=',')
@@ -1292,17 +1314,24 @@ def poa_two_group_fixedBeta(beta):
     print(
         f'worst_POA={worst_POA} and worst_pay={worst_pay * pay_step + pay_step},worst_beta={beta},'
         f'{worst_beta * beta_step + beta_step}')
-    return worst_POA
+    return worst_POA, dataList
 
 
 def poa_two_group():
     if not os.path.exists("figCvx"):
         os.makedirs("figCvx")
+    OutFileJson = "figCvx/SimWithPara"
     beta_step = 0.025  # phi_step
     beta_range = np.arange(2 / 10, 3 / 10, beta_step)
     PoA_vs_Beta = []
+    dataList = []
+    gamma = 1/10
     for beta in beta_range:
-        PoA_vs_Beta.append(poa_two_group_fixedBeta(beta))
+        worst, dataList = poa_two_group_fixedBeta(beta, gamma, dataList)
+        PoA_vs_Beta.append(worst)
+    #write out json
+    with open(OutFileJson, 'w') as json_file:
+        json.dump(dataList, json_file, indent=4)
 
     fig = plt.figure()
     ax1 = fig.add_subplot(121)
