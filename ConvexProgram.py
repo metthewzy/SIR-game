@@ -678,6 +678,7 @@ def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9
     return opt, NashValue, data
 
 
+
 def three_group_utility_cvxpy_tri(betas, gamma=1 / 14, epsilon=0.0001, payment2=1, payment3=1):
     """
     three-group utility plots of convex program
