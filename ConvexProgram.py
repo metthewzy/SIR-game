@@ -1320,7 +1320,7 @@ def poa_two_group_fixedBeta(beta, gamma, dataList):
 def poa_two_group():
     if not os.path.exists("figCvx"):
         os.makedirs("figCvx")
-    OutFileJson = "figCvx/SimWithPara"
+    OutFileJson = "figCvx/SimWithPara.json.json"
     beta_step = 0.025  # phi_step
     beta_range = np.arange(2 / 10, 3 / 10, beta_step)
     PoA_vs_Beta = []
