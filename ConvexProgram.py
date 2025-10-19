@@ -637,7 +637,7 @@ def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9
         plt.close(fig)
     # plt.show()
     # print(INDIV1-INDIV2)
-    UG1json = json.dumps(UG1)
+    # UG1json = json.dumps(UG1)
     DiffArrayN = np.array(INDIV1) - np.array(INDIV2)
     if DiffArrayN[0] > 0:
         if np.min(DiffArrayN) < 0:  # Assume b11 is highest always
@@ -659,20 +659,23 @@ def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9
             NashInd1 = 0
             NashValue = INDIV2[NashInd1]
 
-
     data = {
-        "beta" : round(beta,4),
-        "kappa" : round(kappa,4),
-        "gamma" : round(gamma,4),
-        "paymentRatio" : round(payment2,4),
-        "GroupUtility1" : UG1json,
-        "GroupUtility2" : json.dumps(UG2),
-        "IndUtility1" : json.dumps(INDIV1),
-        "IndUtility2" : json.dumps(INDIV2),
-        "PhiOpt" : round(phiOpt,4),
-        "OptIndex" : OptIndex,
-        "PhiNash" : round(phi_step+phi_step*NashInd1,4),
-        "NashIndex" : int(NashInd1)
+        "beta": round(beta, 4),
+        "kappa": round(kappa, 4),
+        "gamma": round(gamma, 4),
+        "paymentRatio": round(payment2, 4),
+        # "GroupUtility1": UG1json,
+        # "GroupUtility2": json.dumps(UG2),
+        # "IndUtility1": json.dumps(INDIV1),
+        # "IndUtility2": json.dumps(INDIV2),
+        "GroupUtility1": UG1,
+        "GroupUtility2": UG2,
+        "IndUtility1": INDIV1,
+        "IndUtility2": INDIV2,
+        "PhiOpt": round(phiOpt, 4),
+        "OptIndex": OptIndex,
+        "PhiNash": round(phi_step + phi_step * NashInd1, 4),
+        "NashIndex": int(NashInd1)
     }
 
     print(f'Opt={phiOpt} and Nash={NashInd1}')
@@ -1320,7 +1323,7 @@ def poa_two_group_fixedBeta(beta, gamma, dataList):
 def poa_two_group():
     if not os.path.exists("figCvx"):
         os.makedirs("figCvx")
-    OutFileJson = "figCvx/SimWithPara.json.json"
+    OutFileJson = "figCvx/SimWithPara.json"
     beta_step = 0.025  # phi_step
     beta_range = np.arange(2 / 10, 3 / 10, beta_step)
     PoA_vs_Beta = []
@@ -1329,7 +1332,8 @@ def poa_two_group():
     for beta in beta_range:
         worst, dataList = poa_two_group_fixedBeta(beta, gamma, dataList)
         PoA_vs_Beta.append(worst)
-    #write out json
+
+    # write out json
     with open(OutFileJson, 'w') as json_file:
         json.dump(dataList, json_file, indent=4)
 
