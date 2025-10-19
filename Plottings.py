@@ -23,8 +23,8 @@ def figure1():
     fig = plt.figure()
     ax1 = fig.add_subplot(1, 1, 1)
     for d in data:
-        UG1 = eval(d["GroupUtility1"])
-        UG2 = eval(d["GroupUtility2"])
+        UG1 = d["GroupUtility1"]
+        UG2 = d["GroupUtility2"]
         social = [U1 + U2 for U1, U2 in zip(UG1, UG2)]
         PaymentRatio = d["paymentRatio"]
         # print(type(PaymentRatio))
