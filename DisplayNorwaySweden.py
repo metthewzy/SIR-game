@@ -89,7 +89,7 @@ def read_oxford_data(confirmed, days):
     stringency_Norway = df.iloc[0]
     stringency_Sweden = df.iloc[1]
 
-    fig, ax = plt.subplots()
+    fig, ax1 = plt.subplots()
     colorS1 = 'lightgreen'
     colorS2 = 'lightblue'
     confirmed7_Norway = confirmed_Norway.rolling(7, min_periods=1).mean()
@@ -117,10 +117,10 @@ def read_oxford_data(confirmed, days):
     # dconfirmed =
     # ax.plot(Xdates, dconfirmed, color='red')
 
-    ax2 = ax.twinx()
-    ax.plot(days, stringency_Norway, color=colorS1, label='NorwayStringency')
-    ax.plot(days, stringency_Sweden, color=colorS2, label='SwedenStringency')
-    ax.set_ylim(0, 100)
+    ax2 = ax1.twinx()
+    ax1.plot(days, stringency_Norway, color=colorS1, label='NorwayStringency')
+    ax1.plot(days, stringency_Sweden, color=colorS2, label='SwedenStringency')
+    ax1.set_ylim(0, 100)
 
     # first_legend = True
     # for i in range(1, len(dconfirmed7A) - 1):
@@ -141,13 +141,13 @@ def read_oxford_data(confirmed, days):
     # plt.ticklabel_format(style='plain', axis='y')
     ax2.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, p: format(int(x), ',')))
     ax2.set_ylim(0, ax2.get_ylim()[1])
-    ax.set_xlim(days[0], days[-1])
-    ax.legend(loc='lower left', bbox_to_anchor=(-0.12, 1.02))
+    ax1.set_xlim(days[0], days[-1])
+    ax1.legend(loc='lower left', bbox_to_anchor=(-0.12, 1.02))
     ax2.legend(loc='lower right', bbox_to_anchor=(1.2, 1.02))
-    ax.set_ylabel('Policy Stringency Index')
+    ax1.set_ylabel('Policy Stringency Index')
     ax2.set_ylabel('Daily Cases')
     ax2.xaxis.set_visible(False)
-    ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+    ax1.xaxis.set_major_locator(mdates.AutoDateLocator())
     fig.autofmt_xdate()
     # plt.show()
     fig.savefig('COVIDandSTRINGENCY_data/stringency.png', bbox_inches='tight')
