@@ -1,9 +1,10 @@
 import pandas as pd
-import matplotlib
 import matplotlib.pyplot as plt
 import datetime as datetime
 import numpy as np
 from statsmodels.tsa.stattools import grangercausalitytests
+import matplotlib.dates as mdates
+import matplotlib.ticker as mticker
 
 oxford_file_path1 = 'COVIDandSTRINGENCY_data/NorwaySwedenStringency.csv'
 ConfirmFile = 'COVIDandSTRINGENCY_data/NS_cases_confirmed.csv'
@@ -79,7 +80,7 @@ def read_oxford_data(confirmed, days):
     start_date = "1-Feb-20"
     end_date = "1-Aug-20"
     start_index = df1.columns.get_loc(start_date)
-    end_index = df1.columns.get_loc(end_date)+1
+    end_index = df1.columns.get_loc(end_date) + 1
     df = df1.iloc[:, start_index:end_index]
     #	mask = (df['Date'].strptime("%d-%B-%y")).strftime("%y%m%d") > 20220401)
     # Norway_str =
@@ -88,17 +89,15 @@ def read_oxford_data(confirmed, days):
     stringency_Norway = df.iloc[0]
     stringency_Sweden = df.iloc[1]
 
-
     fig, ax = plt.subplots()
     colorS1 = 'lightgreen'
     colorS2 = 'lightblue'
     confirmed7_Norway = confirmed_Norway.rolling(7, min_periods=1).mean()
     confirmed7_Sweden = confirmed_Sweden.rolling(7, min_periods=1).mean()
     # dconfirmed_N = pd.Series(np.diff(confirmed))
-    dconfirmedN7 = pd.Series(np.diff(confirmed7_Norway))/5370
-    dconfirmedS7 = pd.Series(np.diff(confirmed7_Sweden))/10370
+    dconfirmedN7 = pd.Series(np.diff(confirmed7_Norway)) / 5370
+    dconfirmedS7 = pd.Series(np.diff(confirmed7_Sweden)) / 10370
     first_legend = True
-
 
     # X = dfstate['Date']
     # X = [str(d) for d in X]
@@ -118,10 +117,10 @@ def read_oxford_data(confirmed, days):
     # dconfirmed =
     # ax.plot(Xdates, dconfirmed, color='red')
 
+    ax2 = ax.twinx()
     ax.plot(days, stringency_Norway, color=colorS1, label='NorwayStringency')
     ax.plot(days, stringency_Sweden, color=colorS2, label='SwedenStringency')
     ax.set_ylim(0, 100)
-    ax2 = ax.twinx()
 
     # first_legend = True
     # for i in range(1, len(dconfirmed7A) - 1):
@@ -136,19 +135,20 @@ def read_oxford_data(confirmed, days):
     # ax2.plot(days, dconfirmedN7, color='red', label='Norway Daily Cases(7-day AVG) per population')
     # ax2.plot(days, dconfirmedS7, color='blue', label='Sweden Daily Cases(7-day AVG) per population')
 
-    ax2.plot(days,(confirmed7_Norway[1:])/5.37 , color='green', label='Norway Cumulative Cases(7-day AVG)')
-    ax2.plot(days,(confirmed7_Sweden[1:])/10.37 , color='blue', label='Sweden Cumulative Cases(7-day AVG)')
+    ax2.plot(days, (confirmed7_Norway[1:]) / 5.37, color='green', label='Norway Cumulative Cases(7-day AVG)')
+    ax2.plot(days, (confirmed7_Sweden[1:]) / 10.37, color='blue', label='Sweden Cumulative Cases(7-day AVG)')
 
     # plt.ticklabel_format(style='plain', axis='y')
-    ax2.get_yaxis().set_major_formatter(matplotlib.ticker.FuncFormatter(lambda x, p: format(int(x), ',')))
+    ax2.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, p: format(int(x), ',')))
     ax2.set_ylim(0, ax2.get_ylim()[1])
-    ax.set_xlim(days[0],days[-1])
+    ax.set_xlim(days[0], days[-1])
     ax.legend(loc='lower left', bbox_to_anchor=(-0.12, 1.02))
     ax2.legend(loc='lower right', bbox_to_anchor=(1.2, 1.02))
-    fig.autofmt_xdate()
     ax.set_ylabel('Policy Stringency Index')
     ax2.set_ylabel('Daily Cases')
-
+    ax2.get_xaxis().set_visible(False)
+    ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+    fig.autofmt_xdate()
     # plt.show()
     fig.savefig('COVIDandSTRINGENCY_data/stringency.png', bbox_inches='tight')
     # granger(Xdates, Y, Y1, policyRec)
