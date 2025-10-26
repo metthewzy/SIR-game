@@ -118,8 +118,8 @@ def read_oxford_data(confirmed, days):
     # ax.plot(Xdates, dconfirmed, color='red')
 
     ax2 = ax1.twinx()
-    ax1.plot(days, stringency_Norway, color=colorS1, label='NorwayStringency')
-    ax1.plot(days, stringency_Sweden, color=colorS2, label='SwedenStringency')
+    ax1.plot(days, stringency_Norway, color=colorS1, label='Norway Stringency')
+    ax1.plot(days, stringency_Sweden, color=colorS2, label='Sweden Stringency')
     ax1.set_ylim(0, 100)
 
     # first_legend = True
@@ -145,7 +145,7 @@ def read_oxford_data(confirmed, days):
     ax1.legend(loc='lower left', bbox_to_anchor=(-0.12, 1.02))
     ax2.legend(loc='lower right', bbox_to_anchor=(1.2, 1.02))
     ax1.set_ylabel('Policy Stringency Index')
-    ax2.set_ylabel('Daily Cases')
+    ax2.set_ylabel('Cumulative Cases per Million Population')
     ax2.xaxis.set_visible(False)
     ax1.xaxis.set_major_locator(mdates.AutoDateLocator())
     fig.autofmt_xdate()
