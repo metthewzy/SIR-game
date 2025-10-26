@@ -118,8 +118,8 @@ def read_oxford_data(confirmed, days):
     # ax.plot(Xdates, dconfirmed, color='red')
 
     ax2 = ax1.twinx()
-    ax1.plot(days, stringency_Norway, color=colorS1, label='Norway Stringency')
-    ax1.plot(days, stringency_Sweden, color=colorS2, label='Sweden Stringency')
+    ax1.plot(days, stringency_Norway, color=colorS1, linestyle="--", label='Norway Stringency')
+    ax1.plot(days, stringency_Sweden, color=colorS2, linestyle="--", label='Sweden Stringency')
     ax1.set_ylim(0, 100)
 
     # first_legend = True
