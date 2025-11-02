@@ -88,9 +88,10 @@ def figure3():
     ax = sns.heatmap(df, cmap="YlGnBu")
     ax.invert_yaxis()
     ax.set_title(fr"POA  $\beta={target_beta}$")
+    fig = ax.get_figure()
     plt.xlabel(r"$\kappa$")
     plt.ylabel("payment ratio")
-    plt.show()
+    fig.savefig("figCvx/fig3.png")
 
 
 def main():
