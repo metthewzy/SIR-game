@@ -1,13 +1,13 @@
 import matplotlib.pyplot as plt
 import json
 import numpy as np
-
+import seaborn as sns
 from ConvexProgram import phi_step
-
+import pandas as pd
 phi1_range = np.arange(phi_step, 1, phi_step)
 
 
-def figure1():
+def figure1_and_2():
     json_filename = "figCvx/SimWithPara.json"
     with open(json_filename, "r") as file:
         json_data = json.load(file)
@@ -37,9 +37,9 @@ def figure1():
         # print(type(PaymentRatio))
         # print(len(social))
         ax1.plot(phi1_range, social, label=f"payment ratio={PaymentRatio}")
-        ax2.plot(phi1_range, IU1, color = colorS1 ) # label=f"Ind utility 1={PaymentRatio}")
-        ax2.plot(phi1_range, IU2, color = colorS2, label=f"Ind utility 1={PaymentRatio}")
-        ax2.plot(nash_point,nash_value, 'ro', markersize = 10, label=f"NE @ {PaymentRatio}")
+        ax2.plot(phi1_range, IU1, color=colorS1)  # label=f"Ind utility 1={PaymentRatio}")
+        ax2.plot(phi1_range, IU2, color=colorS2, label=f"Ind utility 1={PaymentRatio}")
+        ax2.plot(nash_point, nash_value, 'ro', markersize=10, label=f"NE @ {PaymentRatio}")
 
     ax1.legend()
     ax1.set_title(f"Figure 1\nbeta={beta}, kappa={kappa}, gamma={gamma}")
@@ -54,8 +54,48 @@ def figure1():
     return
 
 
+def figure3():
+    json_filename = "figCvx/SimWithPara.json"
+    with open(json_filename, "r") as file:
+        json_data = json.load(file)
+    print("number of configurations:", len(json_data))
+    print("fileds:", list(json_data[0].keys()))
+    beta_list = [0.2, 0.225, 0.25, 0.275]
+    target_beta = beta_list[0]
+    print("target beta:", target_beta)
+    data = [d for d in json_data if d["beta"] == target_beta]
+    kappa_set = set([d["kappa"] for d in data])
+    kappa_list = sorted(kappa_set)
+    n = len(kappa_list)
+    paymentRatio_set = set([d["paymentRatio"] for d in data])
+    paymentRatio_list = sorted(paymentRatio_set)
+    m = len(paymentRatio_list)
+    table = np.zeros((m, n))
+    for d in data:
+        kappa = d["kappa"]
+        j = kappa_list.index(kappa)
+        paymentRatio = d["paymentRatio"]
+        i = paymentRatio_list.index(paymentRatio)
+        OptIndex = d["OptIndex"]
+        NashIndex = d["NashIndex"]
+        UG1 = d["GroupUtility1"]
+        UG2 = d["GroupUtility2"]
+        social_OPT = UG1[OptIndex] + UG2[OptIndex]
+        social_NASH = UG1[NashIndex] + UG2[NashIndex]
+        POA = social_OPT / social_NASH
+        table[i, j] = POA
+    df = pd.DataFrame(table, index=kappa_list, columns=kappa_list)
+    ax = sns.heatmap(df, cmap="YlGnBu")
+    ax.invert_yaxis()
+    ax.set_title(fr"POA  $\beta={target_beta}$")
+    plt.xlabel(r"$\kappa$")
+    plt.ylabel("payment ratio")
+    plt.show()
+
+
 def main():
-    figure1()
+    # figure1_and_2()
+    figure3()
 
 
 if __name__ == '__main__':
