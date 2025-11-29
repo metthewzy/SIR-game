@@ -14,8 +14,11 @@ def figure1_and_2():
 
     # use offset to select the 3 scenarios
     idx_offset = 0
-    data = json_data[idx_offset: idx_offset + 3]
-
+    # data = json_data[idx_offset: idx_offset + 3]
+    beta_list = [0.2, 0.225, 0.25, 0.275]
+    target_beta = beta_list[2]
+    target_kappa = 0.1
+    data = [d for d in json_data if (d["beta"] == target_beta) & (d["kappa"] == target_kappa)]
     beta = data[0]["beta"]
     kappa = data[0]["kappa"]
     gamma = data[0]["gamma"]
@@ -51,6 +54,8 @@ def figure1_and_2():
     ax2.set_xlabel(r"$\phi_1$")
     ax2.set_ylabel("Nash")
     fig2.savefig("figCvx/fig2.png")
+    plt.close(fig1)
+    plt.close(fig2)
     return
 
 
@@ -61,7 +66,7 @@ def figure3():
     print("number of configurations:", len(json_data))
     print("fileds:", list(json_data[0].keys()))
     beta_list = [0.2, 0.225, 0.25, 0.275]
-    target_beta = beta_list[0]
+    target_beta = beta_list[2]
     print("target beta:", target_beta)
     data = [d for d in json_data if d["beta"] == target_beta]
     kappa_set = set([d["kappa"] for d in data])
@@ -85,7 +90,7 @@ def figure3():
         POA = social_OPT / social_NASH
         table[i, j] = POA
     df = pd.DataFrame(table, index=kappa_list, columns=kappa_list)
-    ax = sns.heatmap(df, cmap="YlGnBu")
+    ax = sns.heatmap(df, cmap="YlOrRd")
     ax.invert_yaxis()
     ax.set_title(fr"POA  $\beta={target_beta}$")
     fig = ax.get_figure()
@@ -95,7 +100,7 @@ def figure3():
 
 
 def main():
-    # figure1_and_2()
+    figure1_and_2()
     figure3()
 
 

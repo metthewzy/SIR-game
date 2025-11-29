@@ -5,10 +5,13 @@ import numpy as np
 from statsmodels.tsa.stattools import grangercausalitytests
 import matplotlib.dates as mdates
 import matplotlib.ticker as mticker
+import csv
 
 oxford_file_path1 = 'COVIDandSTRINGENCY_data/NorwaySwedenStringency.csv'
 ConfirmFile = 'COVIDandSTRINGENCY_data/NS_cases_confirmed.csv'
 DeathFile = 'COVIDandSTRINGENCY_data/NS_deaths_confirmed.csv'
+inputcsv = 'COVIDandSTRINGENCY_data/OxCGRT_compact_national_v1.csv'
+outcsv = 'COVIDandSTRINGENCY_data/Norway_Sweden_Compact.csv'
 
 
 def read_NS_cases(start_date, end_date):
@@ -180,9 +183,50 @@ def granger(Xdates, Y, Y1, policyRec):
     return
 
 
+
+def extract_and_write_csv(input_filepath, output_filepath):
+    """
+    Reads a CSV file, extracts rows where a specified column contains a target code,
+    and writes these rows to a new CSV file.
+
+    Args:
+        input_filepath (str): Path to the input CSV file.
+        output_filepath (str): Path to the output CSV file.
+        column_index (int): The 0-based index of the column to check for the target code.
+        target_code (str): The specific code to search for within the specified column.
+    """
+    extracted_rows = []
+    column_index = 1
+    target_code1 = "NOR"
+    target_code2 = "SWE"
+    with open(input_filepath, 'r', newline='', encoding='utf-8') as infile:
+        reader = csv.reader(infile)
+        header = next(reader)  # Read the header row
+        extracted_rows.append(header) # Include header in the output
+
+        for row in reader:
+            if len(row) > column_index and ((row[column_index] == target_code1) or (row[column_index] == target_code2)):
+                extracted_rows.append(row)
+
+    with open(output_filepath, 'w', newline='', encoding='utf-8') as outfile:
+        writer = csv.writer(outfile)
+        writer.writerows(extracted_rows)
+
+    print(f"Extracted rows containing NOR&SWE in column {column_index} "
+          f"from '{input_filepath}' and saved to '{output_filepath}'.")
+    return
+
+
+
+
+
+
+
+
 def main():
-    confirmed, days = read_NS_cases('2/1/20', '8/1/20')
-    read_oxford_data(confirmed, days)
+    extract_and_write_csv(inputcsv,outcsv)
+    # confirmed, days = read_NS_cases('2/1/20', '8/1/20')
+    # read_oxford_data(confirmed, days)
     return
 
 

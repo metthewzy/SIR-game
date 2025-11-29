@@ -612,7 +612,7 @@ def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9
         if opt < totalU:
             opt = totalU
             phiOpt = phi1
-            OptIndex = len(INDIV1)
+            OptIndex = len(INDIV1)-1
         # if abs(indS1 - indS2) < epsilon:
         #     NashInd1 = phi1
     drawfig = False
@@ -657,7 +657,14 @@ def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9
             DiffArray = np.array(INDIV2)
             NashInd1 = 0
             NashValue = INDIV2[NashInd1]
-
+    print(f'phiOpt={phiOpt} and NashIndex={NashInd1}')
+    print(f'OptIndex={OptIndex}')
+    print(f'Opt={opt} and Nash={NashValue}')
+    opt1 = UG1[OptIndex]
+    opt2 = UG2[OptIndex]
+    social_OPT = UG1[OptIndex] + UG2[OptIndex]
+    social_NASH = UG1[int(NashInd1)] + UG2[int(NashInd1)]
+    POA = social_OPT / social_NASH
     data = {
         "beta": round(beta, 4),
         "kappa": round(kappa, 4),
@@ -670,11 +677,13 @@ def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9
         "PhiOpt": round(phiOpt, 4),
         "OptIndex": OptIndex,
         "PhiNash": round(phi_step + phi_step * NashInd1, 4),
-        "NashIndex": int(NashInd1)
+        "NashIndex": int(NashInd1),
+        "social_OPT": social_OPT,
+        "social_NASH": social_NASH,
+        "POA": POA
     }
 
-    print(f'Opt={phiOpt} and Nash={NashInd1}')
-    print(f'Opt={opt} and Nash={NashValue}')
+
     return opt, NashValue, data
 
 
@@ -1291,9 +1300,9 @@ def three_group():
 
 def poa_two_group_fixedBeta(beta, gamma, dataList):
     phi_step = 0.1
-    beta_step = 0.25
+    beta_step = 0.1
     beta_range = np.arange(beta_step, 1, beta_step)
-    pay_step = 0.25
+    pay_step = 0.10
     pay_range = np.arange(pay_step, 1, pay_step)
     beta_i = 0
     pay_i = 0
@@ -1341,6 +1350,7 @@ def poa_two_group():
     ax1.legend()
     fig.savefig(f'figCvx/POAvsBeta.png')
     plt.show()
+
 
 
 def main():
