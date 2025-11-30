@@ -28,7 +28,8 @@ def figure1_and_2():
     fig2 = plt.figure()
     ax1 = fig1.add_subplot(1, 1, 1)
     ax2 = fig2.add_subplot(1, 1, 1)
-    for d in data:
+    IU1_plotted = False
+    for d in data[::-1]:
         UG1 = d["GroupUtility1"]
         UG2 = d["GroupUtility2"]
         social = [U1 + U2 for U1, U2 in zip(UG1, UG2)]
@@ -40,19 +41,24 @@ def figure1_and_2():
         # print(type(PaymentRatio))
         # print(len(social))
         ax1.plot(phi1_range, social, label=f"payment ratio={PaymentRatio}")
-        ax2.plot(phi1_range, IU1, color=colorS1)  # label=f"Ind utility 1={PaymentRatio}")
-        ax2.plot(phi1_range, IU2, color=colorS2, label=f"Ind utility 1={PaymentRatio}")
-        ax2.plot(nash_point, nash_value, 'ro', markersize=10, label=f"NE @ {PaymentRatio}")
+        # ax2.plot(phi1_range, IU1, color=colorS1)  # label=f"Ind utility 1={PaymentRatio}")
+        # ax2.plot(phi1_range, IU2, color=colorS2, label=f"Ind utility 1={PaymentRatio}")
+        # ax2.plot(nash_point, nash_value, 'ro', markersize=10, label=f"NE @ {PaymentRatio}")
+        if not IU1_plotted:
+            IU1_plotted = True
+            ax2.plot(phi1_range, IU1, label="Group 1")  # label=f"Ind utility 1={PaymentRatio}")
+        ax2.plot(phi1_range, IU2, label=f"Group 2 @{PaymentRatio}")
+        ax2.plot(nash_point, nash_value, 'ro', markersize=10)
 
     ax1.legend()
-    ax1.set_title(f"Figure 1\nbeta={beta}, kappa={kappa}, gamma={gamma}")
+    ax1.set_title(f"Social\nbeta={beta}, kappa={kappa}, gamma={gamma}")
     ax1.set_xlabel(r"$\phi_1$")
     ax1.set_ylabel("Social")
     fig1.savefig("figCvx/fig1.png")
     ax2.legend()
-    ax2.set_title(f"Figure 2\nbeta={beta}, kappa={kappa}, gamma={gamma}")
+    ax2.set_title(f"Individual utility and Nash\nbeta={beta}, kappa={kappa}, gamma={gamma}")
     ax2.set_xlabel(r"$\phi_1$")
-    ax2.set_ylabel("Nash")
+    ax2.set_ylabel("Individual utility")
     fig2.savefig("figCvx/fig2.png")
     plt.close(fig1)
     plt.close(fig2)
@@ -101,7 +107,7 @@ def figure3():
 
 def main():
     figure1_and_2()
-    figure3()
+    # figure3()
 
 
 if __name__ == '__main__':
