@@ -40,14 +40,14 @@ def figure1_and_2():
         nash_value = IU1[d["NashIndex"]]
         # print(type(PaymentRatio))
         # print(len(social))
-        ax1.plot(phi1_range, social, label=f"payment ratio={PaymentRatio}")
+        ax1.plot(phi1_range, social, label=f"eta={PaymentRatio}")
         # ax2.plot(phi1_range, IU1, color=colorS1)  # label=f"Ind utility 1={PaymentRatio}")
         # ax2.plot(phi1_range, IU2, color=colorS2, label=f"Ind utility 1={PaymentRatio}")
         # ax2.plot(nash_point, nash_value, 'ro', markersize=10, label=f"NE @ {PaymentRatio}")
         if not IU1_plotted:
             IU1_plotted = True
             ax2.plot(phi1_range, IU1, label="Group 1")  # label=f"Ind utility 1={PaymentRatio}")
-        ax2.plot(phi1_range, IU2, label=f"Group 2 @{PaymentRatio}")
+        ax2.plot(phi1_range, IU2, label=f"Group 2, eta={PaymentRatio}")
         ax2.plot(nash_point, nash_value, 'ro', markersize=10)
 
     ax1.legend()
