@@ -612,7 +612,7 @@ def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9
         if opt < totalU:
             opt = totalU
             phiOpt = phi1
-            OptIndex = len(INDIV1)-1
+            OptIndex = len(INDIV1) - 1
         # if abs(indS1 - indS2) < epsilon:
         #     NashInd1 = phi1
     drawfig = False
@@ -683,9 +683,7 @@ def two_group_utility_cvxpy(beta=3 / 14, gamma=1 / 14, epsilon=0.0001, kappa=0.9
         "POA": POA
     }
 
-
     return opt, NashValue, data
-
 
 
 def three_group_utility_cvxpy_tri(betas, gamma=1 / 14, epsilon=0.0001, payment2=1, payment3=1):
@@ -1300,17 +1298,23 @@ def three_group():
 
 def poa_two_group_fixedBeta(beta, gamma, dataList):
     phi_step = 0.1
-    beta_step = 0.1
-    beta_range = np.arange(beta_step, 1, beta_step)
-    pay_step = 0.10
-    pay_range = np.arange(pay_step, 1, pay_step)
+    kappa_step = 0.05
+    kappa_range = np.arange(kappa_step, 1 + kappa_step, kappa_step)
+    pay_step = 0.05
+    pay_range = np.arange(pay_step, 1 + pay_step, pay_step)
     beta_i = 0
     pay_i = 0
     POA_list = []
-    for beta_s in beta_range:
+    for kappa_s in kappa_range:
         POA_beta = []
         for payment2 in pay_range:
-            opt, Nash, data = two_group_utility_cvxpy(beta, gamma=1 / 10, epsilon=0.0001, kappa=beta_s, payment2=payment2)
+            opt, Nash, data = two_group_utility_cvxpy(
+                beta=beta,
+                gamma=1 / 10,
+                epsilon=0.0001,
+                kappa=kappa_s,
+                payment2=payment2
+            )
             POA_beta.append(opt / Nash)
             dataList.append(data)
         POA_list.append(POA_beta)
@@ -1320,7 +1324,7 @@ def poa_two_group_fixedBeta(beta, gamma, dataList):
     worst_beta, worst_pay = np.unravel_index(np.argmax(POA_array, axis=None), POA_array.shape)
     print(
         f'worst_POA={worst_POA} and worst_pay={worst_pay * pay_step + pay_step},worst_beta={beta},'
-        f'{worst_beta * beta_step + beta_step}')
+        f'{worst_beta * kappa_step + kappa_step}')
     return worst_POA, dataList
 
 
@@ -1332,7 +1336,7 @@ def poa_two_group():
     beta_range = np.arange(2 / 10, 3 / 10, beta_step)
     PoA_vs_Beta = []
     dataList = []
-    gamma = 1/10
+    gamma = 1 / 10
     for beta in beta_range:
         worst, dataList = poa_two_group_fixedBeta(beta, gamma, dataList)
         PoA_vs_Beta.append(worst)
@@ -1350,7 +1354,6 @@ def poa_two_group():
     ax1.legend()
     fig.savefig(f'figCvx/POAvsBeta.png')
     plt.show()
-
 
 
 def main():

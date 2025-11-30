@@ -4,6 +4,7 @@ import numpy as np
 import seaborn as sns
 from ConvexProgram import phi_step
 import pandas as pd
+
 phi1_range = np.arange(phi_step, 1, phi_step)
 
 
@@ -24,8 +25,8 @@ def figure1_and_2():
     gamma = data[0]["gamma"]
     colorS1 = 'lightgreen'
     colorS2 = 'lightblue'
-    fig1 = plt.figure()
-    fig2 = plt.figure()
+    fig1 = plt.figure(figsize=(6, 4.8))
+    fig2 = plt.figure(figsize=(6, 4.8))
     ax1 = fig1.add_subplot(1, 1, 1)
     ax2 = fig2.add_subplot(1, 1, 1)
     IU1_plotted = False
@@ -40,25 +41,28 @@ def figure1_and_2():
         nash_value = IU1[d["NashIndex"]]
         # print(type(PaymentRatio))
         # print(len(social))
-        ax1.plot(phi1_range, social, label=f"eta={PaymentRatio}")
+        ax1.plot(phi1_range, social, label=fr"$\eta$={PaymentRatio}")
         # ax2.plot(phi1_range, IU1, color=colorS1)  # label=f"Ind utility 1={PaymentRatio}")
         # ax2.plot(phi1_range, IU2, color=colorS2, label=f"Ind utility 1={PaymentRatio}")
         # ax2.plot(nash_point, nash_value, 'ro', markersize=10, label=f"NE @ {PaymentRatio}")
         if not IU1_plotted:
             IU1_plotted = True
             ax2.plot(phi1_range, IU1, label="Group 1")  # label=f"Ind utility 1={PaymentRatio}")
-        ax2.plot(phi1_range, IU2, label=f"Group 2, eta={PaymentRatio}")
+        ax2.plot(phi1_range, IU2, label=rf"Group 2, $\eta$={PaymentRatio}")
         ax2.plot(nash_point, nash_value, 'ro', markersize=10)
-
+    ax1.set_xlim(0, 1)
+    ax2.set_xlim(0, 1)
     ax1.legend()
-    ax1.set_title(f"Social\nbeta={beta}, kappa={kappa}, gamma={gamma}")
+    ax1.set_title("Social\n"rf"$\beta$={beta}, $\kappa$={kappa}, $\gamma$={gamma}", fontsize=16)
     ax1.set_xlabel(r"$\phi_1$")
     ax1.set_ylabel("Social")
+    fig1.tight_layout()
     fig1.savefig("figCvx/fig1.png")
     ax2.legend()
-    ax2.set_title(f"Individual utility and Nash\nbeta={beta}, kappa={kappa}, gamma={gamma}")
+    ax2.set_title("Individual Utility and Nash\n"rf"$\beta$={beta}, $\kappa$={kappa}, $\gamma$={gamma}", fontsize=16)
     ax2.set_xlabel(r"$\phi_1$")
     ax2.set_ylabel("Individual utility")
+    fig2.tight_layout()
     fig2.savefig("figCvx/fig2.png")
     plt.close(fig1)
     plt.close(fig2)
@@ -98,16 +102,16 @@ def figure3():
     df = pd.DataFrame(table, index=kappa_list, columns=kappa_list)
     ax = sns.heatmap(df, cmap="YlOrRd")
     ax.invert_yaxis()
-    ax.set_title(fr"POA  $\beta={target_beta}$")
+    ax.set_title("POA\n"rf"$\beta={target_beta}$", fontsize=16)
     fig = ax.get_figure()
     plt.xlabel(r"$\kappa$")
-    plt.ylabel("payment ratio")
+    plt.ylabel(r"$\eta$")
     fig.savefig("figCvx/fig3.png")
 
 
 def main():
     figure1_and_2()
-    # figure3()
+    figure3()
 
 
 if __name__ == '__main__':
