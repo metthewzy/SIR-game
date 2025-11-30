@@ -1310,7 +1310,7 @@ def poa_two_group_fixedBeta(beta, gamma, dataList):
         for payment2 in pay_range:
             opt, Nash, data = two_group_utility_cvxpy(
                 beta=beta,
-                gamma=1 / 10,
+                gamma=gamma,
                 epsilon=0.0001,
                 kappa=kappa_s,
                 payment2=payment2
